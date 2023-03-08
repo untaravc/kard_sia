@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="769d13bd-55d1-4707-9734-31ff137f8d7c" name="sia_kardio">
+        <fileTransfer rootFolder="/home/u9090851/public_html" accessType="SFTP" host="srv66.niagahoster.com" port="65002" sshConfigId="ae993f11-531b-4c66-b28f-da2b0a828edf" sshConfig="kardio" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
