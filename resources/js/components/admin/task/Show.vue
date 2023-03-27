@@ -25,13 +25,14 @@
                                 <tr>
                                     <th>Urutan</th>
                                     <th>Nama</th>
-<!--                                    <th>Tipe</th>-->
+                                    <th>Tipe</th>
                                     <th><span style="float: right">Aksi</span></th>
                                 </tr>
                                 <tbody>
                                 <tr role="row" class="odd" v-for="(data, i) in dataContent.data" :key="data.id">
                                     <td>{{data.order}}</td>
                                     <td>{{data.name}}</td>
+                                    <td>{{data.type}}</td>
                                     <td class="action-button">
                                         <button class="btn btn-sm btn-danger" @click="deleteData(data.id)">
                                             <i class="fa fa-trash"></i>
@@ -88,22 +89,28 @@
                                        class="form-control" :class="{ 'is-invalid': form.errors.has('order') }">
                                 <has-error :form="form" field="order"></has-error>
                             </div>
-<!--                            <div class="col-md-6">-->
-<!--                                <label>Tipe</label>-->
-<!--                                <div class="form-check">-->
-<!--                                    <input class="form-check-input" v-model="form.type" type="radio" name="type" id="option" value="option">-->
-<!--                                    <label class="form-check-label" for="option">-->
-<!--                                        Pilihan-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                                <div class="form-check">-->
-<!--                                    <input class="form-check-input" v-model="form.type" type="radio" name="type" id="text" value="text">-->
-<!--                                    <label class="form-check-label" for="text">-->
-<!--                                        Isian-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                                <has-error :form="form" field="type"></has-error>-->
-<!--                            </div>-->
+                            <div class="col-md-6">
+                                <label>Tipe</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" v-model="form.type" type="radio" name="type" id="option" value="score">
+                                    <label class="form-check-label" for="option">
+                                        Angka
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" v-model="form.type" type="radio" name="type" id="text" value="text">
+                                    <label class="form-check-label" for="text">
+                                        Isian
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" v-model="form.type" type="radio" name="type" id="bool" value="bool">
+                                    <label class="form-check-label" for="bool">
+                                        Ya - Tidak
+                                    </label>
+                                </div>
+                                <has-error :form="form" field="type"></has-error>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

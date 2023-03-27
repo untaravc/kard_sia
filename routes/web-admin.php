@@ -100,6 +100,7 @@ Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
     Route::get('/pdf/permohonan-stase', [DownloadController::class, 'permohonan_stase']);
     Route::get('/pdf/pembimbing-stase', [DownloadController::class, 'pembimbing_stase']);
     Route::get('/pdf/logbook-stase', [DownloadController::class, 'logbook_stase']);
+    Route::get('/pdf/agenda_by_lecture', [DownloadController::class, 'agenda_by_lecture']);
 
     // Import
     Route::post('/import-soal', [\App\Http\Controllers\Object\ImportController::class, 'import']);

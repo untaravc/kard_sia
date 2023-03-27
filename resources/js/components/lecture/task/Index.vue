@@ -33,31 +33,70 @@
                                     <div class="form-group" v-if="i < (dataDetail.stase_task_log_point.length / 2) "
                                          v-for="(data, i) in dataDetail.stase_task_log_point" :key="i">
                                         <div class="card-body">
-                                            <p class="mb-0">{{ data.order }}. {{ data.task_detail.name }}</p>
-                                            <vue-slider
-                                                @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
-                                                v-model="formRaw.no[data.order-1]"
-                                                ref="slider"
-                                                value="50"
-                                                v-bind="options"
-                                                class="ml-4"
-                                            ></vue-slider>
+                                            <div class="mb-2">{{ data.order }}. {{ data.task_detail.name }}</div>
+                                            <div class="pl-3" v-if="data.task_detail.type !== 'bool'">
+                                                <vue-slider
+                                                    @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
+                                                    v-model="formRaw.no[data.order-1]"
+                                                    ref="slider"
+                                                    value="50"
+                                                    v-bind="options"
+                                                    class="ml-4"
+                                                ></vue-slider>
+                                            </div>
+                                            <div class="pl-3" v-if="data.task_detail.type === 'bool'">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input"
+                                                           @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
+                                                           v-model="formRaw.no[data.order-1]"
+                                                           type="radio" :id="'radio1_' + (data.order-1)" value="1">
+                                                    <label class="form-check-label"
+                                                           :for="'radio1_' + (data.order-1)">Ya</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input"
+                                                           @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
+                                                           v-model="formRaw.no[data.order-1]" type="radio"
+                                                           :id="'radio2_' + (data.order-1)" value="0">
+                                                    <label class="form-check-label" :for="'radio2_' + (data.order-1)">Tidak</label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
-                                    <div class="form-group" v-if="(i + 0.1) > (dataDetail.stase_task_log_point.length / 2) "
+                                    <div class="form-group"
+                                         v-if="(i + 0.1) > (dataDetail.stase_task_log_point.length / 2) "
                                          v-for="(data, i) in dataDetail.stase_task_log_point" :key="i">
                                         <div class="card-body">
                                             <p class="mb-0">{{ data.order }}. {{ data.task_detail.name }}</p>
-                                            <vue-slider
-                                                @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
-                                                v-model="formRaw.no[data.order-1]"
-                                                ref="slider"
-                                                value="50"
-                                                v-bind="options"
-                                                class="ml-4"
-                                            ></vue-slider>
+                                            <div class="pl-3" v-if="data.task_detail.type !== 'bool'">
+                                                <vue-slider
+                                                    @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
+                                                    v-model="formRaw.no[data.order-1]"
+                                                    ref="slider"
+                                                    value="50"
+                                                    v-bind="options"
+                                                    class="ml-4"
+                                                ></vue-slider>
+                                            </div>
+                                            <div class="pl-3" v-if="data.task_detail.type === 'bool'">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input"
+                                                           @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
+                                                           v-model="formRaw.no[data.order-1]"
+                                                           type="radio" :id="'radio1_' + (data.order-1)" value="1">
+                                                    <label class="form-check-label"
+                                                           :for="'radio1_' + (data.order-1)">Ya</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input"
+                                                           @change="processPoint(data.order, data.id, formRaw.no[data.order-1])"
+                                                           v-model="formRaw.no[data.order-1]" type="radio"
+                                                           :id="'radio2_' + (data.order-1)" value="0">
+                                                    <label class="form-check-label" :for="'radio2_' + (data.order-1)">Tidak</label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

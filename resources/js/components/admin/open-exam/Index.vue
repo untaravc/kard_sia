@@ -67,7 +67,7 @@
                                 </div>
                                 <div class="col-sm-12 col-md-7">
                                     <div class="dataTables_paginate paging_simple_numbers" style="float: right">
-                                        <pagination :data="dataContent" @pagination-change-page="pagination"></pagination>
+                                        <pagination :data="dataContent" :limit="3" @pagination-change-page="pagination"></pagination>
                                     </div>
                                 </div>
                             </div>

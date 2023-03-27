@@ -226,6 +226,7 @@
                                 <tr role="row" class="odd"
                                     v-for="(data, i) in dataDetail.stase_logs_active.stase.stase_tasks" :key="data.id">
                                     <td>
+                                        <div v-if="data.open_stase_task" style="font-style: italic">Rencana: {{data.open_stase_task.plan | formatDate}}</div>
                                         <span v-if="data.open_stase_task" class="badge badge-success">open</span>
                                         <span v-if="!data.open_stase_task" class="badge badge-secondary">close</span>
                                         <b class="mb-0">{{ data.name }}</b>
