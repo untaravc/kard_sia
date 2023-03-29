@@ -64,6 +64,11 @@
                                         <br>
                                         <small v-if="data.creator">ts: {{data.creator.name}}</small> <br>
                                         <a v-if="data.category === 7 || data.category === 8"
+                                           class="btn btn-outline-primary btn-sm" target="_blank"
+                                           :href="'/sadmin/pdf/undangan-referat-lapsus/' + data.id">
+                                            <i class="fa fa-download"></i> Undangan
+                                        </a>
+                                        <a v-if="data.category === 7 || data.category === 8"
                                            class="btn btn-outline-info btn-sm" target="_blank"
                                            :href="'/sadmin/pdf/sk-referat-lapsus/' + data.id">
                                             <i class="fa fa-download"></i> Surat Keterangan

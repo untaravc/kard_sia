@@ -153,66 +153,9 @@
 
                 </div>
                 <div class="col-md-8">
-                    <!--                    Agenda-->
-                    <div class="card card-outline card-primary">
-                        <div class="card-header">
-                            <h3 class="card-title">Agenda Hari Ini</h3>
-                            <div class="card-tools">
-                                <router-link to="/resident/activity" class="btn btn-sm btn-th-dark">
-                                    <i class="fa fa-calendar-alt"></i>
-                                    Semua agenda
-                                </router-link>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <table v-if="schedules && schedules[0]" class="table">
-                                <tr v-for="(sch, s) in schedules" :key="s">
-                                    <td>
-                                        {{ sch.name }}<br>
-                                        <small>
-                                            <b v-if="sch.speaker">{{ sch.speaker }}:</b> {{ sch.title }} <br>
-                                            <i v-if="sch.absence">
-                                                Anda telah presensi pada
-                                                {{ sch.absence.created_at | formatDateTime }}
-                                            </i>
-                                        </small>
-                                    </td>
-                                    <td class="text-right">
-                                        <a :href="'/presensi/' + sch.id" v-if="!sch.absence"
-                                           class="btn btn-wd btn-sm btn-success">Presensi</a>
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <div v-if="schedules && !schedules[0]" class="p-3">
-                                <i>Tidak ada agenda</i>
-                            </div>
-                        </div>
-                    </div>
+                    <DashboardAgenda></DashboardAgenda>
                     <!--                    Ujian Online-->
-                    <div class="card card-outline card-primary">
-                        <div class="card-header">
-                            <h3 class="card-title">Ujian Online</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <table v-if="exams && exams[0]" class="table">
-                                <tr v-for="(ex, e) in exams" :key="e">
-                                    <td>
-                                        <span v-if="ex.exam">{{ ex.exam.name }}</span>
-                                        <span v-if="ex.exam" class="badge badge-info">{{ ex.exam.duration }} min</span>
-                                    </td>
-                                    <td class="text-right">
-                                        <a v-if="ex.exam" :href="ex.exam.direct_link"
-                                           class="btn btn-wd btn-sm btn-success">Mulai</a>
-                                    </td>
-                                </tr>
-                            </table>
 
-                            <div v-if="exams && !exams[0]" class="p-3">
-                                <i>Tidak ada jadwal</i>
-                            </div>
-                        </div>
-                    </div>
                     <!--                    Penilaian-->
                     <div class="card card-outline card-primary" v-if="dataDetail.stase_logs_active ">
                         <div class="card-body table-responsive p-0">
@@ -226,7 +169,6 @@
                                 <tr role="row" class="odd"
                                     v-for="(data, i) in dataDetail.stase_logs_active.stase.stase_tasks" :key="data.id">
                                     <td>
-                                        <div v-if="data.open_stase_task" style="font-style: italic">Rencana: {{data.open_stase_task.plan | formatDate}}</div>
                                         <span v-if="data.open_stase_task" class="badge badge-success">open</span>
                                         <span v-if="!data.open_stase_task" class="badge badge-secondary">close</span>
                                         <b class="mb-0">{{ data.name }}</b>
@@ -317,7 +259,7 @@
                                     <has-error :form="form" field="plan"></has-error>
                                 </div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="form-group" :class="{ 'is-invalid': form.errors.has('lecture_ids') }">
                                     <label>Dosen Penguji</label>
                                     <div class="form-check" v-for="(data, i) in dataRaw.lectures" :key="i"
@@ -678,7 +620,11 @@
 </template>
 
 <script>
+import DashboardAgenda from "./DashboardAgenda";
 export default {
+    components:{
+        DashboardAgenda
+    },
     data() {
         return {
             base_url: '/cmsr/stases',
@@ -686,8 +632,6 @@ export default {
             editStaseMode: false,
             disable: false,
             dataDetail: {},
-            schedules: {},
-            exams: {},
             scheduleDetail: {},
             stase: {
                 stase_id: null,
@@ -759,12 +703,6 @@ export default {
                     this.dataRaw.lectures = data;
                 })
         },
-        loadSchedule() {
-            axios.get('/cmsr/get-schedule')
-                .then((response) => {
-                    this.schedules = response.data
-                })
-        },
         loadStase() {
             axios.get('/cmsr/get-stases/' + this.user.id)
                 .then(({data}) => {
@@ -775,14 +713,6 @@ export default {
             axios.get('/cmsr/info-cards/')
                 .then(({data}) => {
                     this.dataRaw.info_cards = data
-                })
-        },
-        loadExam() {
-            axios.get('/cmsr/exams')
-                .then(({data}) => {
-                    if (data.status) {
-                        this.exams = data.data
-                    }
                 })
         },
         loadStaseLog(stase_id) {
@@ -954,13 +884,10 @@ export default {
     created() {
         this.loadData();
         this.loadLectures();
-        this.loadSchedule();
         this.loadInfoCards();
-        this.loadExam();
 
         Fire.$on('ModalSuccess', () => {
             this.loadData();
-            this.loadSchedule();
             this.popGlobalSuccess({});
             $('#openModal').modal('hide');
             $('#uploadModal').modal('hide');

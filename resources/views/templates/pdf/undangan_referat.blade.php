@@ -1,18 +1,24 @@
 <!doctype html>
 <html lang="en">
 <head>
+    @php
+        $tipe = "Laporan Kasus";
+        $stase_name = '';
+
+        if(isset($data['activity']['stase'])){
+            $stase_name = $data['activity']['stase']['name'];
+        }
+
+        if(in_array($stase_name, ['Referat Basic', 'Referat Clinic', 'Referat Thesis','Tesis'])){
+            $tipe = '';
+        }
+    @endphp
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Undangan Presentasi Laporan Kasus
-        @if(isset($data['activity']['stase']))
-            {{$data['activity']['stase']['name']}}
-        @endif
-    </title>
+    <title>Undangan Presentasi {{$tipe}}</title>
 </head>
-
-
 <style>
     body {
         font-size: 12px;
@@ -52,7 +58,7 @@
                     <td>Perihal</td>
                     <td>:</td>
                     <td>
-                        Undangan Presentasi Laporan Kasus
+                        Undangan Presentasi {{$tipe}}
                         @if(isset($data['activity']['stase']))
                             {{$data['activity']['stase']['name']}}
                         @endif
