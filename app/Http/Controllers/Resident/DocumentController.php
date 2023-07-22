@@ -145,6 +145,11 @@ class DocumentController extends Controller {
                 ],
             ],
             [
+                'name' => 'Pengabdian Masyarakat',
+                'desc' => 'pengabdian_masyarakat',
+                'note' => []
+            ],
+            [
                 'name' => 'Lain lain',
                 'desc' => 'lain_lain',
                 'note' => []

@@ -138,7 +138,8 @@
                                                 {{ data.end_date | formatDate }}
                                             </small>
                                             <small v-if="data.stase && data.status === 'finish'">
-                                                <a target="_blank" :href="'/cmsr/take-evaluation-stase/' + data.id" v-if="data.stase.evaluation_link">
+                                                <a target="_blank" :href="'/cmsr/take-evaluation-stase/' + data.id"
+                                                   v-if="data.stase.evaluation_link">
                                                     <i class="fa fa-check-circle" v-if="data.evaluated_at"></i>
                                                     Form Evaluasi
                                                 </a>
@@ -169,6 +170,9 @@
                                 <tr role="row" class="odd"
                                     v-for="(data, i) in dataDetail.stase_logs_active.stase.stase_tasks" :key="data.id">
                                     <td>
+                                        <div v-if="data.open_stase_task" class="text-sm">
+                                            <i>{{ data.open_stase_task.plan | formatDate }}</i>
+                                        </div>
                                         <span v-if="data.open_stase_task" class="badge badge-success">open</span>
                                         <span v-if="!data.open_stase_task" class="badge badge-secondary">close</span>
                                         <b class="mb-0">{{ data.name }}</b>
@@ -245,7 +249,8 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label>Judul</label>
-                                    <textarea class="form-control" v-model="form.title" :class="{ 'is-invalid': form.errors.has('title') }">
+                                    <textarea class="form-control" v-model="form.title"
+                                              :class="{ 'is-invalid': form.errors.has('title') }">
                                         {{ form.title }}
                                     </textarea>
                                     <has-error :form="form" field="title"></has-error>
@@ -522,8 +527,8 @@
                                 <div class="form-group">
                                     <label>Status</label>
                                     <select v-model="user.degree"
-                                           class="form-control"
-                                           :class="{ 'is-invalid': user.errors.has('degree') }">
+                                            class="form-control"
+                                            :class="{ 'is-invalid': user.errors.has('degree') }">
                                         <option value="Pegawai Negri Sipil">Pegawai Negri Sipil</option>
                                         <option value="Pegawai Swasta">Pegawai Swasta</option>
                                         <option value="TNI/Polri">TNI/Polri</option>
@@ -540,7 +545,10 @@
                                     <select v-model="user.lecture_id"
                                             class="form-control"
                                             :class="{ 'is-invalid': user.errors.has('lecture_id') }">
-                                        <option v-for="lecture in dataRaw.lectures" :value="lecture.id">{{ lecture.name }}</option>
+                                        <option v-for="lecture in dataRaw.lectures" :value="lecture.id">{{
+                                                lecture.name
+                                            }}
+                                        </option>
                                     </select>
                                     <has-error :form="user" field="lecture_id"></has-error>
                                 </div>
@@ -621,8 +629,9 @@
 
 <script>
 import DashboardAgenda from "./DashboardAgenda";
+
 export default {
-    components:{
+    components: {
         DashboardAgenda
     },
     data() {

@@ -140,6 +140,7 @@
                 axios.get('/timer-data?r='+r)
                     .then(({data}) => {
                         this.timer = data.result;
+                        this.checkTransition()
                     })
             },
             checkTransition() {
@@ -154,6 +155,7 @@
                 } else {
                     clearInterval(this.beepFunction);
                     this.beep_started = false;
+                    this.green_mode = false
                 }
             },
             play(type = 'start') {
@@ -208,6 +210,14 @@
         computed: {
             time_countdown() {
                 let minutes = this.timer.countdown;
+
+                let status = this.timer.transition_time;
+                if(status){
+                    return {
+                        minute: '00',
+                        second: '00'
+                    }
+                }
 
                 return {
                     minute: Math.floor(minutes / 60),
