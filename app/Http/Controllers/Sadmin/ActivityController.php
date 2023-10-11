@@ -19,7 +19,11 @@ class ActivityController extends Controller
                 'activity_lectures',
                 'activity_students'
             ])
+<<<<<<< HEAD
             ->orderByDesc('start_date');
+=======
+            ->orderByDesc('id');
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);

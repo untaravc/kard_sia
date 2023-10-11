@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <h5>KRITERIA 4. SUMBER DAYA MANUSIA</h5>
+=======
+<h5>SUMBER DAYA MANUSIA</h5>
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 <div class="row">
     <div class="col-12">
         <div class="accordion accordion-flush border" id="accordionK4">

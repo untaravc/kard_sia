@@ -40,7 +40,9 @@ class StaseTaskLog extends Model
     }
 
     public function staseTaskLogPointFilled(){
-        return $this->hasMany(StaseTaskLogPoint::class)->where('score', '!=', null);
+        return $this->hasMany(StaseTaskLogPoint::class)
+            ->where('score', '>', 10)
+            ->where('score', '!=', null);
     }
 
     public function files(){

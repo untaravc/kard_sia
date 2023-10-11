@@ -31,7 +31,9 @@ Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
     Route::resource('open-stase-tasks', 'Sadmin\OpenStaseTaskController');
     Route::resource('activities', 'Sadmin\ActivityController');
     Route::resource('documents', 'Sadmin\DocumentController');
+
     Route::resource('documents-review', 'Sadmin\DocumentReviewController');
+
     Route::resource('presences', 'Sadmin\PresenceController');
     Route::resource('exams', 'Sadmin\ExamController');
     Route::resource('letters', 'Sadmin\LetterController');

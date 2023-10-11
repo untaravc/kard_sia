@@ -53,7 +53,7 @@ class TimerController extends Controller
         $diff_sec = $this->this_time() - strtotime($data['start_at']);
 
         $sisa_bagi = $diff_sec % $total_duration;
-        $data['order'] = ceil($diff_sec / $total_duration);
+        $data['order'] = max(ceil($diff_sec / $total_duration), 0);
         $data['reminder'] = $this->reminder;
 
         if($sisa_bagi < $in_room){
@@ -64,6 +64,10 @@ class TimerController extends Controller
             $data['text'] = 'PERPINDAHAN ruang peserta ujian';
             $data['transition_time'] = true;
             $data['countdown'] = $in_room + $transition - $sisa_bagi;
+        }
+
+        if($diff_sec < 0){
+            $data['countdown'] = ($diff_sec * -1);
         }
 
         $data['diff_min'] = floor($diff_sec / 60);

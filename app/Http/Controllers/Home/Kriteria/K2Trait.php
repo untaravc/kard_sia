@@ -204,6 +204,7 @@ trait K2Trait
                     [
                         'title' => 'Lampiran',
                         'link'  => "https://drive.google.com/drive/folders/1p5u1xsgZ_6G1KtQeXGfH7TFlvM3PksPR"
+
                     ],
                 ]
             ],

@@ -140,6 +140,10 @@
                 axios.get('/timer-data?r='+r)
                     .then(({data}) => {
                         this.timer = data.result;
+<<<<<<< HEAD
+=======
+                        this.checkTransition()
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                     })
             },
             checkTransition() {
@@ -154,6 +158,10 @@
                 } else {
                     clearInterval(this.beepFunction);
                     this.beep_started = false;
+<<<<<<< HEAD
+=======
+                    this.green_mode = false
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                 }
             },
             play(type = 'start') {
@@ -209,6 +217,17 @@
             time_countdown() {
                 let minutes = this.timer.countdown;
 
+<<<<<<< HEAD
+=======
+                let status = this.timer.transition_time;
+                if(status){
+                    return {
+                        minute: '00',
+                        second: '00'
+                    }
+                }
+
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                 return {
                     minute: Math.floor(minutes / 60),
                     second: minutes % 60

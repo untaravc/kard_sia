@@ -123,11 +123,14 @@
                                 <textarea rows="5" class="form-control" v-model="form.desc" :class="{ 'is-invalid': form.errors.has('desc') }"></textarea>
                                 <has-error :form="form" field="desc"></has-error>
                             </div>
+<<<<<<< HEAD
                             <div class="col-md-12" v-if="form.category === 'pengabdian_masyarakat'">
                                 <label>Tanggal</label>
                                 <input class="form-control" type="date" v-model="form.date" :class="{ 'is-invalid': form.errors.has('date') }">
                                 <has-error :form="form" field="desc"></has-error>
                             </div>
+=======
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                             <div class="col-md-12">
                                 <label>Kategori</label>
                                 <select class="form-control" v-model="form.category" :class="{ 'is-invalid': form.errors.has('category') }">
@@ -179,7 +182,10 @@
                     desc:'',
                     category:'',
                     file:'',
+<<<<<<< HEAD
                     date:'',
+=======
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                     type:'',
                 }),
                 filter: {

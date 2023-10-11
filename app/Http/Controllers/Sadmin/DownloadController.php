@@ -6,6 +6,7 @@ use App\Exports\DefaultExport;
 use App\Exports\PenilaianExport;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
+use App\Models\FormOption;
 use App\Models\Lecture;
 use App\Models\Stase;
 use App\Models\StaseLog;
@@ -117,7 +118,7 @@ class DownloadController extends Controller
 
         $date = substr($activity->start_date, 5, 2);
         $date .= substr($activity->start_date, 8, 2);
-        $data['number'] = $date . "/UN1/FKKMK.2/JP.1/AK/2022";
+        $data['number'] = $date . "/UN1/FKKMK.2/JP.1/AK/" . date('Y');
         $data['type'] = $activity->category === 7 ? 'Seminar Kasus' : 'Referat';
 
         $data['activity'] = $activity;
@@ -223,7 +224,7 @@ class DownloadController extends Controller
 
         $date = substr($activity->start_date, 5, 2);
         $date .= substr($activity->start_date, 8, 2);
-        $data['number'] = $date . "/UN1/FKKMK.2/JP.1/AK/2022";
+        $data['number'] = $date . "/UN1/FKKMK.2/JP.1/AK/" . date('Y');
         $data['type'] = $activity->category === 7 ? 'Seminar Kasus' : 'Referat';
 
         $data['activity'] = $activity;
@@ -304,5 +305,50 @@ class DownloadController extends Controller
         $container = array_merge($main_name_append, $container);
         $container = array_merge($container, $all_staff);
         return $container;
+    }
+
+    public function logbook_stase(Request $request){
+        $stase = Stase::find($request->stase_id);
+
+        if(!$stase){
+            return 'no stase';
+        }
+
+        $logbook = StudentLog::whereIn('stase_id', [19,5])
+            ->when($request->lecture_id, function ($q) use ($request){
+                $q->whereLectureId($request->lecture_id);
+            })
+            ->with(['student', 'stase', 'lecture'])
+            ->whereDate('date', '>', '2020-12-31')
+            ->whereDate('date', '<', '2023-01-01')
+            ->orderBy('date')
+//            ->limit(10)
+            ->get();
+
+        $data['dataContent'] = $logbook;
+        $data['query'] = $request->all();
+        $data['template'] = 'templates.excel.logbook_lecture';
+
+//        return view('templates.pdf.logbook_stase', compact('logbook', 'stase'));
+//        return view($data['template'], $data);
+        return Excel::download(new DefaultExport($data), 'Logbook ' . $request->year .'.xls');
+    }
+
+    public function agenda_by_lecture(Request $request){
+        $data_content = Activity::where(function ($q) use ($request){
+            $q->where('lecture_pembimbing', 'LIKE', '%'.$request->lecture_id.','.'%')
+                ->orWhere('lecture_pembimbing', 'LIKE', '%'.$request->lecture_id.']'.'%')
+                ->orWhere('lecture_penguji', 'LIKE', '%'.$request->lecture_id.','.'%')
+                ->orWhere('lecture_penguji', 'LIKE', '%'.$request->lecture_id.']'.'%')
+                ->orWhere('lecture_pengampu', 'LIKE', '%'.$request->lecture_id.','.'%')
+                ->orWhere('lecture_pengampu', 'LIKE', '%'.$request->lecture_id.']'.'%');
+        })
+//            ->limit(10)
+            ->get();
+//        return $data_content;
+
+        return view('templates.excel.activity_by_lecture', [
+            'data_content' => $data_content
+        ]);
     }
 }

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import Vue from 'vue'
+=======
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 //FILTER
 import moment from 'moment';
 Vue.filter('formatDate', function(value) {

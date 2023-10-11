@@ -1,17 +1,28 @@
 
 require('./bootstrap');
 
+<<<<<<< HEAD
 import Vue from 'vue'
+=======
+window.Vue = require('vue').default;
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 
 //VUE ROUTER
 import VueRouter from 'vue-router'
 Vue.use(VueRouter);
 
+<<<<<<< HEAD
 // import {createRouter, createWebHistory} from 'vue-router'
 
 const admin_prefix = '/cmss';
 
 const routes = [
+=======
+const admin_prefix = '/cmss';
+
+const routes = [
+    //ADMIN
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
     { path: admin_prefix + '/', component: require('./components/admin/dashboard/Index.vue').default  },
     { path: admin_prefix + '/analytics', component: require('./components/admin/dashboard-analytics/Index.vue').default  },
     { path: admin_prefix + '/timeline', component: require('./components/admin/timeline/Index.vue').default  },
@@ -42,7 +53,10 @@ const routes = [
     { path: admin_prefix + '/student-logs', component: require('./components/admin/student-logs/Index.vue').default  },
     { path: admin_prefix + '/presence-ilmiah-resume', component: require('./components/admin/presence-ilmiah-resume/Index.vue').default  },
     { path: admin_prefix + '/import', component: require('./components/object/import/Index.vue').default  },
+<<<<<<< HEAD
     { path: admin_prefix + '/document-review', component: require('./components/admin/document-review/Index.vue').default  },
+=======
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 
     // Object
     { path: '/object/quizzes', component: require('./components/object/quizzes/Index.vue').default  },
@@ -81,7 +95,10 @@ const routes = [
     { path: '/dosen/task/nilai-proposal/:open_stase_task_id', component: require('./components/lecture/task/Proposal').default },
     { path: '/dosen/task/scoring/:open_stase_task_id', component: require('./components/lecture/task/Index').default },
     { path: '/dosen/resident-logs', component: require('./components/lecture/resident-logs/Index').default },
+<<<<<<< HEAD
     { path: '/dosen/student-logs', component: require('./components/lecture/student-logs/Index').default },
+=======
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 
     //Form
     { path: '/f/quiz', component: require('./components/object/quiz/Index').default },

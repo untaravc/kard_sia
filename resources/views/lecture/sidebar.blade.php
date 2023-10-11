@@ -71,11 +71,14 @@
                         </li>
                         <li class="nav-item">
                             <router-link to="/dosen/resident-logs" class="nav-link pl-5">
+<<<<<<< HEAD
                                 <p>Log book approval</p>
                             </router-link>
                         </li>
                         <li class="nav-item">
                             <router-link to="/dosen/student-logs" class="nav-link pl-5">
+=======
+>>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                                 <p>Log book</p>
                             </router-link>
                         </li>

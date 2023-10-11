@@ -4,9 +4,12 @@ namespace App\Traits;
 
 use App\Models\Lecture;
 use App\Models\Student;
+use App\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Jenssegers\Agent\Facades\Agent;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 
 trait AppLogTrait {
 

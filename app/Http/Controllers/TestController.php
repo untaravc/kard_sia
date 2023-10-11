@@ -16,4 +16,8 @@ class TestController extends Controller
                 'deleted_at' => null
             ]);
     }
+
+    public function upload_form(){
+        return view('test_pages.upload_form');
+    }
 }
