@@ -163,19 +163,12 @@
                             <table class="table table-head-fixed">
                                 <tr>
                                     <th colspan="2">
-<<<<<<< HEAD
                                         <span v-if="dataDetail.stase_logs_active && dataDetail.stase_logs_active.stase">
                                             {{ dataDetail.stase_logs_active.stase.name }}
                                         </span>
                                     </th>
                                 </tr>
                                 <tbody v-if="dataDetail.stase_logs_active && dataDetail.stase_logs_active.stase">
-=======
-                                        <span>{{ dataDetail.stase_logs_active.stase.name }}</span>
-                                    </th>
-                                </tr>
-                                <tbody>
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                                 <tr role="row" class="odd"
                                     v-for="(data, i) in dataDetail.stase_logs_active.stase.stase_tasks" :key="data.id">
                                     <td>

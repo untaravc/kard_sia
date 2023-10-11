@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import Vue from 'vue'
-=======
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
 
 Vue.component('pagination', require('laravel-vue-pagination'));
 Vue.component('datepicker', require('vuejs-datepicker').default);
