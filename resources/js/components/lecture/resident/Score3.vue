@@ -1,0 +1,277 @@
+
+<template>
+    <div class="content-wrapper">
+<!--        <div class="content-header">-->
+<!--            <div class="container-fluid">-->
+<!--                <div class="row mb-2">-->
+<!--                    <div class="col-sm-12">-->
+<!--                        <h1 class="m-0 text-dark"><i class="fa fa-chalkboard-teacher"></i> Nilai {{dataProfile.name}}-->
+<!--                        </h1>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+        <div class="content mt-3">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-primary card-outline" v-if="!dataDetail">
+                        <div class="card-body">
+                            <p>Belum ada data</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card card-primary card-outline">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <table class="text-center" width="100%">
+                                                <tr>
+                                                    <td><b>{{dataProfile.name}}</b></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>{{dataProfile.email}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card card-primary card-outline">
+                                <div class="card-header">
+                                    <h3 class="card-title">Stase</h3>
+                                </div>
+                                <div class="card-body p-0">
+                                    <ul class="nav nav-pills flex-column">
+                                        <li class="nav-item active">
+                                            <table width="100%">
+                                                <tr v-for="stase in dataProfile.stase_logs" style="border-top: 1px solid lightblue">
+                                                    <td style="width: 38px;">
+                                                        <input type="radio" name="stase" v-model="filter.stase_log_id"
+                                                               :value="stase.id" class="m-2" :id="'stase_' + stase.id">
+                                                    </td>
+                                                    <td>
+                                                        <label :for="'stase_' + stase.id" v-if="stase.stase">{{stase.stase.name}}</label>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- /.card-body -->
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                        <div class="col-md-8">
+                            <div class="card card-primary card-outline">
+                                <div class="card-header">
+                                    <h3 class="card-title"><b>STASE </b>
+                                        <span v-if="dataDetail[0] && dataDetail[0].stase">: {{ dataDetail[0].stase.name }}</span>
+                                    </h3>
+                                </div>
+                                <!-- /.card-header -->
+                                <div class="card-body p-0">
+                                    <vue-loader :active.sync="is_loading" :can-cancel="false" loader="dots" :is-full-page="false"></vue-loader>
+                                    <div class="table-responsive">
+                                        <vue-loader :active.sync="is_loading" :can-cancel="false" loader="dots" :is-full-page="false"></vue-loader>
+                                        <table class="table">
+                                            <tbody>
+                                            <tr v-for="data in dataDetail">
+                                                <td>
+                                                    <b v-if="data.stase_task">{{data.stase_task.name}}</b> <br>
+                                                    <small>{{data.title}}</small>
+                                                    <div v-if="data.scores">
+                                                        <small v-for="score in data.scores" :key="score.id"
+                                                               v-if="score.lecture" @click="detailModal(score)">
+                                                            <i class="fa fa-marker text-primary"></i>
+                                                            <span class="score-list">{{ score.lecture.name }}</span>
+                                                            <span class="badge-success badge" style="font-size: smaller" v-if="score.point_average > 0">
+                                                                {{score.point_average}}
+                                                            </span>
+                                                            <i class="text-black-50" v-if="score.point_average > 0">on: {{score.date | formatDate}}</i>
+                                                            <br>
+                                                        </small>
+                                                    </div>
+                                                    <div v-if="data.status === 'pending'">
+                                                        <small><i class="text-black-50">Belum ada data penilaian.</i></small>
+                                                    </div>
+                                                </td>
+                                                <td class="text-right">
+                                                    <button v-if="data.files && data.files[0]" class="btn btn-wd btn-sm btn-th-dark"
+                                                            @click="fileModal(data)" ><i class="fa fa-paperclip"></i> File</button>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                        <!-- /.table -->
+                                    </div>
+                                    <!-- /.mail-box-messages -->
+                                </div>
+                                <!-- /.card-body -->
+                            </div>
+                            <!-- /.card -->
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade bd-example-modal-lg" id="pointModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content">
+                    <div class="modal-body table-responsive p-0">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Poin Penilaian</th>
+                                <th>Nilai</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(data,d) in dataPoints" :key="d">
+                                <td><span v-if="data.task_detail">{{data.task_detail.name}}</span></td>
+                                <td>{{data.score}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="px-3">
+                            <label>Catatan</label>
+                            <p>{{dataPointNote}}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade bd-example-modal-lg" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Uploaded File</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <h5 class="mb-1">{{ detailFile.title }}</h5>
+                                <span>{{ detailFile.title }}</span>
+                                <br>
+                                <br>
+                                <a v-if="detailFile.link" class="btn btn-sm btn-primary btn-wd" target="_blank" :href="`/storage/`+detailFile.link" download>
+                                    <i class="fa fa-download"></i> Download
+                                </a>
+                                <button v-if="!detailFile.link" class="btn btn-sm btn-secondary btn-wd" disabled>
+                                    <i class="fa fa-download"></i> no file
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    import Datepicker from 'vuejs-datepicker';
+    export default {
+        data(){
+            return {
+                base_url: '/sadmin/student-score/'+this.$route.params.id,
+                editMode : false,
+                is_loading : false,
+                dataDetail: {},
+                dataPoints:{},
+                dataPointNote:'',
+                detailFile: {},
+                dataProfile:{},
+                dataRaw: {
+                    lectures: {},
+                },
+                form: new form({
+                    id:'',
+                    lecture_id:'',
+                    date:'',
+                    point_average:'',
+                }),
+                score: new form({
+                    lecture_id: '',
+                    stase_task_id:'',
+                }),
+                filter: new form({
+                    stase_log_id: null,
+                })
+            }
+        },
+        methods:{
+            loadData(){
+                this.is_loading = true;
+                axios.get('/cmsd/student-score/'+this.$route.params.id, {params: this.filter})
+                    .then( ({data}) => {
+                        this.dataDetail = data;
+                        this.is_loading = false;
+                    })
+            },
+            loadResident(){
+                axios.get('/cmsd/students/' + this.$route.params.id)
+                    .then( ({data}) => ( this.dataProfile = data))
+            },
+            detailModal(data){
+                if(data.admin === 0){
+                    this.dataPoints = data.stase_task_log_point;
+                    this.dataPointNote = data.note;
+                    $('#pointModal').modal('show');
+                }
+            },
+            fileModal(data){
+                this.detailFile = data;
+                $('#detailModal').modal({backdrop: 'static', keyboard: false})
+            },
+        },
+        created(){
+            this.$Progress.start();
+            this.loadData();
+            this.loadResident();
+
+            Fire.$on('ModalSuccess', () => {
+                this.loadData();
+                this.popSuccessSwal();
+                $('#editAddModal').modal('hide');
+                this.$Progress.finish();
+            })
+        },
+        mounted() {
+            this.$Progress.finish()
+        },
+        components: {
+            Datepicker,
+        },
+        watch: {
+            'filter.stase_log_id': function (){
+                this.loadData()
+            }
+        }
+    }
+</script>
+
+<style>
+label{
+    margin-top: 0.5rem;
+}
+
+.score-list{
+    text-decoration: underline;
+    cursor: pointer;
+}
+</style>

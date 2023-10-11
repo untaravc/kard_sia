@@ -1,0 +1,101 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+//@import '~bootstrap/scss/bootstrap';
+@import '~admin-lte/dist/css/adminlte.css';
+
+@import "~@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "~@fortawesome/fontawesome-free/scss/solid.scss";
+@import "~@fortawesome/fontawesome-free/scss/brands.scss";
+
+.action-button button, .action-button a{
+    float: right;
+    margin: 1px;
+}
+
+.vdp-datepicker {
+    padding: 0;
+}
+
+.vdp-datepicker input{
+    border: 0;
+    padding-top: 5px;
+    padding-left: 2px;
+}
+
+.vdp-datepicker input{
+    width: 100%;
+}
+
+.vs__dropdown-toggle{
+    padding-bottom: 0;
+}
+
+.vs__actions{
+    padding-top: 0;
+}
+
+.vs__clear svg{
+    margin-bottom: 4px;
+    display: none;
+}
+
+[class*='sidebar-dark-'] {
+    background-color: $darkblue;
+}
+
+.router-link-exact-active{
+    background-color: #007bff;
+}
+
+.router-link-exact-active p{
+    color: #fff;
+}
+
+//Theme
+.btn-wd{
+    max-width: 100px;
+    width: 100%;
+}
+
+.btn-th-dark{
+    background-color: $darkblue;
+    color: #ffffff;
+    border-color: $darkblue;
+    box-shadow: none;
+}
+
+.btn-th-dark:hover{
+    background-color: $blue;
+    color: #ffffff;
+    border-color: $blue;
+    box-shadow: none;
+}
+
+.btn-th-primary{
+    background-color: $blue;
+    color: #ffffff;
+    border-color: $blue;
+    box-shadow: none;
+}
+.btn-th-primary:hover{
+    background-color: $darkblue;
+    color: #ffffff;
+    border-color: $darkblue;
+    box-shadow: none;
+}
+
+.btn-th-secondary{
+    background-color: $lightblue;
+    color: #ffffff;
+    border-color: $lightblue;
+    box-shadow: none;
+}
+
+.text-th{
+    color: $blue;
+}

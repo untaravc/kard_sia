@@ -1,0 +1,49 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "npm run development",
+        "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+        "watch": "npm run development -- --watch",
+        "watch-poll": "npm run watch -- --watch-poll",
+        "hot": "cross-env NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
+        "prod": "npm run production",
+        "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --no-progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+    },
+    "devDependencies": {
+        "axios": "^0.19.2",
+        "bootstrap": "^4.5.3",
+        "cross-env": "^5.1",
+        "jquery": "^3.6.0",
+        "laravel-mix": "^5.0.9",
+        "lodash": "^4.17.21",
+        "popper.js": "^1.12",
+        "resolve-url-loader": "^2.3.1",
+        "sass": "^1.30.0",
+        "sass-loader": "^8.0.0",
+        "vue": "^2.6.12",
+        "vue-template-compiler": "^2.6.12"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^5.15.1",
+        "admin-lte": "^3.1.0",
+        "chart.js": "^2.9.4",
+        "laravel-vue-pagination": "^2.3.1",
+        "rxjs": "^6.6.7",
+        "sweetalert2": "^9.17.2",
+        "vform": "^1.0.1",
+        "vue-chartjs": "^3.5.1",
+        "vue-ctk-date-time-picker": "^2.4.0",
+        "vue-debounce": "^3.0.1",
+        "vue-loading-overlay": "^3.4.2",
+        "vue-moment": "^4.1.0",
+        "vue-multiselect": "^2.1.6",
+        "vue-progressbar": "^0.7.5",
+        "vue-router": "3.5",
+        "vue-rx": "^6.2.0",
+        "vue-select": "^3.16.0",
+        "vue-slider-component": "^3.2.15",
+        "vue2-editor": "^2.10.3",
+        "vue2-google-maps": "^0.10.7",
+        "vuejs-datepicker": "^1.6.2"
+    }
+}
