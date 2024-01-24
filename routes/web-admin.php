@@ -14,6 +14,7 @@ use App\Http\Controllers\Sadmin\DownloadController;
 use App\Http\Controllers\Sadmin\LetterRecordController;
 use App\Http\Controllers\Sadmin\StudentRegController;
 use App\Http\Controllers\Sadmin\DocumentReviewController;
+use App\Http\Controllers\Sadmin\DailyReportController;
 
 //ADMIN
 //Auth::routes();
@@ -43,6 +44,7 @@ Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
     Route::resource('student-regs', 'Sadmin\StudentRegController');
 
     Route::get('student-logs-properties', [StudentLogController::class, 'properties']);
+    Route::get('daily-report', [DailyReportController::class, 'daily_report']);
 
     //Getter
     Route::get('get-stases', [GlobalFunctionController::class, 'getStase']);

@@ -71,6 +71,7 @@ class TimerController extends Controller
         }
 
         $data['diff_min'] = floor($diff_sec / 60);
+        $data['in_room_sec'] = $this->in_room * 60;
 
         $this->response['result'] = $data;
         return $this->response;

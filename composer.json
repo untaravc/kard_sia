@@ -13,6 +13,7 @@
         "barryvdh/laravel-dompdf": "^0.9.0",
         "fideloper/proxy": "^4.0",
         "fruitcake/laravel-cors": "^2.0",
+        "guzzlehttp/guzzle": "^7.8",
         "intervention/image": "^2.5",
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^6.2",
@@ -23,8 +24,8 @@
         "nicolaslopezj/searchable": "1.*",
         "phpoffice/phpword": "^0.18.2",
         "rap2hpoutre/laravel-log-viewer": "^1.7",
-        "stevebauman/location": "^6.1",
-        "simplesoftwareio/simple-qrcode": "^4.2"
+        "simplesoftwareio/simple-qrcode": "^4.2",
+        "stevebauman/location": "^6.1"
     },
     "require-dev": {
         "facade/ignition": "^1.4",

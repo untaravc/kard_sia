@@ -64,6 +64,11 @@ class DownloadController extends Controller
             'query'       => $query,
         ];
 
+//        return view('templates.excel.penilaian', [
+//            'dataContent' => $stase_task_logs,
+//            'template'    => 'templates.excel.penilaian',
+//            'query'       => $query,
+//        ]);
         return Excel::download(new DefaultExport($data), 'Penilaian.xls');
 
     }

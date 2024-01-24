@@ -43,6 +43,7 @@ const routes = [
     { path: admin_prefix + '/presence-ilmiah-resume', component: require('./components/admin/presence-ilmiah-resume/Index.vue').default  },
     { path: admin_prefix + '/import', component: require('./components/object/import/Index.vue').default  },
     { path: admin_prefix + '/document-review', component: require('./components/admin/document-review/Index.vue').default  },
+    { path: admin_prefix + '/daily-report', component: require('./components/admin/daily-report/Index.vue').default  },
 
     // Object
     { path: '/object/quizzes', component: require('./components/object/quizzes/Index.vue').default  },
@@ -194,3 +195,5 @@ const app = new Vue({
 
 // const files = require.context('./', true, /\.vue$/i)
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
+
+

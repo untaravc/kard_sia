@@ -19,8 +19,16 @@
     </tr>
     @foreach($dataContent as $data)
     <tr>
-        <td>{{substr($data['plan'], 0, 10)}}</td>
-        <td>{{substr($data['date'], 0, 10)}}</td>
+        <td>
+            @if(isset($data['plan']))
+                {{substr($data['plan'], 0, 10)}}
+            @endif
+        </td>
+        <td>
+            @if(isset($data['date']))
+            {{substr($data['date'], 0, 10)}}
+            @endif
+        </td>
         <td>
             @if(isset($data['student']))
                 {{$data['student']['name']}}
@@ -44,8 +52,16 @@
         <td></td>
         <td></td>
         <td></td>
-        <td>{{substr($data['title'], 0, 50)}}</td>
-        <td>{{$data['point_average']}}</td>
+        <td>
+            @if(isset($data['title']))
+                {{preg_replace('/[^a-zA-Z0-9_ -]/s',' ',$data['title'])}}
+            @endif
+        </td>
+        <td>
+            @if(isset($data['point_average']))
+                {{$data['point_average']}}
+            @endif
+        </td>
     </tr>
     @endforeach
 </table>

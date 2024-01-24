@@ -99,9 +99,12 @@
         <div class="col-12">
             <div style="height: 10vh; text-align: center"
                  class="d-flex justify-content-center align-items-center">
-                <button @click="play" class="btn btn-danger">
+                <button @click="play" class="btn btn-danger mx-1">
                     <span v-if="!sound">Turn on Sound</span>
                     <span v-if="sound">Check Sound</span>
+                </button>
+                <button @click="play('enter')" class="btn btn-danger mx-1">
+                    <span>Enter</span>
                 </button>
             </div>
         </div>
@@ -131,6 +134,7 @@
                     diff_min: '',
                     transition_time: true,
                     reminder: 121,
+                    in_room_sec: '',
                 },
             }
         },
@@ -140,10 +144,7 @@
                 axios.get('/timer-data?r='+r)
                     .then(({data}) => {
                         this.timer = data.result;
-<<<<<<< HEAD
-=======
                         this.checkTransition()
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                     })
             },
             checkTransition() {
@@ -158,23 +159,23 @@
                 } else {
                     clearInterval(this.beepFunction);
                     this.beep_started = false;
-<<<<<<< HEAD
-=======
                     this.green_mode = false
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                 }
             },
             play(type = 'start') {
                 let audio = '';
                 switch (type) {
                     case 'finish':
-                        audio = new Audio('/assets/sound/finish.mp3');
+                        audio = new Audio('/assets/sound/end.mp3');
                         break;
                     case 'min2':
-                        audio = new Audio('/assets/sound/two_minute.mp3');
+                        audio = new Audio('/assets/sound/two_min.mp3');
+                        break;
+                    case 'enter':
+                        audio = new Audio('/assets/sound/enter.mp3');
                         break;
                     default:
-                        audio = new Audio('/assets/sound/start.mp3');
+                        audio = new Audio('/assets/sound/aktif.mp3');
                 }
                 audio.play();
                 this.sound = true;
@@ -194,16 +195,22 @@
                 this.timer.countdown--
                 this.checkTransition();
 
-                if (this.timer.countdown === 2 && !this.timer.transition_time) {
+                if (this.timer.countdown === 5 && !this.timer.transition_time) {
                     this.play('finish')
                 }
                 if (this.timer.countdown === this.timer.reminder) {
                     this.play('min2')
                 }
+
             }, 1000)
 
             setInterval(() => {
                 this.loadTimer();
+                let enter = this.timer.in_room_sec - this.timer.countdown;
+                console.log(enter)
+                if (enter < 10 && enter > 0) {
+                    this.play('enter')
+                }
             }, 5000)
         },
         mounted() {
@@ -217,20 +224,18 @@
             time_countdown() {
                 let minutes = this.timer.countdown;
 
-<<<<<<< HEAD
-=======
                 let status = this.timer.transition_time;
-                if(status){
-                    return {
-                        minute: '00',
-                        second: '00'
-                    }
-                }
-
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
+                // if(status){
+                //     return {
+                //         minute: '00',
+                //         second: '00'
+                //     }
+                // }
+                let min = Math.floor(minutes / 60);
+                let sec = minutes % 60
                 return {
-                    minute: Math.floor(minutes / 60),
-                    second: minutes % 60
+                    minute: min > 0 ? min : 0,
+                    second: sec > 0 ? sec : 0
                 }
             }
         },

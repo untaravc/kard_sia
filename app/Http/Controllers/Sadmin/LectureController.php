@@ -17,12 +17,20 @@ class LectureController extends Controller
         $dataContent = Lecture::withCount([
             'StaseTaskLogs',
             'activity_lectures',
-            'open_stase_task',
         ]);
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->orderBy('status')
             ->orderBy('name')
             ->paginate(25);
+
+        $stase_task_log = StaseTaskLog::where('point_total', '<', 1)
+            ->whereDate('created_at', '>', date('Y-m-d', strtotime(date('Y-m-d') . '-180 days')))
+            ->get();
+
+        foreach ($dataContent as $data){
+            $count = count($stase_task_log->where('lecture_id', $data->id));
+            $data->setAttribute('open_stase_task_count', $count);
+        }
         return $dataContent;
     }
 

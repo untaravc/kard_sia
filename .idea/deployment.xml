@@ -3,6 +3,13 @@
   <component name="PublishConfigData" serverName="sia_kardio" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
+      <paths name="rumahweb">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="sia_kardio">
         <serverdata>
           <mappings>

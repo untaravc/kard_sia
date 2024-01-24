@@ -85,5 +85,6 @@ Route::get('timer_setting', [\App\Http\Controllers\TimerController::class, 'time
 Route::post('timer_setting', [\App\Http\Controllers\TimerController::class, 'timer_setting_update']);
 
 Route::group(['prefix'=>'test'], function(){
-    Route::get('upload-form', [\App\Http\Controllers\TestController::class, 'upload_form']);
+    Route::get('cek', [\App\Http\Controllers\TestController::class, 'test']);
+    Route::get('get_form_option', [\App\Http\Controllers\TestController::class, 'get_form_option']);
 });
