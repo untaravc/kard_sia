@@ -71,4 +71,31 @@ if (!function_exists('letter_number')) {
     }
 }
 
+if (!function_exists('markah')) {
+    function markah($score) {
+        switch (true){
+            case $score > 90:
+                return 'A';
+            case $score > 85:
+                return 'A-';
+            case $score > 80:
+                return 'A/B';
+            case $score > 75:
+                return 'B+';
+            case $score > 70:
+                return 'B';
+            case $score > 65:
+                return 'B-';
+            case $score > 60:
+                return 'B/C';
+            case $score > 50:
+                return 'C';
+            case $score > 40:
+                return 'D';
+            default:
+                return 'E';
+        }
+    }
+}
+
 

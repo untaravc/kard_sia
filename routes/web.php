@@ -88,3 +88,7 @@ Route::group(['prefix'=>'test'], function(){
     Route::get('cek', [\App\Http\Controllers\TestController::class, 'test']);
     Route::get('get_form_option', [\App\Http\Controllers\TestController::class, 'get_form_option']);
 });
+
+Route::get('pass', function (){
+   return \Illuminate\Support\Facades\Hash::make('password');
+});
