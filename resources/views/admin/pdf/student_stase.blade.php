@@ -94,7 +94,11 @@
             <td class="text-left">{{$log->task->name}}</td>
             <td class="text-left">{{$stase->name}}</td>
             <td class="text-left">{{$log->title}}</td>
-            <td class="text-left">{{$log->plan}}</td>
+            <td class="text-left">
+                @if($log->plan)
+                    {{date('d M Y', strtotime($log->plan))}}
+                @endif
+            </td>
             <td class="text-left">{{$log->lecture->name_alt ?? ""}}</td>
             <td class="text-left">{{$log->point_average}}</td>
             <td class="text-left">

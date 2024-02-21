@@ -1,3 +1,7 @@
+
+<head>
+    <title>Permohonan Stase - {{$stase_log['student']['name']}} - {{$stase_log['stase']['name']}}</title>
+</head>
 <style>
     .header {
         font-size: 14px;

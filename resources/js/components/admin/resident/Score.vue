@@ -18,17 +18,15 @@
                                         <div class="col-12">
                                             <table class="text-center" width="100%">
                                                 <tr>
-                                                    <td><b>{{dataProfile.name}}</b></td>
+                                                    <td colspan="3"><b>{{dataProfile.name}}</b></td>
                                                 </tr>
                                                 <tr>
-                                                    <td>{{dataProfile.email}}</td>
+                                                    <td colspan="3">{{dataProfile.email}}</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>
-                                                        <a target="_blank" class="btn btn-success btn-sm mt-2" :href="'/sadmin/resident-score-export?student_id=' + dataProfile.id">
-                                                            <i class="fa fa-download"></i> Unduh Nilai
-                                                        </a>
-                                                    </td>
+                                                    <td><a target="_blank" :href="'/sadmin/print/report-score?student_id=' + dataProfile.id + '&tahap=1'">Tahap 1</a></td>
+                                                    <td><a target="_blank" :href="'/sadmin/print/report-score?student_id=' + dataProfile.id + '&tahap=2'">Tahap 2</a></td>
+                                                    <td><a target="_blank" :href="'/sadmin/print/report-score?student_id=' + dataProfile.id + '&tahap=3'">Tahap 3</a></td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -62,10 +60,13 @@
                         <!-- /.col -->
                         <div class="col-md-8">
                             <div class="card card-primary card-outline">
-                                <div class="card-header">
+                                <div class="p-2 d-flex justify-content-between">
                                     <h3 class="card-title"><b>STASE </b>
                                         <span v-if="dataDetail[0] && dataDetail[0].stase">: {{ dataDetail[0].stase.name }}</span>
                                     </h3>
+                                    <div v-if="dataDetail[0] && dataDetail[0].stase">
+                                        <a :href="'/sadmin/print/report-student-stase?student_id='+ dataProfile.id + '&stase_id=' + dataDetail[0].stase.id" target="_blank">Download</a>
+                                    </div>
                                 </div>
                                 <!-- /.card-header -->
                                 <div class="card-body p-0">

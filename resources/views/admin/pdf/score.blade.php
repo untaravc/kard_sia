@@ -8,7 +8,7 @@
           integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
     <title>Report {{$student['name']}}</title>
     <style>
-        body {
+        body, table {
             font-size: 10px;
         }
 
@@ -20,6 +20,11 @@
 
         .table-custom {
             width: 100%;
+        }
+
+        input.checkbox {
+            width: 10px;
+            height: 10px;
         }
 
         .border-bottom-alt {
@@ -75,11 +80,11 @@
             <td>{{$student_profile['code'] ?? ''}}</td>
         </tr>
         <tr>
-            <td>Tanggal Mulai Pendidikan Tahap I</td>
+            <td>Tanggal Mulai Pendidikan Tahap {{$tahap}}</td>
             <td>{{$date_start}}</td>
         </tr>
         <tr>
-            <td>Tanggal Selesai Pendidikan Tahap I</td>
+            <td>Tanggal Selesai Pendidikan Tahap {{$tahap}}</td>
             <td>{{$date_end}}</td>
         </tr>
     </table>
@@ -88,7 +93,7 @@
     <tr>
         {{--        <th rowspan="2">Sem</th>--}}
         <th rowspan="2">No</th>
-        <th rowspan="2">Mata Kuliah/ Modul</th>
+        <th rowspan="2">Stase</th>
         <th colspan="2">NILAI</th>
     </tr>
     <tr>
@@ -109,14 +114,47 @@
     @endforeach
 </table>
 <div>
-    <div>Catatan Pendidikan</div>
-    <div></div>
+    <div class="mb-1 mt-2"><b>Catatan Pendidikan</b></div>
+    <div class="mb-2">
+        <table>
+            <tr>
+                <td style="padding: 2px 5px 2px 2px;">
+                    <input type="checkbox" class="checkbox"> Penghargaan / Pujian
+                </td>
+                <td style="padding: 2px 5px 2px 2px;">
+                    <input type="checkbox" class="checkbox"> Hukuman / Peringatan
+                </td>
+                <td style="padding: 2px 5px 2px 2px;">
+                    <input type="checkbox" class="checkbox"> Keterangan
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 <div>
-    <div>Kesimpulan</div>
-    <div></div>
+    <div class="mb-1"><b>Kesimpulan</b></div>
+    <div class="mb-2">
+        <table>
+            <tr>
+                <td style="padding: 2px 5px 2px 2px;"><input type="checkbox" class="checkbox"> Lulus Tahap {{$tahap}}
+                </td>
+                <td style="padding: 2px 5px 2px 2px;"><input type="checkbox" class="checkbox"> Tidak Lulus
+                    Tahap {{$tahap}}</td>
+            </tr>
+            @if($tahap < 3)
+                <tr>
+                    <td style="padding: 2px 5px 2px 2px; vertical-align: top"><input type="checkbox" class="checkbox">
+                        Naik Ke Tahap {{$tahap + 1}}</td>
+                    <td style="padding: 2px 5px 2px 2px;">
+                        <div>Ulang Ujian Tulis</div>
+                        <div>Ulang Modul _________________________ selama ______ minggu.</div>
+                    </td>
+                </tr>
+            @endif
+        </table>
+    </div>
 </div>
-<table style="width: 100%">
+<table style="width: 100%; margin-bottom: 10px">
     <tr>
         <td class="pr-2" style="vertical-align: top;">
             <table class="table-custom">
@@ -127,6 +165,15 @@
                     </th>
                     <th>Nilai</th>
                 </tr>
+                @for($i = 0; $i < 5; $i++)
+                    <tr>
+                        <td>
+                            <span style="color: white">.</span>
+                        </td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @endfor
             </table>
         </td>
         <td class="pl-2" style="vertical-align: top;">
@@ -163,11 +210,11 @@
                     <td class="text-center">Peserta Pendidikan</td>
                 </tr>
                 <tr>
-                    <td style="height: 150px;"></td>
+                    <td style="height: 70px;"></td>
                 </tr>
                 <tr>
-                    <td class="px-5">
-                        <div class="border-bottom-alt"></div>
+                    <td class="px-5 text-center">
+                        {{$student->name}}
                     </td>
                 </tr>
             </table>
@@ -178,11 +225,15 @@
                     <td class="text-center">Dosen Pembimbing Akademik</td>
                 </tr>
                 <tr>
-                    <td style="height: 150px;"></td>
+                    <td style="height: 70px;"></td>
                 </tr>
                 <tr>
-                    <td class="px-5">
-                        <div class="border-bottom-alt"></div>
+                    <td class="px-5 text-center">
+                        @if($dpa)
+                            {{$dpa['name_alt']}}
+                        @else
+                            <div class="border-bottom-alt"></div>
+                        @endif
                     </td>
                 </tr>
             </table>
@@ -193,11 +244,11 @@
                     <td class="text-center">Ketua Program Studi</td>
                 </tr>
                 <tr>
-                    <td style="height: 150px;"></td>
+                    <td style="height: 70px;"></td>
                 </tr>
                 <tr>
-                    <td class="px-5">
-                        <div class="border-bottom-alt"></div>
+                    <td class="px-5 text-center">
+                        {{$kps['name']}}
                     </td>
                 </tr>
             </table>

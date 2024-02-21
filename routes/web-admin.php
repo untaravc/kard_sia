@@ -110,6 +110,7 @@ Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
     Route::get('/pdf/agenda_by_lecture', [DownloadController::class, 'agenda_by_lecture']);
     Route::get('/print/report-student-stase', [\App\Http\Controllers\Sadmin\ReportController::class, 'reportStase']);
     Route::get('/print/report-score', [\App\Http\Controllers\Sadmin\ReportController::class, 'reportScore']);
+    Route::get('/print/logbook-in-stase', [\App\Http\Controllers\Sadmin\ReportController::class, 'logbookInStase']);
 
     // Import
     Route::post('/import-soal', [\App\Http\Controllers\Object\ImportController::class, 'import']);
