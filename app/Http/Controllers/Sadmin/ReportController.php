@@ -38,13 +38,14 @@ class ReportController extends Controller
 
         $stase_log = StaseLog::whereStudentId($query['student_id'])
             ->whereStaseId($query['stase_id'])
+            ->orderBy('stase_id')
             ->first();
 
         $stase_task_logs = StaseTaskLog::whereStudentId($query['student_id'])
+            ->orderBy('stase_task_id')
             ->with('lecture')
             ->whereStaseId($query['stase_id'])
             ->where('point_average', '>', 0)
-            ->orderBy('stase_id')
             ->get();
 
         $this->response['result'] = [
@@ -75,6 +76,7 @@ class ReportController extends Controller
         $stase_logs = StaseLog::whereStudentId($query['student_id'])
             ->whereIn("stase_id", $stases->pluck('id')->toArray())
             ->with('stase')
+            ->orderBy('stase_id')
             ->get();
 
         $stase_task_logs = StaseTaskLog::whereStudentId($query['student_id'])

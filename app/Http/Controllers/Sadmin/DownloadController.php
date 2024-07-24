@@ -93,7 +93,7 @@ class DownloadController extends Controller
             'query'       => $query,
         ];
 
-        return Excel::download(new DefaultExport($data), 'Agenda Prodi.xls');
+        return Excel::download(new DefaultExport($data), 'Agenda Prodi ' . $query['start'] . ' sampai ' . $query['end'] . '.xls');
     }
 
     public function letter_generator(Request $request)

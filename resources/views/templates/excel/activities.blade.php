@@ -46,7 +46,7 @@
         <tr>
             <td>{{substr($data['start_date'], 0, 10)}}</td>
             <td>{{$data['name']}}</td>
-            <td>{{$data['title']}}</td>
+            <td>{{preg_replace('/[^a-zA-Z0-9_ %\[\]\.\(\)%&-]/s', '', $data['title'])}}</td>
             <td>{{$data['speaker']}}</td>
             <td>{{substr($data['start_date'], 11, 5)}}</td>
             <td>{{substr($data['end_date'], 11, 5)}}</td>
