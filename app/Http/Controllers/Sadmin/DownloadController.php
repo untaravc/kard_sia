@@ -78,15 +78,17 @@ class DownloadController extends Controller
         $query = [];
         $query['start'] = $request->start_date != null ? $request->start_date . ' 00:00:00' : date('Y-m') . '-01 00:00:00';
         $query['end'] = $request->end_date != null ? $request->end_date . ' 23:59:59' : date('Y-m-d') . ' 23:59;59';
-//        return $query;
+
         $activities = Activity::whereBetween('start_date', [$query['start'], $query['end']])
             ->orderBy('start_date')
+            ->when($request->keyword, function ($q) use ($request){
+                $q->where(function ($q)use ($request){
+                    $q->where('name', 'LIKE', '%'.$request->keyword.'%')
+                        ->orWhere('speaker', 'LIKE', '%'.$request->keyword.'%');
+                });
+            })
             ->get();
 
-//        return $activities;
-//        return view('templates.excel.activities', [
-//            'dataContent'   => $activities
-//        ]);
         $data = [
             'dataContent' => $activities,
             'template'    => 'templates.excel.activities',
@@ -230,7 +232,7 @@ class DownloadController extends Controller
         $date = substr($activity->start_date, 5, 2);
         $date .= substr($activity->start_date, 8, 2);
         $data['number'] = $date . "/UN1/FKKMK.2/JP.1/AK/" . date('Y');
-        $data['type'] = $activity->category === 7 ? 'Seminar Kasus' : 'Referat';
+        $data['type'] = $activity->category == 7 ? 'Seminar Kasus' : 'Referat';
 
         $data['activity'] = $activity;
         $data['date'] = substr($activity->start_date, 8, 2) . ' ';
@@ -243,6 +245,7 @@ class DownloadController extends Controller
         $lecture_ids = array_merge(json_decode($data['activity']['lecture_pengampu']), $lecture_ids);
 
         $data['all_staff'] = $this->all_staff($lecture_ids);
+
         return view('templates.pdf.undangan_referat', compact(
             'logo',
             'data',

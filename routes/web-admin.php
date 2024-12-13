@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Sadmin\GlobalFunctionController;
 use App\Http\Controllers\Sadmin\PresenceController;
@@ -18,9 +19,9 @@ use App\Http\Controllers\Sadmin\DailyReportController;
 
 //ADMIN
 //Auth::routes();
-Route::get('/cmss/{path}', 'Sadmin\DashboardController@index')->where( 'path' , '([A-z\d\-\/_.]+)?' )->middleware('auth');
+Route::get('/cmss/{path}', 'Sadmin\DashboardController@index')->where('path', '([A-z\d\-\/_.]+)?')->middleware('auth');
 Route::get('/cmss/', 'Sadmin\DashboardController@index')->middleware('auth');
-Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
+Route::group(['prefix' => 'sadmin', 'middleware' => 'auth'], function () {
     Route::resource('lectures', 'Sadmin\LectureController');
     Route::resource('users', 'Sadmin\UserController');
     Route::resource('students', 'Sadmin\StudentController');
@@ -81,8 +82,8 @@ Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
     Route::get('/dashboard-presence', [DashboardController::class, 'presence']);
     Route::get('/dashboard-agenda', [DashboardController::class, 'agenda']);
     Route::get('/dashboard-chart', [DashboardController::class, 'chart']);
-//    Route::get('/monthly-report', [AnaliticsController::class, 'monthly_report']);
-//    Route::get('/presence-graph', [AnaliticsController::class, 'presence_graph']);
+    //    Route::get('/monthly-report', [AnaliticsController::class, 'monthly_report']);
+    //    Route::get('/presence-graph', [AnaliticsController::class, 'presence_graph']);
 
     Route::get('/login-lecture/{id}', 'Sadmin\LectureController@loginLecture');
     Route::get('/login-student/{id}', 'Sadmin\StudentController@loginStudent');
@@ -110,6 +111,7 @@ Route::group(['prefix'=>'sadmin', 'middleware'=>'auth'], function (){
     Route::get('/pdf/agenda_by_lecture', [DownloadController::class, 'agenda_by_lecture']);
     Route::get('/print/report-student-stase', [\App\Http\Controllers\Sadmin\ReportController::class, 'reportStase']);
     Route::get('/print/report-score', [\App\Http\Controllers\Sadmin\ReportController::class, 'reportScore']);
+    Route::get('/print/report-student', [\App\Http\Controllers\Sadmin\ReportController::class, 'reportStudent']);
     Route::get('/print/logbook-in-stase', [\App\Http\Controllers\Sadmin\ReportController::class, 'logbookInStase']);
 
     // Import

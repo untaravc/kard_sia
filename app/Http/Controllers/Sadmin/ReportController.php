@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Sadmin;
 
+use App\Exports\DefaultExport;
+use App\Exports\ExportExcelTemplate;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\ActivityStudent;
@@ -15,6 +17,7 @@ use App\Models\Student;
 use App\Models\StudentLog;
 use App\Models\StudentProfile;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
@@ -103,43 +106,43 @@ class ReportController extends Controller
             }
         }
 
-//        $active_date = Activity::where('name', "Laporan Jaga")
-//            ->where('start_date', '>=', $date_start)
-//            ->where('start_date', '<=', $date_end)
-//            ->select('start_date', "name")
-//            ->get();
-//
-//        $presences = Presence::whereStudentId($query['student_id'])
-//            ->where('checkin', '>=', $date_start)
-//            ->where('checkin', '<=', $date_end)
-//            ->get();
-//
-//        $activities = ActivityStudent::whereStudentId($query['student_id'])
-//            ->where('created_at', '>=', $date_start)
-//            ->where('created_at', '<=', $date_end)
-//            ->get();
-//
-//        for ($i = 0; $i < count($active_date); $i++){
-//            foreach ($presences as $presence){
-//                if(isset($active_date[$i])){
-//                    if(substr($presence->checkin, 0, 10) == substr($active_date[$i]['start_date'], 0, 10)){
-//                        unset($active_date[$i]);
-//                    }
-//                }
-//            }
-//        }
-//
-//        for ($i = 0; $i < count($active_date); $i++){
-//            foreach ($activities as $activity){
-//                if(isset($active_date[$i])){
-//                    if(substr($activity->created_at, 0, 10) == substr($active_date[$i]['start_date'], 0, 10)){
-//                        unset($active_date[$i]);
-//                    }
-//                }
-//            }
-//        }
+        //        $active_date = Activity::where('name', "Laporan Jaga")
+        //            ->where('start_date', '>=', $date_start)
+        //            ->where('start_date', '<=', $date_end)
+        //            ->select('start_date', "name")
+        //            ->get();
+        //
+        //        $presences = Presence::whereStudentId($query['student_id'])
+        //            ->where('checkin', '>=', $date_start)
+        //            ->where('checkin', '<=', $date_end)
+        //            ->get();
+        //
+        //        $activities = ActivityStudent::whereStudentId($query['student_id'])
+        //            ->where('created_at', '>=', $date_start)
+        //            ->where('created_at', '<=', $date_end)
+        //            ->get();
+        //
+        //        for ($i = 0; $i < count($active_date); $i++){
+        //            foreach ($presences as $presence){
+        //                if(isset($active_date[$i])){
+        //                    if(substr($presence->checkin, 0, 10) == substr($active_date[$i]['start_date'], 0, 10)){
+        //                        unset($active_date[$i]);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //
+        //        for ($i = 0; $i < count($active_date); $i++){
+        //            foreach ($activities as $activity){
+        //                if(isset($active_date[$i])){
+        //                    if(substr($activity->created_at, 0, 10) == substr($active_date[$i]['start_date'], 0, 10)){
+        //                        unset($active_date[$i]);
+        //                    }
+        //                }
+        //            }
+        //        }
         $dpa = null;
-        if(isset($student_profile->lecture_id)){
+        if (isset($student_profile->lecture_id)) {
             $dpa = Lecture::find($student_profile->lecture_id);
         }
 
@@ -152,7 +155,7 @@ class ReportController extends Controller
             "stase_logs"      => $stase_logs,
             "kps"             => $this->kps,
             "dpa"             => $dpa,
-//            "presence_off"      => count($active_date),
+            //            "presence_off"      => count($active_date),
         ];
 
         if ($request->dev) {
@@ -182,7 +185,7 @@ class ReportController extends Controller
         foreach ($form_data as $data) {
             $data->setAttribute('logbook', $group->where('type', $data->value)->flatten());
         }
-//        return $form_data;
+        //        return $form_data;
         $result = [];
         foreach ($form_data as $data) {
             if (count($data['logbook']) > 0 || $data['status'] == 1) {
@@ -198,5 +201,62 @@ class ReportController extends Controller
         }
 
         return view('admin.logbook_in_stase', $this->response);
+    }
+
+    public function reportStudent(Request $request)
+    {
+        $query = [];
+        $query['student_id'] = $request->student_id ?? 114;
+
+        $data['student'] = Student::find($query['student_id']);
+
+        $data['stases'] = Stase::where('desc', '!=', null)
+            ->with(['staseTasks'])
+            ->whereIn('desc', ['tahap_1', 'tahap_2', 'tahap_3'])
+            ->orderBy('desc')
+            ->get();
+
+        $data['stase_task_logs'] = StaseTaskLog::whereStudentId($query['student_id'])
+            ->with('lecture')
+            ->whereStatus('publish')
+            ->get();
+
+        $data['stase_logs'] = StaseLog::whereStudentId($query['student_id'])
+            ->get();
+
+        $data['stase_date'] = $this->staseLogToStase($data['stases'], $data['stase_logs']);
+        $data['stase'] = $this->staseTaskLogToStase($data['stases'], $data['stase_task_logs']);
+
+        if ($request->dev == 1) {
+            return $data['stase'];
+        }
+
+        $data['template'] = 'admin.report_student';
+        return Excel::download(new ExportExcelTemplate($data), 'Report ' . $data['student']['name'] . '.xls');
+        return view('admin.report_student', $data);
+    }
+
+    private function staseLogToStase($stases, $stase_logs)
+    {
+        $logs = collect($stase_logs);
+        for ($s = 0; $s < count($stases); $s++) {
+            $has_log = $logs->where('stase_id', $stases[$s]['id'])->first();
+
+            $stases[$s]['stase_log'] = $has_log;
+        }
+        return $stases;
+    }
+
+    private function staseTaskLogToStase($stases, $stase_task_logs)
+    {
+        for ($s = 0; $s < count($stases); $s++) {
+            for ($t = 0; $t < count($stases[$s]['staseTasks']); $t++) {
+                $has_penilaian = $stase_task_logs->where('stase_id', $stases[$s]['staseTasks'][$t]['stase_id'])
+                    ->where('task_id', $stases[$s]['staseTasks'][$t]['task_id'])
+                    ->first();
+                $stases[$s]['staseTasks'][$t]['stase_task_log'] = $has_penilaian;
+            }
+        }
+        return $stases;
     }
 }

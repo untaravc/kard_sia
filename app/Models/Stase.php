@@ -19,19 +19,18 @@ class Stase extends Model
         ]
     ];
 
-    public function tasks(){
-        return $this->hasMany(Task::class);
-    }
-
-    public function staseLogs(){
+    public function staseLogs()
+    {
         return $this->hasMany(StaseLog::class);
     }
 
-    public function staseTasks(){
+    public function staseTasks()
+    {
         return $this->hasMany(StaseTask::class);
     }
 
-    public function staseLogOngoing(){
+    public function staseLogOngoing()
+    {
         return $this->hasMany(StaseLog::class)->whereStatus('ongoing');
     }
 }

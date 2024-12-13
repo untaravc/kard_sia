@@ -18,7 +18,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Undangan Presentasi {{$tipe}}</title>
+    <title>Undangan Presentasi {{$data['type']}}</title>
 </head>
 <style>
     body {
@@ -59,15 +59,10 @@
                     <td>Perihal</td>
                     <td>:</td>
                     <td>
-<<<<<<< HEAD
-                        Undangan Presentasi Laporan Kasus
-                        @if(isset($data['activity']['stase'])) {{$data['activity']['stase']['name']}} @endif
-=======
-                        Undangan Presentasi {{$tipe}}
+                        Undangan Presentasi {{$data['type']}}
                         @if(isset($data['activity']['stase']))
                             {{$data['activity']['stase']['name']}}
                         @endif
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                         <br>
                         {{$data['activity']['speaker']}}
                     </td>
@@ -108,13 +103,7 @@
                         <td>:</td>
                         <td>
                             Presentasi {{$data['type']}}
-<<<<<<< HEAD
                             @if(isset($data['activity']['stase'])) {{$data['activity']['stase']['name']}} @endif
-=======
-                            @if(isset($data['activity']['stase']))
-                                {{$data['activity']['stase']['name']}}
-                            @endif
->>>>>>> 3a0ad237c4a32c5d3821fb143edff98da043fa9c
                         </td>
                     </tr>
                     <tr>

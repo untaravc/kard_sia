@@ -1,6 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
+/public/js/app-*.js
 /storage/*.key
 /storage/app/
 /storage/framework/cache/
@@ -9,7 +10,8 @@
 /storage/framework/views/
 /storage/logs/
 /vendor
-.idea
+/.idea
+/.vscode
 .env
 .env.backup
 .phpunit.result.cache
