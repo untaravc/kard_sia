@@ -30,16 +30,16 @@ class Presence extends Model
         return json_decode($val, true);
     }
 
-    public function getCheckinPhotoAttribute($val) {
-        if($val){
-            return 'https://sia.kardiologi-fkkmk.com/storage/' . $val;
-        }
-    }
+//    public function getCheckinPhotoAttribute($val) {
+//        if($val){
+//            return 'https://sia.kardiologi-fkkmk.com/storage/' . $val;
+//        }
+//    }
 
     public function getCheckoutPhotoAttribute($val) {
-        if($val){
-            return 'https://sia.kardiologi-fkkmk.com/storage/' . $val;
-        }
+//        if($val){
+//            return 'https://sia.kardiologi-fkkmk.com/storage/' . $val;
+//        }
     }
 
     public function getCheckoutAttribute(){

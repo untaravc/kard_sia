@@ -55,6 +55,7 @@ Route::group(['prefix'=>'cmsr', 'middleware'=>'auth:student'], function (){
     Route::get('log-category/{id}', [StudentLogController::class, 'log_category']);
     Route::get('stase-list', [StudentLogController::class, 'staseList']);
     Route::get('logbook-pdf/{id}', [StudentLogController::class, 'pdf']);
+    Route::get('logbook-cover', [StudentLogController::class, 'cover']);
     Route::get('compile-logbook-pdf', [StudentLogController::class, 'compile_pdf']);
 //    Route::get('identity-pdf/{id}', [StudentLogController::class, 'identity']);
     Route::get('identity-pdf', [StudentLogController::class, 'identity']);

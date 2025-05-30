@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Http\Controllers\Sadmin\UploadFirebaseController;
 use App\Http\Traits\SendMailTrait;
 use App\Models\MailLog;
 use App\Models\OpenStaseTask;
@@ -39,13 +40,11 @@ class Kernel extends ConsoleKernel
 
         //Kirim email Konfirmasi
         $schedule->call(function () {
-           $pending_mails = MailLog::whereStatus('pending')
-               ->limit(4)
-               ->get();
-
-           foreach ($pending_mails as $mail){
-                $this->send($mail);
-           }
+           $fb = new UploadFirebaseController();
+           $fb->uploadDocument();
+           $fb->uploadFile();
+           $fb->uploadPresenceCheckin();
+           $fb->uploadStudentLog();
         })->everyMinute();
 
         $schedule->call(function () {

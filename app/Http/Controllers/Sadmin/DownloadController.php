@@ -282,7 +282,7 @@ class DownloadController extends Controller
         return $bulan[$i - 1];
     }
 
-    private function hari($i)
+    public function hari($i)
     {
         $data = [
             'Minggu',

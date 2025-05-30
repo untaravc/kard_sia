@@ -31,6 +31,13 @@
             <input type="number" class="form-control form-control-lg text-center" name="transition_minute"
                    value="{{$setting['transition_minute']}}">
         </div>
+        <div class="form-group mb-3">
+            <label for="">Status</label>
+            <select class="form-control form-control-lg text-center" name="status">
+                <option value="1" @if($setting['status'] == 1) selected @endif>Open</option>
+                <option value="0" @if($setting['status'] == 0) selected @endif>Close</option>
+            </select>
+        </div>
         <button type="submit" class="btn btn-primary" style="width: 100%">Save</button>
     </form>
     </div>

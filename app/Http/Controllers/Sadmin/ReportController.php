@@ -259,4 +259,37 @@ class ReportController extends Controller
         }
         return $stases;
     }
+
+    public function presences(Request $request)
+    {
+        $student = Student::find($request->student_id);
+        if(!$student){
+            return $this->response->errorNotFound();
+        }
+        $presences = Presence::whereStudentId($request->student_id)
+            ->whereDate('checkin', '>=', $request->from)
+            ->whereDate('checkin', '<=', $request->to)
+            ->get();
+
+        $activities = ActivityStudent::whereStudentId($request->student_id)
+            ->leftJoin('activities', 'activities.id', '=', 'activity_students.activity_id')
+            ->whereDate('activity_students.created_at', '>=', $request->from)
+            ->whereDate('activity_students.created_at', '<=', $request->to)
+            ->select('activity_students.*', 'activities.name')
+            ->get();
+
+        $data = [];
+        $download_ctrl = new DownloadController();
+
+        for($date = $request->from; $date <= $request->to; $date = date('Y-m-d',strtotime("+1 day", strtotime($date))) ) {
+            $data[] = [
+                'date' => $date,
+                'day' => $download_ctrl->hari(date('w',strtotime($date))),
+                'presence' => $presences->where('checkin', '>', $date . ' 00:00:00')->where('checkin', '<', $date . ' 23:59:59')->first(),
+                'activities' => $activities->where('created_at', '>', $date . ' 00:00:00')->where('created_at', '<', $date . ' 23:59:59')->flatten(),
+            ];
+        }
+
+        return view('admin.report_presences', compact('data', 'student'));
+    }
 }

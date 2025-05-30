@@ -11,6 +11,7 @@ use App\Models\StaseLog;
 use App\Models\StaseTaskLog;
 use App\Models\Student;
 use App\Models\StudentLog;
+use App\Models\StudentProfile;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -333,5 +334,12 @@ class StudentLogController extends Controller
             )->get();
 
         return $data;
+    }
+
+    public function cover(Request $request)
+    {
+      $student = Student::find(140);
+      $student_profile = StudentProfile::find(140);
+      return view('admin.logbook_cover', compact('student', 'student_profile'));
     }
 }

@@ -103,9 +103,14 @@
                     <span v-if="!sound">Turn on Sound</span>
                     <span v-if="sound">Check Sound</span>
                 </button>
-                <button @click="play('enter')" class="btn btn-danger mx-1">
+                <button @click="play('enter')" class="btn btn-primary mx-1">
                     <span>Enter</span>
                 </button>
+                <button @click="play('min2')" class="btn btn-warning mx-1">
+                    <span>2 Menit</span>
+                </button>
+                <button @click="play('finish')" class="btn btn-success mx-1">
+                    <span>Waktu Habis</span>
             </div>
         </div>
     </div>

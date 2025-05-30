@@ -11,17 +11,21 @@ class TimerController extends Controller
     public $in_room = 6;
     public $transition = 1;
     public $reminder = 121;
+    public $status = 1;
 
-    public function index(){
+    public function index()
+    {
         return view('home.timer');
     }
 
-    public function cal_setting($request){
-        $settings = Setting::whereIn('label',[
+    public function cal_setting($request)
+    {
+        $settings = Setting::whereIn('label', [
             'transition_minute',
             'in_room_minute',
             'start_time',
-        ])->whereName('room_'.$request->r)
+            'status',
+        ])->whereName('room_' . $request->r)
             ->get();
 
         $this->start_at = $settings->where('label', 'start_time')->first() ?
@@ -32,18 +36,23 @@ class TimerController extends Controller
 
         $this->transition = $settings->where('label', 'transition_minute')->first() ?
             $settings->where('label', 'transition_minute')->first()['value'] : $this->transition;
+
+        $this->status = $settings->where('label', 'status')->first() ?
+            $settings->where('label', 'status')->first()['value'] : $this->status;
     }
 
-    private function this_time($int = true){
+    private function this_time($int = true)
+    {
 //        $time = '2022-08-03 17:15:20';
         $time = date('Y-m-d H:i:s');
-        if($int){
+        if ($int) {
             return strtotime($time);
         }
         return $time;
     }
 
-    public function timer(Request $request){
+    public function timer(Request $request)
+    {
         $this->cal_setting($request);
         $data['start_at'] = $this->start_at;
         $data['this_time'] = $this->this_time(false);
@@ -56,32 +65,39 @@ class TimerController extends Controller
         $data['order'] = max(ceil($diff_sec / $total_duration), 0);
         $data['reminder'] = $this->reminder;
 
-        if($sisa_bagi < $in_room){
+        if ($sisa_bagi < $in_room) {
             $data['text'] = 'Ujian sedang BERLANGSUNG';
             $data['countdown'] = $in_room - $sisa_bagi;
             $data['transition_time'] = false;
-        }else{
+        } else {
             $data['text'] = 'PERPINDAHAN ruang peserta ujian';
             $data['transition_time'] = true;
             $data['countdown'] = $in_room + $transition - $sisa_bagi;
         }
 
-        if($diff_sec < 0){
+        if ($diff_sec < 0) {
             $data['countdown'] = ($diff_sec * -1);
         }
 
         $data['diff_min'] = floor($diff_sec / 60);
         $data['in_room_sec'] = $this->in_room * 60;
 
+        if ($this->status == 0) {
+            $data['countdown'] = 0;
+            $data['transition_time'] = true;
+        }
+
         $this->response['result'] = $data;
         return $this->response;
     }
 
-    public function timer_setting(Request $request){
-        $settings = Setting::whereIn('label',[
+    public function timer_setting(Request $request)
+    {
+        $settings = Setting::whereIn('label', [
             'transition_minute',
             'in_room_minute',
             'start_time',
+            'status',
         ])->whereName('room_' . $request->r)->get();
 
         $setting = [];
@@ -93,26 +109,31 @@ class TimerController extends Controller
 
         $setting['start_time'] = $settings->where('label', 'start_time')->first()
             ? $settings->where('label', 'start_time')->first()['value'] : now();
+
+        $setting['status'] = $settings->where('label', 'status')->first()
+            ? $settings->where('label', 'status')->first()['value'] : 1;
+
         return view('home.timer_setting', [
             'setting' => $setting
         ]);
     }
 
-    public function timer_setting_update(Request $request){
+    public function timer_setting_update(Request $request)
+    {
         $data = $request->except('_token', 'name');
 
-        foreach ($data as $key => $datum){
+        foreach ($data as $key => $datum) {
             $has_setting = Setting::whereLabel($key)
                 ->whereName('room_' . $request->name)
                 ->first();
 
-            if($has_setting){
+            if ($has_setting) {
                 $has_setting->update([
-                   'value' => $datum
+                    'value' => $datum
                 ]);
-            }else{
+            } else {
                 Setting::create([
-                    'name' => 'room_'.$request->name,
+                    'name'  => 'room_' . $request->name,
                     'label' => $key,
                     'value' => $datum,
                 ]);

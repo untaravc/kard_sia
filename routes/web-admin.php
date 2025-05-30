@@ -122,3 +122,5 @@ Route::group(['prefix' => 'sadmin', 'middleware' => 'auth'], function () {
     Route::post('/student-regs-upload', [StudentRegController::class, 'upload']);
     Route::post('/documment-comment/{id}', [DocumentReviewController::class, 'add_comments']);
 });
+Route::get('/print/presences', [\App\Http\Controllers\Sadmin\ReportController::class, 'presences']);
+Route::get('/firebase-upload', [\App\Http\Controllers\Sadmin\UploadFirebaseController::class, 'firebaseUpload']);
