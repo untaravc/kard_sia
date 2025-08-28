@@ -14,13 +14,13 @@ class Activity extends Model
     protected $guarded = [];
     protected $appends = [
         'absence',
-        'penguji',
-        'pembimbing',
-        'pengampu',
+//        'penguji',
+//        'pembimbing',
+//        'pengampu',
         'is_author',
         'type_label',
         'category_label',
-        'attended',
+//        'attended',
     ];
 
     public function lectures(){
@@ -67,7 +67,7 @@ class Activity extends Model
         return $this->attributes['lecture_penguji'];
     }
 
-    public function getPengujiAttribute() {
+    public function penguji() {
         if(!isset($this->attributes['lecture_penguji'])){
             return [];
         }
@@ -82,7 +82,7 @@ class Activity extends Model
         return $this->attributes['lecture_pengampu'];
     }
 
-    public function getPengampuAttribute() {
+    public function pengampu() {
         if(!isset($this->attributes['lecture_pengampu'])){
             return [];
         }
@@ -97,7 +97,7 @@ class Activity extends Model
         return $this->attributes['lecture_pembimbing'];
     }
 
-    public function getPembimbingAttribute() {
+    public function pembimbing() {
         if(!isset($this->attributes['lecture_pembimbing'])){
             return [];
         }

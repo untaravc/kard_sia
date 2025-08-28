@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sadmin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
+use App\Models\Lecture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,12 +14,11 @@ class ActivityController extends Controller
     {
         $dataContent = Activity::with([
             'creator',
+//            'pengampu',
+//            'pembimbing',
+//            'penguji'
         ])
             ->where('status', '!=', 'draft')
-            ->withCount([
-                'activity_lectures',
-                'activity_students'
-            ])
             ->orderByDesc('start_date');
 
         $dataContent = $this->withFilter($dataContent, $request);
@@ -37,15 +37,21 @@ class ActivityController extends Controller
     }
 
     public function show($id) {
-        return Activity::with([
+        $data = Activity::with([
             'creator',
-            'activity_lectures' => function($q){
+            'activity_lectures' => function ($q) {
                 $q->with('lecture');
             },
-            'activity_students'=> function($q){
+            'activity_students' => function ($q) {
                 $q->with('student');
             },
         ])->find($id);
+
+        $data['penguji'] = Lecture::whereIn('id', json_decode($data['lecture_penguji'], true))->get();
+        $data['pembimbing'] = Lecture::whereIn('id', json_decode($data['lecture_pembimbing'], true))->get();
+        $data['pengampu'] = Lecture::whereIn('id', json_decode($data['lecture_pengampu'], true))->get();
+
+        return $data;
     }
 
     public function update(Request $request, $id)

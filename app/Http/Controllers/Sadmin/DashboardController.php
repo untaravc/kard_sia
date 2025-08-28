@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public function home()
+    {
+        return view('welcome');
+    }
     public function index(){
         return view('admin.layout');
     }

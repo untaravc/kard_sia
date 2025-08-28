@@ -162,6 +162,7 @@ class TimerController extends Controller
         if ($start_time) {
             $start_time->update([
                 'value' => date('Y-m-d H:i:s'),
+                'status' => 1,
             ]);
         }
 

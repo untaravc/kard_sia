@@ -117,6 +117,31 @@ class DownloadController extends Controller
             return 'Kateori aktifitas bukan referat/lapsus.';
         }
 
+        $activity['penguji'] = [];
+        if(!$activity['lecture_penguji']){
+            return [];
+        } else {
+            $ids = json_decode($activity['lecture_penguji']);
+            $activity['penguji'] = Lecture::whereIn('id', $ids)->get();
+        }
+
+
+        $activity['pembimbing'] = [];
+        if(!$activity['lecture_pembimbing']){
+            return [];
+        } else {
+            $ids = json_decode($activity['lecture_pembimbing']);
+            $activity['pembimbing'] = Lecture::whereIn('id', $ids)->get();
+        }
+
+        $activity['pengampu'] = [];
+        if(!$activity['lecture_pengampu']){
+            return [];
+        } else {
+            $ids = json_decode($activity['lecture_pengampu']);
+            $activity['pengampu'] = Lecture::whereIn('id', $ids)->get();
+        }
+
         $file_logo = public_path('assets/images/logo-ugm.png');
         $logo = base64_encode(file_get_contents($file_logo));
 

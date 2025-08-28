@@ -246,10 +246,10 @@ class StudentLogController extends Controller
                     'lecture_id' => $request->lecture_id,
                     'date'       => $request->date,
                     'category'   => $request->category,
-                    'field_1'    => $datum['field_1'],
-                    'field_2'    => $datum['field_2'],
-                    'field_3'    => $datum['field_3'],
-                    'field_4'    => $datum['field_4'],
+                    'field_1'    => $this->sanitizeInput($datum['field_1']),
+                    'field_2'    => $this->sanitizeInput($datum['field_2']),
+                    'field_3'    => $this->sanitizeInput($datum['field_3']),
+                    'field_4'    => $this->sanitizeInput($datum['field_4']),
                 ]);
             }
         }
@@ -341,5 +341,18 @@ class StudentLogController extends Controller
       $student = Student::find(140);
       $student_profile = StudentProfile::find(140);
       return view('admin.logbook_cover', compact('student', 'student_profile'));
+    }
+
+    function sanitizeInput($text) {
+        // Remove non-printable characters except newlines
+        $text = preg_replace('/[^\P{C}\n]+/u', '', $text);
+
+        // Trim whitespace and replace multiple spaces with one
+        $text = trim(preg_replace('/\s+/u', ' ', $text));
+
+        // Convert special characters to HTML entities (safe for display)
+        $text = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+        return $text;
     }
 }
