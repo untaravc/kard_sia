@@ -14,6 +14,7 @@
     <div class="shadow card p-3">
     <form action="/timer_setting" method="POST" >
         @csrf
+        <a href="/timer_start?name={{ request('r') }}" class="btn btn-danger" style="width: 100%">Start</a>
         <div class="form-group mb-3">
             <label for="">Room</label>
             <input type="text" class="form-control form-control-lg text-center" name="name" value="{{request('r')}}">

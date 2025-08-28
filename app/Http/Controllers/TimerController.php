@@ -133,11 +133,36 @@ class TimerController extends Controller
                 ]);
             } else {
                 Setting::create([
-                    'name'  => 'room_' . $request->name,
+                    'name' => 'room_' . $request->name,
                     'label' => $key,
                     'value' => $datum,
                 ]);
             }
+        }
+
+        return redirect('/timer_setting?r=' . $request->name);
+    }
+
+    public function timer_start(Request $request)
+    {
+        $start_time = Setting::whereLabel('start_time')
+            ->whereName('room_' . $request->name)
+            ->first();
+
+        if ($start_time) {
+            $start_time->update([
+                'value' => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        $start_time = Setting::whereLabel('status')
+            ->whereName('room_' . $request->name)
+            ->first();
+
+        if ($start_time) {
+            $start_time->update([
+                'value' => date('Y-m-d H:i:s'),
+            ]);
         }
 
         return redirect('/timer_setting?r=' . $request->name);

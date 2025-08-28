@@ -357,7 +357,7 @@
                                 <br>
                                 <br>
                                 <a class="btn btn-sm btn-primary btn-wd" target="_blank"
-                                   :href="`/storage/`+detailFile.link" download>
+                                   :href="detailFile.link" download>
                                     <i class="fa fa-download"></i> Download
                                 </a>
                             </div>
@@ -392,7 +392,7 @@
                             <div class="col-md-6">
                                 <img :src="dataRaw.image_url" v-if="dataRaw.image_url" alt="" class="m-2"
                                      style="max-width: 100px">
-                                <img :src="'/storage/' + user.image" v-if="!dataRaw.image_url" alt="" class="m-2"
+                                <img :src="user.image" v-if="!dataRaw.image_url" alt="" class="m-2"
                                      style="max-width: 100px">
                             </div>
                             <div class="col-md-6">

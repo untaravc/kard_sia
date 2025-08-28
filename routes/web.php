@@ -83,6 +83,7 @@ Route::get('timer', [\App\Http\Controllers\TimerController::class, 'index']);
 Route::get('timer-data', [\App\Http\Controllers\TimerController::class, 'timer']);
 Route::get('timer_setting', [\App\Http\Controllers\TimerController::class, 'timer_setting']);
 Route::post('timer_setting', [\App\Http\Controllers\TimerController::class, 'timer_setting_update']);
+Route::get('timer_start', [\App\Http\Controllers\TimerController::class, 'timer_start']);
 
 Route::group(['prefix'=>'test'], function(){
     Route::get('cek', [\App\Http\Controllers\TestController::class, 'test']);

@@ -77,7 +77,7 @@
                                         </td>
                                         <td>
                                             <file-preview v-if="data.file"
-                                                          :link="'/storage/' + data.file"></file-preview>
+                                                          :link="data.file"></file-preview>
                                             <small v-if="data.link">
                                                 <a target="_blank"
                                                    :href="data.link">{{ data.link | truncate(30) }}</a>

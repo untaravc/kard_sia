@@ -56,4 +56,12 @@ class Document extends Model
                 ->id());
         }
     }
+
+    public function getFileAttribute(){
+        if(strpos($this->attributes['file'], 'http') !== false){
+            return $this->attributes['file'];
+        } else {
+            return env('APP_URL') . '/storage/' . $this->attributes['file'];
+        }
+    }
 }

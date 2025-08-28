@@ -86,7 +86,7 @@
                                         </td>
                                         <td>
                                             <span>{{data.title}}</span>
-                                            <file-preview v-if="data.file"  :link="'/storage/' + data.file"></file-preview>
+                                            <file-preview v-if="data.file"  :link="data.file"></file-preview>
                                         </td>
                                         <td class="text-right">
                                             <button v-if="data.type === 'request'"

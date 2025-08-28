@@ -213,9 +213,9 @@
                 this.loadTimer();
                 let enter = this.timer.in_room_sec - this.timer.countdown;
                 console.log(enter)
-                if (enter < 10 && enter > 0) {
-                    this.play('enter')
-                }
+                // if (enter < 10 && enter > 0) {
+                //     this.play('enter')
+                // }
             }, 5000)
         },
         mounted() {

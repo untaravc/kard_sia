@@ -41,8 +41,8 @@
                                         {{ data.title | truncate(30)}}
                                     </td>
                                     <td>
-                                        <a v-if="data.file" :href="'/storage/' + data.file" target="_blank">File<br></a>
-                                        <a v-if="data.attachment" :href="'/storage/' + data.attachment" target="_blank">Attachment</a>
+                                        <a v-if="data.file" :href="data.file" target="_blank">File<br></a>
+                                        <a v-if="data.attachment" :href="data.attachment" target="_blank">Attachment</a>
                                     </td>
                                     <td :title="data.comment">
                                         {{ data.comment | truncate(30)}}
@@ -95,8 +95,8 @@
                                 <p>{{form.desc}}</p>
                                 <b>Laporan & Dokumentasi</b>
                                 <div>
-                                    <a v-if="form.file" :href="'/storage/' + form.file" target="_blank">File<br></a>
-                                    <a v-if="form.attachment" :href="'/storage/' + form.attachment" target="_blank">Attachment</a>
+                                    <a v-if="form.file" :href="form.file" target="_blank">File<br></a>
+                                    <a v-if="form.attachment" :href="form.attachment" target="_blank">Attachment</a>
                                 </div>
                             </div>
                             <div class="col-12">

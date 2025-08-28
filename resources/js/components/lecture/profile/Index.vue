@@ -18,7 +18,7 @@
                     <div class="card card-danger card-outline">
                         <div class="card-body box-profile">
                             <div class="text-center">
-                                <img class="profile-user-img img-fluid img-circle" v-if="user.lecture_profile && user.lecture_profile.image " :src="`/storage/`+user.lecture_profile.image" alt="User profile picture">
+                                <img class="profile-user-img img-fluid img-circle" v-if="user.lecture_profile && user.lecture_profile.image " :src="user.lecture_profile.image" alt="User profile picture">
                             </div>
 
                             <h3 class="profile-username text-center">{{user.name}}</h3>
@@ -105,7 +105,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <img :src="dataRaw.image_url" width="100%" alt="">
-                                        <img :src="`/storage/`+profile.image" id="data-image" v-show="editMode" width="100%" alt="">
+                                        <img :src="profile.image" id="data-image" v-show="editMode" width="100%" alt="">
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">

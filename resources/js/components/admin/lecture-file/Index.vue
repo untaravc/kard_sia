@@ -105,7 +105,7 @@
                                             <small>{{ data.created_at | formatDateTime}}</small>
                                         </td>
                                         <td>
-                                            <file-preview v-if="data.file" :link="'/storage/' + data.file"></file-preview>
+                                            <file-preview v-if="data.file" :link="data.file"></file-preview>
                                         </td>
                                         <td class="action-button">
                                             <button @click="deleteData(data.id)" class="btn btn-sm btn-danger">

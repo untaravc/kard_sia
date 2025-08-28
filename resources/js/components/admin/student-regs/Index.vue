@@ -229,7 +229,7 @@
                                 <table class="table">
                                     <tr v-for="docs in data_raw.documents">
                                         <td>
-                                            <file-preview v-if="docs.file" :thumbnail="true" :link="'/storage/' + docs.file"></file-preview>
+                                            <file-preview v-if="docs.file" :thumbnail="true" :link="docs.file"></file-preview>
                                         </td>
                                         <td>{{docs.category}}</td>
                                         <td>{{docs.title}}</td>

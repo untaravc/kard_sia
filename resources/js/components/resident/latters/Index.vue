@@ -62,7 +62,7 @@
                                             <small>{{ data.created_at | formatDateTime}}</small>
                                         </td>
                                         <td>
-                                            <file-preview v-if="data.file"  :link="'/storage/' + data.file"></file-preview>
+                                            <file-preview v-if="data.file"  :link="data.file"></file-preview>
                                         </td>
                                         <td class="action-button">
                                             <button @click="deleteData(data.id)" class="btn btn-sm btn-danger">
@@ -71,7 +71,7 @@
                                             <button @click="editModal(data)" class="btn btn-sm btn-info">
                                                 <i class="fa fa-edit"></i>
                                             </button>
-                                            <a target="_blank" v-if="data.file" download :href="`/storage/`+data.file" class="btn btn-sm btn-success">
+                                            <a target="_blank" v-if="data.file" download :href="data.file" class="btn btn-sm btn-success">
                                                 <i class="fa fa-download"></i>
                                             </a>
                                         </td>

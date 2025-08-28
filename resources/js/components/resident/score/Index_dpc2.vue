@@ -174,7 +174,7 @@
                                     <td>File</td>
                                     <td>:</td>
                                     <td>
-                                        <a target="_blank" :href="`/storage/`+detailFile.link" download>download</a>
+                                        <a target="_blank" :href="detailFile.link" download>download</a>
                                     </td>
                                 </tr>
                                 </tbody>

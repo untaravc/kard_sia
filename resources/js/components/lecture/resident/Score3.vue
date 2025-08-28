@@ -165,7 +165,7 @@
                                 <span>{{ detailFile.title }}</span>
                                 <br>
                                 <br>
-                                <a v-if="detailFile.link" class="btn btn-sm btn-primary btn-wd" target="_blank" :href="`/storage/`+detailFile.link" download>
+                                <a v-if="detailFile.link" class="btn btn-sm btn-primary btn-wd" target="_blank" :href="detailFile.link" download>
                                     <i class="fa fa-download"></i> Download
                                 </a>
                                 <button v-if="!detailFile.link" class="btn btn-sm btn-secondary btn-wd" disabled>
