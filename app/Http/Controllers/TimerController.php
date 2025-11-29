@@ -43,7 +43,6 @@ class TimerController extends Controller
 
     private function this_time($int = true)
     {
-//        $time = '2022-08-03 17:15:20';
         $time = date('Y-m-d H:i:s');
         if ($int) {
             return strtotime($time);

@@ -79,6 +79,11 @@ Route::get('make-token', 'HomeController@make_token');
 
 Route::get('123logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index')->middleware('auth');
 
+Route::get('cd', [\App\Http\Controllers\CountDownController::class, 'index']);
+Route::get('cd-data', [\App\Http\Controllers\CountDownController::class, 'countdown']);
+Route::get('cd-s', [\App\Http\Controllers\CountDownController::class, 'timer_setting']);
+Route::post('cd-s', [\App\Http\Controllers\CountDownController::class, 'timer_setting_update']);
+
 Route::get('timer', [\App\Http\Controllers\TimerController::class, 'index']);
 Route::get('timer-data', [\App\Http\Controllers\TimerController::class, 'timer']);
 Route::get('timer_setting', [\App\Http\Controllers\TimerController::class, 'timer_setting']);

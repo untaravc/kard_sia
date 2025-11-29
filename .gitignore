@@ -1,6 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
+/public/d
 /public/js/app-*.js
 /storage/*.key
 /storage/app/
@@ -20,3 +21,6 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 firebase-adminsdk.json
+
+.DS_Store
+/public/DS_Store
