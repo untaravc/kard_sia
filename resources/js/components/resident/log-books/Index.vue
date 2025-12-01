@@ -24,20 +24,20 @@
                                                 <button type="button" class="btn btn-sm btn-info"
                                                         @click="loadLog(st.stase.id, true)">Logbook
                                                 </button>
-                                                <button type="button"
-                                                        class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split"
-                                                        id="dropdownMenuReference" data-toggle="dropdown"
-                                                        aria-expanded="false" data-reference="parent">
-                                                    <span class="sr-only">Toggle Dropdown</span>
-                                                </button>
-                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
-                                                    <button class="dropdown-item" @click="modalLog(st.stase.id)">
-                                                        Tambah
-                                                    </button>
-                                                    <button class="dropdown-item" @click="singleModal(st.stase)">
-                                                        Upload
-                                                    </button>
-                                                </div>
+<!--                                                <button type="button"-->
+<!--                                                        class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split"-->
+<!--                                                        id="dropdownMenuReference" data-toggle="dropdown"-->
+<!--                                                        aria-expanded="false" data-reference="parent">-->
+<!--                                                    <span class="sr-only">Toggle Dropdown</span>-->
+<!--                                                </button>-->
+<!--                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">-->
+<!--                                                    <button class="dropdown-item" @click="modalLog(st.stase.id)">-->
+<!--                                                        Tambah-->
+<!--                                                    </button>-->
+<!--                                                    <button class="dropdown-item" @click="singleModal(st.stase)">-->
+<!--                                                        Upload-->
+<!--                                                    </button>-->
+<!--                                                </div>-->
                                             </div>
                                             <small v-if="st.has_log === 0">
                                                 <i class="text-black-50">tidak ada log book</i>
@@ -50,6 +50,14 @@
                         </div>
                         <!-- /.col -->
                         <div class="col-md-8" id="right-side">
+                            <div class="row">
+                                <div class="col-md-4" v-for="skill in dataRaw.skills">
+                                    <div class="card p-2">
+                                        <div class="text-sm text-bold text-gray">{{skill.name}}</div>
+                                        <div>{{skill.count}} / {{skill.desc}}</div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card card-primary card-outline" v-for="book in logbook">
                                 <div class="p-2">
                                     <small><b>{{ book.name }}</b></small>
@@ -128,55 +136,76 @@
 
         <div class="modal fade bd-example-modal-lg" id="modal-log" tabindex="-1" role="dialog"
              aria-labelledby="myLargeModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-md">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
-                    <div class="modal-header">Upload Logbook</div>
+                    <div class="modal-header">Update Logbook</div>
                     <div class="modal-body table-responsive">
-                        <div class="form-group">
-                            <label>Tanggal</label>
-                            <input class="form-control" type="date" v-model="logs.date">
-                        </div>
-                        <div class="form-group">
-                            <label>Supervisor</label>
-                            <select class="form-control" v-model="logs.lecture_id">
-                                <option value="">Diluar Kardiologi</option>
-                                <option v-for="lecture in dataRaw.lectures" :value="lecture.id">{{ lecture.name }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Tipe</label>
-                            <select class="form-control" v-model="logs.type"
-                                    :class="{ 'is-invalid': logs.errors.has('type') }" @change="parseQuestion">
-                                <option v-for="option in dataRaw.options" :value="option.value">{{ option.name }}
-                                </option>
-                            </select>
-                            <has-error :form="logs" field="type"></has-error>
-                        </div>
-                        <div class="form-group">
-                            <label>Kategori</label>
-                            <select class="form-control" v-model="logs.category"
-                                    :class="{ 'is-invalid': logs.errors.has('category') }" @change="parseQuestion">
-                                <option v-for="option in dataRaw.categories" :value="option.value">{{ option.name }}
-                                </option>
-                            </select>
-                            <has-error :form="logs" field="category"></has-error>
-                        </div>
-                        <div>
-                            <div class="form-group" v-for="(question, q) in dataRaw.questions">
-                                <label>{{ question }}</label>
-                                <textarea class="form-control" v-model="logs[q]" rows="3"></textarea>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tanggal</label>
+                                    <input class="form-control" type="date" v-model="logs.date">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Supervisor</label>
+                                    <select class="form-control" v-model="logs.lecture_id">
+                                        <option value="">Diluar Kardiologi</option>
+                                        <option v-for="lecture in dataRaw.lectures" :value="lecture.id">{{ lecture.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tipe</label>
+                                    <select class="form-control" v-model="logs.type"
+                                            :class="{ 'is-invalid': logs.errors.has('type') }" @change="parseQuestion">
+                                        <option v-for="option in dataRaw.options" :value="option.value">{{ option.name }}
+                                        </option>
+                                    </select>
+                                    <has-error :form="logs" field="type"></has-error>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Kategori</label>
+                                    <select class="form-control" v-model="logs.category"
+                                            :class="{ 'is-invalid': logs.errors.has('category') }" @change="parseQuestion">
+                                        <option v-for="option in dataRaw.categories" :value="option.value">{{ option.name }}
+                                        </option>
+                                    </select>
+                                    <has-error :form="logs" field="category"></has-error>
+                                </div>
+                            </div>
+                            <div class="col-md-6" v-for="(question, q) in dataRaw.questions">
+                                <div class="form-group" >
+                                    <label>{{ question }}</label>
+                                    <textarea class="form-control" v-model="logs[q]" rows="3"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-sm text-bold text-gray">Ketrampilan</div>
+                                <div class="text-sm">
+                                    <div class="form-check" v-for="skill in dataRaw.skills">
+                                        <input v-model="logs.skills[skill.id]" class="form-check-input" type="checkbox" :id="skill.value">
+                                        <label class="form-check-label" :for="skill.value">
+                                            {{skill.name}}
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Upload Logbook (gambar/pdf)</label> <br>
-                            <input type="file" id="form_file" accept="application/pdf,image/png, image/gif, image/jpeg">
-                        </div>
-                        <div>
-                            <img :src="dataRaw.image_url" width="100%">
-                            <img :src="logs.photo_link" id="data-image" v-show="showThumbnail"
-                                 width="100%">
-                        </div>
+<!--                        <div class="form-group">-->
+<!--                            <label>Upload Logbook (gambar/pdf)</label> <br>-->
+<!--                            <input type="file" id="form_file" accept="application/pdf,image/png, image/gif, image/jpeg">-->
+<!--                        </div>-->
+<!--                        <div>-->
+<!--                            <img :src="dataRaw.image_url" width="100%">-->
+<!--                            <img :src="logs.photo_link" id="data-image" v-show="showThumbnail"-->
+<!--                                 width="100%">-->
+<!--                        </div>-->
                     </div>
                     <div class="modal-footer">
                         <button type="button" v-if="!edit_mode" :disabled="disable" @click="addSingleLog"
@@ -201,7 +230,7 @@
              aria-labelledby="myLargeModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
-                    <div class="modal-header">Tambah Log</div>
+                    <div class="modal-header">Tambah Log Book</div>
                     <div class="modal-body table-responsive">
                         <div class="row">
                             <div class="col-md-3">
@@ -249,9 +278,20 @@
                         <table style="width: 100%;" v-if="bulk_logs.type">
                             <tr v-for="num in dataRaw.row_number">
                                 <td v-for="(question, q) in dataRaw.bulk_questions">
-                                            <textarea class="form-control" :placeholder="question"
-                                                      v-model="bulk_logs.data[num-1][q]"
-                                                      rows="2"></textarea>
+                                    <textarea class="form-control" :placeholder="question"
+                                              v-model="bulk_logs.data[num-1][q]"
+                                              rows="2"></textarea>
+                                </td>
+                                <td>
+                                    <div class="text-sm text-bold text-gray">Ketrampilan</div>
+                                    <div class="text-sm">
+                                        <div class="form-check" v-for="skill in dataRaw.skills">
+                                            <input v-model="bulk_logs.data[num-1]['skills'][skill.id]" class="form-check-input" type="checkbox" :id="skill.value + '_' + num">
+                                            <label class="form-check-label" :for="skill.value + '_' + num">
+                                                {{skill.name}}
+                                            </label>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="text-center" style="width: 40px;">
                                     <i class="fa fa-trash text-danger" @click="deleteRow(num)"></i>
@@ -309,6 +349,7 @@ export default {
                 photo_link: null,
                 row_number: 1,
                 categories: [],
+                skills: [],
             },
             filter_stase: '',
             logs: new form({
@@ -325,6 +366,7 @@ export default {
                 type: '',
                 photo: '',
                 photo_link: '',
+                skills:{}
             }),
             bulk_logs: {
                 id: '',
@@ -340,6 +382,7 @@ export default {
                         field_2: '',
                         field_3: '',
                         field_4: '',
+                        skills: {},
                     }
                 ]
             }
@@ -419,6 +462,7 @@ export default {
                     field_2: '',
                     field_3: '',
                     field_4: '',
+                    skills: {}
                 }
             ]
             this.parseQuestion2();
@@ -431,7 +475,8 @@ export default {
             this.logs.stase_id = data.id;
             axios.get('/stase-option/' + data.id)
                 .then(({data}) => {
-                    this.dataRaw.options = data;
+                    this.dataRaw.options = data.types;
+                    this.dataRaw.skills = data.skills;
                     this.parseQuestion();
                 });
             $('#modal-log').modal({backdrop: 'static', keyboard: false});
@@ -440,7 +485,8 @@ export default {
         loadOption(id) {
             axios.get('/stase-option/' + id)
                 .then(({data}) => {
-                    this.dataRaw.options = data;
+                    this.dataRaw.options = data.types;
+                    this.dataRaw.skills = data.skills;
                 });
         },
         loadLectures() {
@@ -491,7 +537,8 @@ export default {
             this.showThumbnail = true;
             axios.get('/stase-option/' + parse.stase_id)
                 .then(({data}) => {
-                    this.dataRaw.options = data;
+                    this.dataRaw.options = data.types;
+                    this.dataRaw.skills = data.skills;
                     this.logs.fill(parse);
                     this.parseQuestion();
                 });
@@ -499,25 +546,26 @@ export default {
         },
         updateLog() {
             this.disable = true;
-            const form_file = document.getElementById('form_file');
+            // const form_file = document.getElementById('form_file');
 
             const formData = new FormData();
-            if (document.getElementById('form_file').value != '') {
-                formData.append('file', form_file.files[0]);
-            }
+            // if (document.getElementById('form_file').value != '') {
+            //     formData.append('file', form_file.files[0]);
+            // }
 
-            formData.append('id', this.logs.id ?? '');
-            formData.append('lecture_id', this.logs.lecture_id ?? '');
-            formData.append('stase_id', this.logs.stase_id);
-            formData.append('stase_log_id', this.logs.stase_log_id ?? '');
-            formData.append('field_1', this.logs.field_1 ?? '');
-            formData.append('field_2', this.logs.field_2 ?? '');
-            formData.append('field_3', this.logs.field_3 ?? '');
-            formData.append('date', this.logs.date ?? '');
-            formData.append('type', this.logs.type ?? '');
-            formData.append('category', this.logs.category ?? '');
+            // formData.append('id', this.logs.id ?? '');
+            // formData.append('lecture_id', this.logs.lecture_id ?? '');
+            // formData.append('stase_id', this.logs.stase_id);
+            // formData.append('stase_log_id', this.logs.stase_log_id ?? '');
+            // formData.append('field_1', this.logs.field_1 ?? '');
+            // formData.append('field_2', this.logs.field_2 ?? '');
+            // formData.append('field_3', this.logs.field_3 ?? '');
+            // formData.append('date', this.logs.date ?? '');
+            // formData.append('type', this.logs.type ?? '');
+            // formData.append('category', this.logs.category ?? '');
+            // formData.append('skills', this.logs.skills ?? {});
 
-            axios.post('/cmsr/student-logs/' + this.logs.id, formData)
+            axios.post('/cmsr/student-logs/' + this.logs.id, this.logs)
                 .then(({data}) => {
                     this.disable = false;
                     $('#modal-log').modal('hide');
@@ -541,7 +589,8 @@ export default {
             });
         },
         addLogBulk() {
-            this.disable = true;
+            // this.disable = true;
+            console.log(this.bulk_logs)
             axios.post('/cmsr/student-logs-bulk', this.bulk_logs)
                 .then(({data}) => {
                     this.disable = false;
@@ -561,6 +610,7 @@ export default {
                 field_2: '',
                 field_3: '',
                 field_4: '',
+                skills: {},
             })
         },
         deleteRow(i) {

@@ -24,6 +24,10 @@ class StudentLog extends Model
         return $this->belongsTo(Stase::class);
     }
 
+    public function stase_log_skills(){
+        return $this->hasMany(StudentLogSkill::class);
+    }
+
     public function scopeStudentHas($logs){
         $auth = Auth::guard('student')->id();
 

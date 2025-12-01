@@ -238,7 +238,7 @@ class DownloadController extends Controller
         return view('templates.pdf.pembimbing_stase', $data);
     }
 
-    public function undangan_referat_lapsus($activity_id){
+    public function undangan_referat_lapsus(Request $request, $activity_id){
         $activity = Activity::whereIn('category', [7, 8])
             ->with('stase')
             ->where('id', $activity_id)
@@ -269,7 +269,7 @@ class DownloadController extends Controller
         $lecture_ids = array_merge(json_decode($data['activity']['lecture_penguji']), $lecture_ids);
         $lecture_ids = array_merge(json_decode($data['activity']['lecture_pengampu']), $lecture_ids);
 
-        $data['all_staff'] = $this->all_staff($lecture_ids);
+        $data['all_staff'] = $this->all_staff($lecture_ids, $request->dosen_lain);
 
         return view('templates.pdf.undangan_referat', compact(
             'logo',
@@ -277,14 +277,14 @@ class DownloadController extends Controller
             'ttd'
         ));
 
-        $pdf = PDF::loadView('templates.pdf.sk_referat', compact(
-            'data',
-            'logo',
-            'ttd'
-        ))
-            ->setPaper('a4');
-
-        return $pdf->download('Undangan ' . $activity->name . ' ' . $data['number'] . '.pdf');
+//        $pdf = PDF::loadView('templates.pdf.sk_referat', compact(
+//            'data',
+//            'logo',
+//            'ttd'
+//        ))
+//            ->setPaper('a4');
+//
+//        return $pdf->download('Undangan ' . $activity->name . ' ' . $data['number'] . '.pdf');
     }
 
     private function bulan($i)
@@ -322,7 +322,7 @@ class DownloadController extends Controller
         return $data[$i];
     }
 
-    private function all_staff($main_ids = []){
+    private function all_staff($main_ids = [], $dosen_lain = null){
         $container = [
             'Ketua Departemen Kardiologi dan Kedokteran Vaskular',
             'Ketua Program Studi Jantung dan Pembuluh Darah',
@@ -330,7 +330,11 @@ class DownloadController extends Controller
         $main_name = Lecture::whereIn('id', $main_ids)->pluck('name_alt')->toArray();
         $main_name_append = [];
         foreach ($main_name as $name){
-            $main_name_append[] = $name . ' (Pembimbing)';
+            if($name == 'Dosen Lainnya' && $dosen_lain != null){
+                $main_name_append[] = $dosen_lain . ' (Pembimbing)';
+            } else {
+                $main_name_append[] = $name . ' (Pembimbing)';
+            }
         }
 
         $all_staff = Lecture::whereNotIn('id', $main_ids)->where('is_in_house', '=',1)->pluck('name_alt')->toArray();

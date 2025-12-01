@@ -11,6 +11,7 @@ use App\Models\StaseLog;
 use App\Models\StaseTaskLog;
 use App\Models\Student;
 use App\Models\StudentLog;
+use App\Models\StudentLogSkill;
 use App\Models\StudentProfile;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Http\Request;
@@ -41,8 +42,8 @@ class StudentLogController extends Controller
     {
         $request->merge([
             'student_id' => Auth::guard('student')->id(),
-            'status'     => 0,
-            'date'       => $request->date ?? date('Y-m-d')
+            'status' => 0,
+            'date' => $request->date ?? date('Y-m-d')
         ]);
 
         $this->validateData($request);
@@ -76,14 +77,26 @@ class StudentLogController extends Controller
             ->whereType('logbook-cat')
             ->get();
 
+        $student_log_skills = StudentLogSkill::whereStaseId($id)->get();
         foreach ($form_data as $data) {
             $data->setAttribute('logbook', $group->where('type', $data->value)->flatten());
         }
-//        return $form_data;
+
         $result = [];
         foreach ($form_data as $data) {
             if (count($data['logbook']) > 0 || $data['status'] == 1) {
                 $result[] = $data;
+            }
+        }
+
+        foreach ($result as $item) {
+            foreach ($item['logbook'] as $logbook) {
+                $skill_list = $student_log_skills->where('student_log_id', $logbook['id'])->flatten();
+                $skills = [];
+                foreach ($skill_list as $skill) {
+                    $skills[$skill->form_option_id] = true;
+                }
+                $logbook->setAttribute('skills', $skills);
             }
         }
 
@@ -96,8 +109,8 @@ class StudentLogController extends Controller
     {
         $this->validate($request, [
             'student_id' => 'required',
-            'stase_id'   => 'required',
-            'type'       => 'required',
+            'stase_id' => 'required',
+            'type' => 'required',
         ]);
     }
 
@@ -121,8 +134,8 @@ class StudentLogController extends Controller
 
         $request->merge([
             'student_id' => Auth::guard('student')->id(),
-            'status'     => 0,
-            'date'       => $request->date ?? date('Y-m-d')
+            'status' => 0,
+            'date' => $request->date ?? date('Y-m-d')
         ]);
 
         $this->validateData($request);
@@ -131,7 +144,39 @@ class StudentLogController extends Controller
             $request->merge(['photo' => $name]);
         }
 
-        $log->update($request->except('file'));
+        $log->update([
+            "field_1" => $request->field_1,
+            "field_5" => $request->field_5,
+            "type" => $request->type,
+            "field_2" => $request->field_2,
+            "field_4" => $request->field_4,
+            "field_6" => $request->field_6,
+            "field_3" => $request->field_3,
+            "lecture_id" => $request->lecture_id,
+            "date" => $request->date,
+            "category" => $request->category,
+        ]);
+
+        if ($request->skills) {
+            $skills = [];
+            foreach ($request->skills as $key => $value) {
+                if ($value) {
+                    $skills[] = $key;
+                }
+            }
+
+            // hapus
+            StudentLogSkill::whereStudentLogId($id)->delete();
+            // tambah
+            foreach ($skills as $skill) {
+                StudentLogSkill::create([
+                    'student_id' => $log->student_id,
+                    'stase_id' => $log->stase_id,
+                    'student_log_id' => $log->id,
+                    'form_option_id' => $skill,
+                ]);
+            }
+        }
 
         return $this->response;
     }
@@ -197,6 +242,8 @@ class StudentLogController extends Controller
     {
         $log = StudentLog::studentHas()
             ->find($id);
+
+        $skills = StudentLogSkill::where('student_log_id', $id)->delete();
         if ($log != null) {
             $log->delete();
             return $this->response;
@@ -219,10 +266,10 @@ class StudentLogController extends Controller
 
         $name = 'Logbook - ' . $student['name'] . ' - ' . $stase['name'];
         return view('templates.pdf.logbook', [
-            'data'    => $data['result'],
+            'data' => $data['result'],
             'student' => $student,
-            'stase'   => $stase,
-            'name'    => $name,
+            'stase' => $stase,
+            'name' => $name,
         ]);
     }
 
@@ -230,27 +277,44 @@ class StudentLogController extends Controller
     {
         $request->merge([
             'student_id' => Auth::guard('student')->id(),
-            'status'     => 0,
-            'date'       => $request->date ?? date('Y-m-d')
+            'status' => 0,
+            'date' => $request->date ?? date('Y-m-d')
         ]);
 
         $this->validateData($request);
 
         if (count($request->data) > 0) {
             foreach ($request->data as $datum) {
-                StudentLog::create([
+                $skills = [];
+                foreach ($datum['skills'] as $key => $value) {
+                    if ($value) {
+                        $skills[] = $key;
+                    }
+                }
+                $student_log = StudentLog::create([
                     'student_id' => $request->student_id,
-                    'status'     => $request->status,
-                    'stase_id'   => $request->stase_id,
-                    'type'       => $request->type,
+                    'status' => $request->status,
+                    'stase_id' => $request->stase_id,
+                    'type' => $request->type,
                     'lecture_id' => $request->lecture_id,
-                    'date'       => $request->date,
-                    'category'   => $request->category,
-                    'field_1'    => $this->sanitizeInput($datum['field_1']),
-                    'field_2'    => $this->sanitizeInput($datum['field_2']),
-                    'field_3'    => $this->sanitizeInput($datum['field_3']),
-                    'field_4'    => $this->sanitizeInput($datum['field_4']),
+                    'date' => $request->date,
+                    'category' => $request->category,
+                    'field_1' => $this->sanitizeInput($datum['field_1']),
+                    'field_2' => $this->sanitizeInput($datum['field_2']),
+                    'field_3' => $this->sanitizeInput($datum['field_3']),
+                    'field_4' => $this->sanitizeInput($datum['field_4']),
                 ]);
+
+                if (count($skills) > 0) {
+                    foreach ($skills as $skill) {
+                        StudentLogSkill::create([
+                            'student_id' => $student_log->student_id,
+                            'stase_id' => $student_log->stase_id,
+                            'student_log_id' => $student_log->id,
+                            'form_option_id' => $skill,
+                        ]);
+                    }
+                }
             }
         }
 
@@ -305,16 +369,16 @@ class StudentLogController extends Controller
         }
 
         $pdf = PDF::loadView('templates.logbook.layout', [
-            'photo'   => $img ?? null,
-            'stases'  => $stases,
+            'photo' => $img ?? null,
+            'stases' => $stases,
             'student' => $data['student']
         ]);
 
-        return $pdf->download('Logbook ' . $data['student']['name'] . '-'. date('d M y') . '.pdf');
+        return $pdf->download('Logbook ' . $data['student']['name'] . '-' . date('d M y') . '.pdf');
 
         return view('templates.logbook.layout', [
-            'photo'   => $img ?? null,
-            'stases'  => $stases,
+            'photo' => $img ?? null,
+            'stases' => $stases,
             'student' => $data['student']
         ]);
     }
@@ -338,12 +402,13 @@ class StudentLogController extends Controller
 
     public function cover(Request $request)
     {
-      $student = Student::find(140);
-      $student_profile = StudentProfile::find(140);
-      return view('admin.logbook_cover', compact('student', 'student_profile'));
+        $student = Student::find(140);
+        $student_profile = StudentProfile::find(140);
+        return view('admin.logbook_cover', compact('student', 'student_profile'));
     }
 
-    function sanitizeInput($text) {
+    function sanitizeInput($text)
+    {
         // Remove non-printable characters except newlines
         $text = preg_replace('/[^\P{C}\n]+/u', '', $text);
 
