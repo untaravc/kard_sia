@@ -15,7 +15,7 @@ class ResidentController extends Controller
     public function index(){
         $id = Auth::guard('student')->user()->id;
 
-        return Student::with([
+        $data = Student::with([
             'staseLogs'=>function($q){$q->with(['stase']);},
             'staseLogsActive'=>function($q){
                 $q->with([
@@ -46,6 +46,9 @@ class ResidentController extends Controller
         ])->leftJoin('student_profiles', 'student_profiles.student_id', '=', 'students.id')
             ->select('student_profiles.*', 'students.id', 'students.name', 'students.email', 'students.year')
             ->find($id);
+
+
+        return $data;
     }
 
     public function uploadFile(Request $request){

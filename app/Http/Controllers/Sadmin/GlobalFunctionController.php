@@ -264,7 +264,11 @@ class GlobalFunctionController extends Controller
 
         foreach ($skills as $skill) {
             $selected = $skill_count->where('form_option_id', $skill->id)->first();
-            $skill->setAttribute('count', $selected['count']);
+            if ($selected) {
+                $skill->setAttribute('count', $selected['count']);
+            } else {
+                $skill->setAttribute('count', 0);
+            }
         }
 
         return [

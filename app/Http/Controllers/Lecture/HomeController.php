@@ -16,7 +16,7 @@ class HomeController extends Controller {
         return view('lecture.layout');
     }
 
-    public function openStaseTask() {
+    public function openStaseTask(Request $request) {
         $lecture = Auth::guard('lecture')->user();
 
         $data = OpenStaseTask::with([
@@ -30,17 +30,23 @@ class HomeController extends Controller {
                 ]);
             },
         ])->where(function ($q) use ($lecture) {
-            $q->where('lecture_id', $lecture->id);
-//                ->orWhere('lecture_id', 0);
+            $q->where('lecture_id', $lecture->id)
+                ->orWhere('lecture_id', 0);
         })
             ->whereDate('created_at', '>', date('Y-m-d', strtotime(date('Y-m-d') . ' -3 months')))
             ->orderByDesc('created_at')->get();
 
+        if($request->dev){
+            return $data;
+        }
+
         foreach ($data as $d) {
-            $d->setAttribute('data', StaseTaskLog::whereLectureId($lecture->id)
-                ->whereStudentId($d['student']['id'])
-                ->whereStaseTaskId($d->staseTask->id)
-                ->first());
+//            if($d->staseTask) {
+                $d->setAttribute('data', StaseTaskLog::whereLectureId($lecture->id)
+                    ->whereStudentId($d['student']['id'] ?? 0)
+                    ->whereStaseTaskId($d->staseTask->id)
+                    ->first());
+//            }
         }
 
         $blank   = [];

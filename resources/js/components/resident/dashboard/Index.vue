@@ -169,9 +169,9 @@
                                     </th>
                                 </tr>
                                 <tbody v-if="dataDetail.stase_logs_active && dataDetail.stase_logs_active.stase">
-                                <tr role="row" class="odd"
+                                <tr role="row" class="odd" v-if="data.status == 1 || (data.stase_task_logs[0].point_average > 0)"
                                     v-for="(data, i) in dataDetail.stase_logs_active.stase.stase_tasks" :key="data.id">
-                                    <td>
+                                    <td >
                                         <div v-if="data.open_stase_task" class="text-sm">
                                             <i>{{ data.open_stase_task.plan | formatDate }}</i>
                                         </div>

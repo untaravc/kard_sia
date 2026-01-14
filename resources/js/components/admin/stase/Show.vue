@@ -27,6 +27,7 @@
                                     <th>Kategori</th>
                                     <th>Nama</th>
                                     <th>Dosen Pembimbing</th>
+                                    <th>Status</th>
                                     <th><span style="float: right">Aksi</span></th>
                                 </tr>
                                 <tbody>
@@ -35,10 +36,11 @@
                                     <td>{{data.task.name}}</td>
                                     <td>{{data.name}}</td>
                                     <td><span v-if="data.lecture">{{data.lecture.name}}</span></td>
+                                    <td>{{data.status === 1 ? 'Aktif' : 'Non-Aktif'}}</td>
                                     <td class="action-button">
-                                        <button class="btn btn-sm btn-danger" @click="deleteData(data.id)">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+<!--                                        <button class="btn btn-sm btn-danger" @click="deleteData(data.id)">-->
+<!--                                            <i class="fa fa-trash"></i>-->
+<!--                                        </button>-->
                                         <button class="btn btn-sm btn-success" @click="editModal(data)">
                                             <i class="fa fa-edit" ></i>
                                         </button>
@@ -86,6 +88,17 @@
                                         <<option v-for="(data, i) in dataRaw.lectures" :key="i" :value="data.id" selected>{{data.name}}</option>
                                     </select>
                                     <has-error :form="form" field="lecture_id"></has-error>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Status</label>
+                                        <select v-model="form.status"
+                                                class="form-control" :class="{ 'is-invalid': form.errors.has('status') }">
+                                            <option value="1">Aktif</option>
+                                            <option value="0">Non-Aktif</option>
+                                        </select>
+                                        <has-error :form="form" field="status"></has-error>
+                                    </div>
                                 </div>
                             </div>
                         </form>
@@ -146,6 +159,7 @@
                     lecture_id:'',
                     task_id:'',
                     name:'',
+                    status: 1,
                 }),
             }
         },
@@ -165,26 +179,6 @@
             loadLectures(){
                 axios.get('/sadmin/get-lectures')
                     .then( ({data}) => ( this.dataRaw.lectures = data))
-            },
-            getImage(e){
-                let file = e.target.files[0];
-
-                let reader = new FileReader();
-                if (file['size'] < 2200000){
-                    reader.onloadend = (file)=>{
-                        this.form.image = reader.result;
-                    };
-                    this.dataRaw.image_url = URL.createObjectURL(file);
-                    reader.readAsDataURL(file)
-                } else {
-                    this.form.image = '';
-                    $('#form-image').val('');
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'You upload large file',
-                        text: 'Please upload not more than 2MB file',
-                    })
-                }
             },
             pagination(page = 1) {
                 this.$Progress.start();

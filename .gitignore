@@ -26,3 +26,4 @@ firebase-adminsdk.json
 
 .DS_Store
 /public/DS_Store
+/backup

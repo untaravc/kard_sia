@@ -160,12 +160,11 @@
                                 <tr v-if="dataContent && dataContent[0]" v-for="(data, i) in dataContent" :key="i">
                                     <td>
                                         <span class="badge badge-primary"
-                                              v-if="data.stase_task">#{{ data.stase_task.stase.name }}</span><br>
+                                              v-if="data.stase_task && data.stase_task.stase">#{{ data.stase_task.stase.name }}</span><br>
                                         <b v-if="data.student">{{ data.student.name }}</b><br>
                                         <small v-if="data.stase_task">{{ data.stase_task.name }}</small> :
                                         <small>{{ data.title }}</small>
                                         <div v-if="data.files && data.files[0]">
-
                                             <button v-for="(file, f) in data.files" :key="f"
                                                     style="padding: 0.15rem 0.3rem;"
                                                     class="btn btn-outline-secondary m-1 btn-sm btn-rounded"

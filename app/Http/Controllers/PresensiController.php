@@ -316,7 +316,7 @@ class PresensiController extends Controller {
         $preseces = Presence::whereDate('checkin', $date)
             ->get();
 
-        $student = Student::with('last_presence')->get();
+        $student = Student::with('last_presence')->whereStatus('active')->get();
 
         $data['no_presence'] = $student->where('status', 'active')
             ->whereNotIn('id', $preseces->pluck('student_id'));
