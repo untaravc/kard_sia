@@ -228,11 +228,12 @@ class ReportController extends Controller
         $data['stase'] = $this->staseTaskLogToStase($data['stases'], $data['stase_task_logs']);
 
         if ($request->dev == 1) {
-            return $data['stase'];
+            return $data;
         }
 
         $data['template'] = 'admin.report_student';
-        return Excel::download(new ExportExcelTemplate($data), 'Report ' . $data['student']['name'] . '.xls');
+        $student_name = $data['student']['name'] ?? "";
+//        return Excel::download(new ExportExcelTemplate($data), 'Report ' . $student_name . '.xls');
         return view('admin.report_student', $data);
     }
 

@@ -55,6 +55,7 @@ const routes = [
     //RESIDEN
     // { path: '/resident/', component: require('./components/resident/dashboard/Show.vue').default  },
     { path: '/resident/', component: require('./components/resident/dashboard/Index.vue').default  },
+    { path: '/resident/dashboard', component: require('./components/resident/dashboard2/Index.vue').default  },
     { path: '/resident/score', component: require('./components/resident/score/Index.vue').default  },
     { path: '/resident/logbooks', component: require('./components/resident/log-books/Index.vue').default  },
     { path: '/resident/letters', component: require('./components/resident/latters/Index.vue').default  },
