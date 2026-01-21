@@ -24,6 +24,10 @@ class DashboardController extends Controller
         return view('admin.layout');
     }
 
+    public function index2(){
+        return view('admin.layout2');
+    }
+
     public function stase(){
         return Stase::where('desc', '!=', null)->with([
             'staseLogOngoing'=>function($q){

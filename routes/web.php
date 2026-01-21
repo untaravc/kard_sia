@@ -16,7 +16,6 @@ Route::get('/usulan-kurikulum', function () {
 });
 
 //ADMIN
-Auth::routes();
 require('web-admin.php');
 require('web-dosen.php');
 require('web-resident.php');
@@ -98,3 +97,6 @@ Route::group(['prefix'=>'test'], function(){
 Route::get('pass', function (){
    return \Illuminate\Support\Facades\Hash::make('password');
 });
+
+Route::get('/cblu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
+Route::get('/cblu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);

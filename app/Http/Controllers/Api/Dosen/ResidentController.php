@@ -19,11 +19,11 @@ class ResidentController extends Controller
             })
             ->paginate(10);
 
-        $this->res['status'] = true;
-        $this->res['data'] = [
+        $this->response['status'] = true;
+        $this->response['data'] = [
             'residents' => $dataContent,
         ];
 
-        return $this->res;
+        return $this->response;
     }
 }
