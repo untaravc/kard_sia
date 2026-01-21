@@ -50,10 +50,10 @@ class AuthController extends Controller
         $basePath = $request->get('basePath', '/cblu');
 
         $menu = [
-            [ 'label' => 'Dashboard', 'icon' => '📊', 'to' => "{$basePath}/" ],
+            [ 'label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/" ],
             [
                 'label' => 'Dosen',
-                'icon' => '🎓',
+                'icon' => 'dosen',
                 'children' => [
                     [ 'label' => 'Data', 'to' => "{$basePath}/lecture" ],
                     [ 'label' => 'Dokumen', 'to' => "{$basePath}/lecture-file" ],
@@ -61,7 +61,7 @@ class AuthController extends Controller
             ],
             [
                 'label' => 'Residen',
-                'icon' => '👥',
+                'icon' => 'resident',
                 'children' => [
                     [ 'label' => 'Data', 'to' => "{$basePath}/resident" ],
                     [ 'label' => 'Presensi', 'to' => "{$basePath}/presences" ],
@@ -79,18 +79,18 @@ class AuthController extends Controller
             ],
             [
                 'label' => 'CBT',
-                'icon' => '🧠',
+                'icon' => 'cbt',
                 'children' => [
                     [ 'label' => 'Kategori', 'to' => '/object/categories' ],
                     [ 'label' => 'Bank Soal', 'to' => '/object/quizzes' ],
                     [ 'label' => 'Paket Ujian', 'to' => '/object/quiz-sections' ],
                 ],
             ],
-            [ 'label' => 'Ujian Terbuka', 'icon' => '🚪', 'to' => "{$basePath}/open-exam" ],
-            [ 'label' => 'Agenda', 'icon' => '🗓️', 'to' => "{$basePath}/activity" ],
+            [ 'label' => 'Ujian Terbuka', 'icon' => 'open-exam', 'to' => "{$basePath}/open-exam" ],
+            [ 'label' => 'Agenda', 'icon' => 'agenda', 'to' => "{$basePath}/activity" ],
             [
                 'label' => 'Data Master',
-                'icon' => '🧩',
+                'icon' => 'data-master',
                 'children' => [
                     [ 'label' => 'Surat', 'to' => "{$basePath}/letter-records" ],
                     [ 'label' => 'Stase', 'to' => "{$basePath}/stase" ],

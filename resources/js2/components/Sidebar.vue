@@ -16,7 +16,9 @@
                     active-class="bg-sidebar-accent"
                     exact-active-class="bg-sidebar-accent"
                 >
-                    <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">{{ item.icon }}</span>
+                    <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">
+                        <Icon v-if="item.icon" :icon="resolveIcon(item.icon)" class="h-4 w-4" />
+                    </span>
                     <span class="flex-1">{{ item.label }}</span>
                 </router-link>
                 <div v-else class="flex flex-col gap-1.5">
@@ -25,7 +27,9 @@
                         type="button"
                         @click="toggleGroup(item.label)"
                     >
-                        <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">{{ item.icon }}</span>
+                        <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">
+                            <Icon v-if="item.icon" :icon="resolveIcon(item.icon)" class="h-4 w-4" />
+                        </span>
                         <span class="flex-1">{{ item.label }}</span>
                         <span
                             class="ml-auto h-2 w-2 border-b-2 border-r-2 border-sidebar-text/70 transition-transform duration-200"
@@ -56,8 +60,12 @@
 
 <script>
 import Repository from '../repository';
+import { Icon, ICONS } from '../icons';
 
 export default {
+    components: {
+        Icon,
+    },
     props: {
         basePath: {
             type: String,
@@ -74,6 +82,9 @@ export default {
         this.fetchMenu();
     },
     methods: {
+        resolveIcon(iconKey) {
+            return ICONS[iconKey] || iconKey || '';
+        },
         fetchMenu() {
             return Repository.get('/api/menu', {
                 params: { basePath: this.basePath },
