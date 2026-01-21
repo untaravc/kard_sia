@@ -1,9 +1,9 @@
 <template>
-    <div class="revamp-shell">
+    <div class="min-h-screen bg-surface text-ink font-sans flex flex-col lg:flex-row">
         <Sidebar :base-path="basePath" />
-        <div class="revamp-main">
+        <div class="flex flex-1 flex-col">
             <Topbar :title="title" :subtitle="subtitle" />
-            <main class="content">
+            <main class="flex flex-col gap-7 px-9 pt-7 pb-10">
                 <router-view />
             </main>
         </div>

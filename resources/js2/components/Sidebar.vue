@@ -1,34 +1,45 @@
 <template>
-    <aside class="revamp-sidebar">
-        <div class="brand">
-            <span class="brand-mark">K</span>
-            <div class="brand-text">
-                <div class="brand-title">Kardio</div>
-                <div class="brand-sub">Admin Suite</div>
+    <aside class="flex w-full flex-col gap-8 bg-[radial-gradient(circle_at_top,_theme(colors.sidebar-accent)_0%,_theme(colors.sidebar)_65%)] px-2.5 py-4 text-sidebar-text max-lg:flex-row max-lg:items-center max-lg:gap-4 max-lg:overflow-x-auto lg:w-64 lg:shrink-0">
+        <div class="flex items-center gap-3">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent text-lg font-bold text-ink">K</span>
+            <div class="leading-tight">
+                <div class="font-semibold tracking-wide">Kardio</div>
+                <div class="text-xs text-sidebar-text/70">Admin Suite</div>
             </div>
         </div>
-        <nav class="nav">
+        <nav class="flex flex-col gap-2.5">
             <div v-for="item in menuItems" :key="item.label">
-                <router-link v-if="!item.children" class="nav-item" :to="item.to">
-                    <span class="nav-icon">{{ item.icon }}</span>
-                    <span class="nav-label">{{ item.label }}</span>
+                <router-link
+                    v-if="!item.children"
+                    class="flex w-full items-center gap-2.5 rounded-xl bg-transparent px-3.5 py-2.5 text-sm text-sidebar-text no-underline transition-colors hover:bg-sidebar-accent"
+                    :to="item.to"
+                    active-class="bg-sidebar-accent"
+                    exact-active-class="bg-sidebar-accent"
+                >
+                    <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">{{ item.icon }}</span>
+                    <span class="flex-1">{{ item.label }}</span>
                 </router-link>
-                <div v-else class="nav-group">
+                <div v-else class="flex flex-col gap-1.5">
                     <button
-                        class="nav-item nav-group-title"
+                        class="flex w-full cursor-pointer items-center gap-2.5 rounded-xl border-0 bg-transparent px-3.5 py-2.5 text-left text-sm text-sidebar-text transition-colors hover:bg-sidebar-accent"
                         type="button"
                         @click="toggleGroup(item.label)"
                     >
-                        <span class="nav-icon">{{ item.icon }}</span>
-                        <span class="nav-label">{{ item.label }}</span>
-                        <span class="nav-caret" :class="{ open: isOpen(item.label) }"></span>
+                        <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">{{ item.icon }}</span>
+                        <span class="flex-1">{{ item.label }}</span>
+                        <span
+                            class="ml-auto h-2 w-2 border-b-2 border-r-2 border-sidebar-text/70 transition-transform duration-200"
+                            :class="isOpen(item.label) ? 'rotate-45' : '-rotate-45'"
+                        ></span>
                     </button>
-                    <div class="nav-sub" v-show="isOpen(item.label)">
+                    <div class="grid gap-1.5 pl-2.5" v-show="isOpen(item.label)">
                         <router-link
                             v-for="child in item.children"
                             :key="child.label"
-                            class="nav-item nav-sub-item"
+                            class="flex w-full items-center gap-2.5 rounded-xl bg-white/5 px-3.5 py-2.5 text-sm text-sidebar-text no-underline transition-colors hover:bg-white/15"
                             :to="child.to"
+                            active-class="bg-white/15"
+                            exact-active-class="bg-white/15"
                         >
                             {{ child.label }}
                         </router-link>
@@ -36,9 +47,9 @@
                 </div>
             </div>
         </nav>
-        <div class="sidebar-footer">
-            <div class="status-pill">System Healthy</div>
-            <div class="status-caption">Last sync 2m ago</div>
+        <div class="mt-auto max-lg:hidden">
+            <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs">System Healthy</div>
+            <div class="mt-2 text-xs text-sidebar-text/60">Last sync 2m ago</div>
         </div>
     </aside>
 </template>
