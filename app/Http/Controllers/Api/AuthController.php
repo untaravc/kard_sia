@@ -50,7 +50,7 @@ class AuthController extends Controller
         $basePath = $request->get('basePath', '/cblu');
 
         $menu = [
-            [ 'label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/" ],
+            [ 'label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard" ],
             [
                 'label' => 'Dosen',
                 'icon' => 'dosen',
