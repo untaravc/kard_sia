@@ -39,9 +39,9 @@ class AuthController extends Controller
         }
 
         if (!$authUser) {
-            $this->response['status'] = false;
+            $this->response['success'] = false;
             $this->response['text'] = 'Wrong email or password';
-            $this->response['data'] = null;
+            $this->response['result'] = null;
             return $this->response;
         }
 
@@ -85,9 +85,9 @@ class AuthController extends Controller
     public function profile() {
         $dosen = auth_dosen();
         if($dosen){
-            $this->response['status'] = true;
+            $this->response['success'] = true;
             $this->response['text'] = 'Retrieve Profile Success';
-            $this->response['data'] = [
+            $this->response['result'] = [
                 'profile' => $dosen,
             ];;
         }
@@ -95,8 +95,18 @@ class AuthController extends Controller
     }
 
     public function logout() {
-        $this->response['status'] = true;
+        $this->response['success'] = true;
         $this->response['text'] = 'Logged Out';
+        return $this->response;
+    }
+
+    public function auth(Request $request) {
+        $payload = $request->attributes->get('jwt_payload');
+
+        $this->response['success'] = true;
+        $this->response['text'] = 'Auth payload';
+        $this->response['result'] = $payload ? (array) $payload : null;
+
         return $this->response;
     }
 
@@ -124,9 +134,9 @@ class AuthController extends Controller
         }
 
         if (!$authUser) {
-            $this->response['status'] = false;
+            $this->response['success'] = false;
             $this->response['text'] = 'No email registered';
-            $this->response['data'] = null;
+            $this->response['result'] = null;
             return $this->response;
         }
 
@@ -134,17 +144,99 @@ class AuthController extends Controller
         $authUser->reset_password_token = $token;
         $authUser->save();
 
-        Mail::raw("Your reset password token: {$token}", function ($message) use ($authUser) {
+        $link = env('APP_URL') . "/cblu/reset-password?token={$token}";
+
+        Mail::send('mails.reset_password', ['token' => $link], function ($message) use ($authUser) {
+            $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
+            $fromName = config('mail.from.name') ?: config('app.name');
+
+            if ($fromAddress) {
+                $message->from($fromAddress, $fromName);
+            }
+
             $message->to($authUser->email)
                 ->subject('Reset Password');
         });
 
-        $this->response['status'] = true;
+        $this->response['success'] = true;
         $this->response['text'] = 'Reset token sent';
-        $this->response['data'] = [
+        $this->response['result'] = [
             'email' => $authUser->email,
             'auth_type' => $authType,
         ];
+
+        return $this->response;
+    }
+
+    public function checkResetPasswordToken(Request $request) {
+        $this->validate($request, [
+            'token' => 'required|string',
+        ]);
+
+        $token = $request->token;
+
+        $providers = [
+            'user' => User::class,
+            'lecture' => Lecture::class,
+            'student' => Student::class,
+        ];
+
+        foreach ($providers as $type => $model) {
+            $candidate = $model::where('reset_password_token', $token)->first();
+            if ($candidate) {
+                $this->response['status'] = true;
+                $this->response['text'] = 'Token valid';
+                $this->response['data'] = [
+                    'auth_type' => $type,
+                    'auth_id' => $candidate->id,
+                    'email' => $candidate->email,
+                ];
+                return $this->response;
+            }
+        }
+
+        $this->response['status'] = false;
+        $this->response['text'] = 'Token invalid';
+        $this->response['data'] = null;
+
+        return $this->response;
+    }
+
+    public function resetPasswordWithToken(Request $request) {
+        $this->validate($request, [
+            'token' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $token = $request->token;
+
+        $providers = [
+            'user' => User::class,
+            'lecture' => Lecture::class,
+            'student' => Student::class,
+        ];
+
+        foreach ($providers as $type => $model) {
+            $candidate = $model::where('reset_password_token', $token)->first();
+            if ($candidate) {
+                $candidate->password = Hash::make($request->password);
+                $candidate->reset_password_token = null;
+                $candidate->save();
+
+                $this->response['status'] = true;
+                $this->response['text'] = 'Password updated';
+                $this->response['data'] = [
+                    'auth_type' => $type,
+                    'auth_id' => $candidate->id,
+                    'email' => $candidate->email,
+                ];
+                return $this->response;
+            }
+        }
+
+        $this->response['status'] = false;
+        $this->response['text'] = 'Token invalid';
+        $this->response['data'] = null;
 
         return $this->response;
     }
@@ -203,9 +295,9 @@ class AuthController extends Controller
             ],
         ];
 
-        $this->response['status'] = true;
+        $this->response['success'] = true;
         $this->response['text'] = 'Retrieve Menu Success';
-        $this->response['data'] = [
+        $this->response['result'] = [
             'menu' => $menu,
         ];
 
