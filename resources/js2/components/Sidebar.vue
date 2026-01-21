@@ -120,8 +120,8 @@ export default {
                 params: { basePath: this.basePath },
             })
                 .then((response) => {
-                    const menu = response && response.data && response.data.data
-                        ? response.data.data.menu
+                    const menu = response && response.data && response.data.result
+                        ? response.data.result.menu
                         : [];
                     this.menuItems = Array.isArray(menu) ? menu : [];
                 })

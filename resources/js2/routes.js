@@ -1,9 +1,32 @@
 const admin_prefix = '/cblu';
 
+const requireAuth = (to, from, next) => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        next(admin_prefix + '/login');
+        return;
+    }
+
+    next();
+};
+
+const redirectIfAuth = (to, from, next) => {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+        next(admin_prefix + '/dashboard');
+        return;
+    }
+
+    next();
+};
+
 const routes = [
     {
         path: admin_prefix + '/login',
         component: require('./pages/auth/Login.vue').default,
+        beforeEnter: redirectIfAuth,
     },
     {
         path: admin_prefix + '/not-found',
@@ -12,14 +35,17 @@ const routes = [
     {
         path: admin_prefix + '/forgot-password',
         component: require('./pages/auth/ForgotPassword.vue').default,
+        beforeEnter: redirectIfAuth,
     },
     {
         path: admin_prefix + '/reset-password',
         component: require('./pages/auth/ResetPassword.vue').default,
+        beforeEnter: redirectIfAuth,
     },
     {
         path: admin_prefix,
         component: require('./pages/Layout.vue').default,
+        beforeEnter: requireAuth,
         children: [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default },
         ],

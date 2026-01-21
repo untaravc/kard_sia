@@ -10,18 +10,19 @@ const handleError = (error) => {
     const status = error && error.response ? error.response.status : null;
 
     if (status === 401) {
+        localStorage.removeItem('token');
         if (routerInstance) {
-            routerInstance.push('/login');
+            routerInstance.push('/cblu/login');
         } else {
-            window.location.assign('/login');
+            window.location.assign('/cblu/login');
         }
     }
 
     if (status === 404) {
         if (routerInstance) {
-            routerInstance.push('/not-found');
+            routerInstance.push('/cblu/not-found');
         } else {
-            window.location.assign('/not-found');
+            window.location.assign('/cblu/not-found');
         }
     }
 
@@ -32,6 +33,17 @@ axios.interceptors.response.use(
     (response) => response,
     handleError
 );
+
+axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+});
 
 const Repository = {
     get(url, config) {
