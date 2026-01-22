@@ -64,9 +64,18 @@
                 </div>
             </div>
         </nav>
-        <div class="mt-auto max-lg:hidden" v-if="!collapsed">
-            <div class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs">System Healthy</div>
-            <div class="mt-2 text-xs text-sidebar-text/60">Last sync 2m ago</div>
+        <div class="mt-auto max-lg:hidden">
+            <button
+                class="flex w-full items-center gap-2 rounded-xl bg-white/10 text-sm text-sidebar-text transition-colors hover:bg-white/20"
+                :class="collapsed ? 'justify-center px-2.5 py-2.5' : 'px-3.5 py-2.5'"
+                type="button"
+                @click="logout"
+            >
+                <span class="grid h-6 w-6 place-items-center rounded-lg bg-white/10 text-sm">
+                    <Icon icon="mdi:logout" class="h-4 w-4" />
+                </span>
+                <span v-if="!collapsed">Logout</span>
+            </button>
         </div>
     </aside>
 </template>
@@ -134,6 +143,10 @@ export default {
         },
         isOpen(label) {
             return !!this.openGroups[label];
+        },
+        logout() {
+            localStorage.removeItem('token');
+            this.$router.push(`${this.basePath}/login`);
         },
     },
 };
