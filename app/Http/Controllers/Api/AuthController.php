@@ -246,51 +246,51 @@ class AuthController extends Controller
 
         $menu = [
             [ 'label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard" ],
-            [
-                'label' => 'Dosen',
-                'icon' => 'dosen',
-                'children' => [
-                    [ 'label' => 'Data', 'to' => "{$basePath}/lecture" ],
-                    [ 'label' => 'Dokumen', 'to' => "{$basePath}/lecture-file" ],
-                ],
-            ],
-            [
-                'label' => 'Residen',
-                'icon' => 'resident',
-                'children' => [
-                    [ 'label' => 'Data', 'to' => "{$basePath}/resident" ],
-                    [ 'label' => 'Presensi', 'to' => "{$basePath}/presences" ],
-                    [ 'label' => 'Presensi Harian', 'to' => "{$basePath}/presence-resume" ],
-                    [ 'label' => 'Resume Presensi', 'to' => "{$basePath}/presence-ilmiah-resume" ],
-                    [ 'label' => 'Stase Residen', 'to' => "{$basePath}/stase-plots" ],
-                    [ 'label' => 'Ujian', 'to' => "{$basePath}/exams" ],
-                    [ 'label' => 'Dokumen', 'to' => "{$basePath}/letters" ],
-                    [ 'label' => 'Log Book', 'to' => "{$basePath}/student-logs" ],
-                    [ 'label' => 'Download', 'to' => "{$basePath}/download" ],
-                    [ 'label' => 'Calon PPDS', 'to' => "{$basePath}/student-regs" ],
-                    [ 'label' => 'Pengabdian Masyarakat', 'to' => "{$basePath}/document-review" ],
-                    [ 'label' => 'Laporan Harian', 'to' => "{$basePath}/daily-report" ],
-                ],
-            ],
-            [
-                'label' => 'CBT',
-                'icon' => 'cbt',
-                'children' => [
-                    [ 'label' => 'Kategori', 'to' => '/object/categories' ],
-                    [ 'label' => 'Bank Soal', 'to' => '/object/quizzes' ],
-                    [ 'label' => 'Paket Ujian', 'to' => '/object/quiz-sections' ],
-                ],
-            ],
-            [ 'label' => 'Ujian Terbuka', 'icon' => 'open-exam', 'to' => "{$basePath}/open-exam" ],
-            [ 'label' => 'Agenda', 'icon' => 'agenda', 'to' => "{$basePath}/activity" ],
+            // [
+            //     'label' => 'Dosen',
+            //     'icon' => 'dosen',
+            //     'children' => [
+            //         [ 'label' => 'Data', 'to' => "{$basePath}/lecture" ],
+            //         [ 'label' => 'Dokumen', 'to' => "{$basePath}/lecture-file" ],
+            //     ],
+            // ],
+            // [
+            //     'label' => 'Residen',
+            //     'icon' => 'resident',
+            //     'children' => [
+            //         [ 'label' => 'Data', 'to' => "{$basePath}/resident" ],
+            //         [ 'label' => 'Presensi', 'to' => "{$basePath}/presences" ],
+            //         [ 'label' => 'Presensi Harian', 'to' => "{$basePath}/presence-resume" ],
+            //         [ 'label' => 'Resume Presensi', 'to' => "{$basePath}/presence-ilmiah-resume" ],
+            //         [ 'label' => 'Stase Residen', 'to' => "{$basePath}/stase-plots" ],
+            //         [ 'label' => 'Ujian', 'to' => "{$basePath}/exams" ],
+            //         [ 'label' => 'Dokumen', 'to' => "{$basePath}/letters" ],
+            //         [ 'label' => 'Log Book', 'to' => "{$basePath}/student-logs" ],
+            //         [ 'label' => 'Download', 'to' => "{$basePath}/download" ],
+            //         [ 'label' => 'Calon PPDS', 'to' => "{$basePath}/student-regs" ],
+            //         [ 'label' => 'Pengabdian Masyarakat', 'to' => "{$basePath}/document-review" ],
+            //         [ 'label' => 'Laporan Harian', 'to' => "{$basePath}/daily-report" ],
+            //     ],
+            // ],
+            // [
+            //     'label' => 'CBT',
+            //     'icon' => 'cbt',
+            //     'children' => [
+            //         [ 'label' => 'Kategori', 'to' => '/object/categories' ],
+            //         [ 'label' => 'Bank Soal', 'to' => '/object/quizzes' ],
+            //         [ 'label' => 'Paket Ujian', 'to' => '/object/quiz-sections' ],
+            //     ],
+            // ],
+            // [ 'label' => 'Ujian Terbuka', 'icon' => 'open-exam', 'to' => "{$basePath}/open-exam" ],
+            // [ 'label' => 'Agenda', 'icon' => 'agenda', 'to' => "{$basePath}/activity" ],
             [
                 'label' => 'Data Master',
                 'icon' => 'data-master',
                 'children' => [
                     [ 'label' => 'Surat', 'to' => "{$basePath}/letter-records" ],
-                    [ 'label' => 'Stase', 'to' => "{$basePath}/stase" ],
+                    [ 'label' => 'Stase', 'to' => "{$basePath}/stases" ],
                     [ 'label' => 'Task', 'to' => "{$basePath}/task" ],
-                    [ 'label' => 'Admin', 'to' => "{$basePath}/user" ],
+                    [ 'label' => 'Admin', 'to' => "{$basePath}/users" ],
                 ],
             ],
         ];

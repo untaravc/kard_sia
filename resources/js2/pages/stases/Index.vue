@@ -2,15 +2,15 @@
     <div class="grid gap-6">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">User Management</div>
-                <h1 class="text-2xl font-semibold text-ink">Admin Users</h1>
+                <div class="text-xs uppercase tracking-[0.2em] text-muted">Stase Management</div>
+                <h1 class="text-2xl font-semibold text-ink">Stases</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add User
+                Add Stase
             </button>
         </header>
 
@@ -47,7 +47,7 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Users</div>
+                <div class="font-semibold">Stases</div>
                 <div class="text-xs text-muted" v-if="pagination.total">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -59,33 +59,45 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && users.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No users found.
+                <div v-if="!loading && stases.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No stases found.
                 </div>
                 <div
-                    v-for="(user, index) in users"
-                    :key="user.id"
+                    v-for="(stase, index) in stases"
+                    :key="stase.id"
                     class="flex flex-wrap items-center gap-3 px-5 py-4"
                 >
                     <div class="w-8 text-sm font-semibold text-muted">
                         {{ (pagination.from ? pagination.from - 1 : 0) + index + 1 }}
                     </div>
+                    <div class="flex h-8 w-8 items-center justify-center rounded-full border border-border">
+                        <span
+                            class="h-3 w-3 rounded-full"
+                            :style="{ backgroundColor: stase.color || '#e2e8f0' }"
+                        ></span>
+                    </div>
                     <div class="flex-1">
-                        <div class="font-semibold text-ink">{{ user.name }}</div>
-                        <div class="text-xs text-muted">{{ user.email }}</div>
+                        <div class="font-semibold text-ink">{{ stase.name }}</div>
+                        <div class="text-xs text-muted">
+                            {{ stase.alias }}
+                            <span v-if="stase.desc">• {{ stase.desc }}</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-muted" v-if="stase.stase_tasks_count !== undefined">
+                        {{ stase.stase_tasks_count }} tasks
                     </div>
                     <div class="flex items-center gap-2">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(user)"
+                            @click="openEdit(stase)"
                         >
                             Edit
                         </button>
                         <button
                             class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
                             type="button"
-                            @click="deleteUser(user)"
+                            @click="deleteStase(stase)"
                         >
                             Delete
                         </button>
@@ -115,8 +127,8 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit User' : 'Create User'"
-            :eyebrow="editMode ? 'Update access' : 'New access'"
+            :title="editMode ? 'Edit Stase' : 'Create Stase'"
+            :eyebrow="editMode ? 'Update rotation' : 'New rotation'"
             size="md"
             @close="closeModal"
         >
@@ -130,24 +142,38 @@
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Email</span>
+                    <span class="text-muted">Alias</span>
                     <input
-                        v-model.trim="form.email"
-                        type="email"
+                        v-model.trim="form.alias"
+                        type="text"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Password</span>
+                    <span class="text-muted">Color</span>
                     <input
-                        v-model="form.password"
-                        type="password"
-                        :placeholder="editMode ? 'Leave blank to keep current password' : 'Set a password'"
+                        v-model.trim="form.color"
+                        type="text"
+                        placeholder="#0f172a"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
-                    <span v-if="editMode" class="text-[11px] text-muted">
-                        Leave blank to keep the current password.
-                    </span>
+                </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Description</span>
+                    <input
+                        v-model.trim="form.desc"
+                        type="text"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Order</span>
+                    <input
+                        v-model.number="form.stase_order"
+                        type="number"
+                        min="0"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
                 </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
@@ -157,7 +183,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update User' : 'Create User' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Stase' : 'Create Stase' }}
                 </button>
             </form>
         </Modal>
@@ -178,8 +204,8 @@ export default {
     },
     data() {
         return {
-            baseUrl: '/api/users',
-            users: [],
+            baseUrl: '/api/stases',
+            stases: [],
             pagination: {},
             filters: {
                 keyword: '',
@@ -188,8 +214,10 @@ export default {
             form: {
                 id: null,
                 name: '',
-                email: '',
-                password: '',
+                alias: '',
+                color: '',
+                desc: '',
+                stase_order: null,
             },
             editMode: false,
             modalOpen: false,
@@ -201,7 +229,7 @@ export default {
     },
     created() {
         this.initToast();
-        this.fetchUsers();
+        this.fetchStases();
     },
     methods: {
         initToast() {
@@ -219,7 +247,7 @@ export default {
             }
             this.toast.fire({ title, icon });
         },
-        fetchUsers() {
+        fetchStases() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -230,11 +258,11 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.users = data;
+                    this.stases = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.users = [];
+                    this.stases = [];
                     this.pagination = {};
                 })
                 .finally(() => {
@@ -243,16 +271,16 @@ export default {
         },
         applyFilter() {
             this.filters.page = 1;
-            this.fetchUsers();
+            this.fetchStases();
         },
         resetFilter() {
             this.filters.keyword = '';
             this.filters.page = 1;
-            this.fetchUsers();
+            this.fetchStases();
         },
         changePage(page) {
             this.filters.page = page;
-            this.fetchUsers();
+            this.fetchStases();
         },
         openCreate() {
             this.editMode = false;
@@ -260,13 +288,15 @@ export default {
             this.errorMessage = '';
             this.modalOpen = true;
         },
-        openEdit(user) {
+        openEdit(stase) {
             this.editMode = true;
             this.form = {
-                id: user.id,
-                name: user.name || '',
-                email: user.email || '',
-                password: '',
+                id: stase.id,
+                name: stase.name || '',
+                alias: stase.alias || '',
+                color: stase.color || '',
+                desc: stase.desc || '',
+                stase_order: stase.stase_order ?? null,
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -282,73 +312,71 @@ export default {
             this.form = {
                 id: null,
                 name: '',
-                email: '',
-                password: '',
+                alias: '',
+                color: '',
+                desc: '',
+                stase_order: null,
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateUser();
+                return this.updateStase();
             }
 
-            return this.createUser();
+            return this.createStase();
         },
-        createUser() {
+        createStase() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.post(this.baseUrl, this.form)
                 .then(() => {
                     this.closeModal();
-                    this.fetchUsers();
-                    this.showToast('User created successfully.');
+                    this.fetchStases();
+                    this.showToast('Stase created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create user.';
+                        : 'Failed to create stase.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateUser() {
+        updateStase() {
             this.submitting = true;
             this.errorMessage = '';
 
-            const payload = { ...this.form };
-            if (!payload.password) {
-                delete payload.password;
-            }
-
-            return Repository.put(`${this.baseUrl}/${this.form.id}`, payload)
+            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
                 .then(() => {
-                    this.fetchUsers();
+                    this.fetchStases();
                     this.closeModal();
-                    this.showToast('User updated successfully.');
+                    this.showToast('Stase updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update user.';
+                        : 'Failed to update stase.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        deleteUser(user) {
-            if (!window.confirm(`Delete user ${user.name}?`)) {
+        deleteStase(stase) {
+            if (!window.confirm(`Delete stase ${stase.name}?`)) {
                 return;
             }
 
-            Repository.delete(`${this.baseUrl}/${user.id}`)
+            Repository.delete(`${this.baseUrl}/${stase.id}`)
                 .then(() => {
-                    this.fetchUsers();
+                    this.fetchStases();
+                    this.showToast('Stase deleted successfully.');
                 })
                 .catch(() => {
-                    this.errorMessage = 'Failed to delete user.';
+                    this.errorMessage = 'Failed to delete stase.';
                 });
         },
     },

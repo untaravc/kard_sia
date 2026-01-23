@@ -49,6 +49,7 @@ const routes = [
         children: [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default },
             { path: 'users', component: require('./pages/users/Index.vue').default },
+            { path: 'stases', component: require('./pages/stases/Index.vue').default },
         ],
     },
 ];
