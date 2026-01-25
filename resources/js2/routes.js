@@ -50,6 +50,7 @@ const routes = [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default },
             { path: 'users', component: require('./pages/users/Index.vue').default },
             { path: 'stases', component: require('./pages/stases/Index.vue').default },
+            { path: 'tasks', component: require('./pages/tasks/Index.vue').default },
         ],
     },
 ];

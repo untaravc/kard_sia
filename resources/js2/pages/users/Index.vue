@@ -15,11 +15,12 @@
         </header>
 
         <section class="rounded-2xl border border-border bg-panel p-5">
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[220px]">
                     <label class="text-xs text-muted">Keyword</label>
                     <input
                         v-model.trim="filters.keyword"
+                        @keyup.enter="applyFilter"
                         type="text"
                         placeholder="Search name..."
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"

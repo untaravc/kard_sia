@@ -10,7 +10,17 @@ class Stase extends Model
 {
     use SoftDeletes, SearchableTrait;
 
-    protected $guarded = [];
+    protected $fillable = [
+        "name", // string
+        "desc", // text
+        "font_color", // string
+        "stase_order", // int
+        "alias", // string
+        "color", // string
+        "lecture_names", // string
+        "evaluation_link", // string
+        "lecture_name", // string
+    ];
 
     protected $searchable = [
         'columns' => [

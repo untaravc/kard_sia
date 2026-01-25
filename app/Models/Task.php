@@ -8,11 +8,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Task extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        "name",
+        "desc",
+        "is_latter",
+    ];
 
-    public function stase(){
-        return $this->belongsTo(Stase::class);
-    }
+    // public function stase(){
+    //     return $this->belongsTo(Stase::class);
+    // }
 
     public function taskDetails(){
         return $this->hasMany(TaskDetail::class);

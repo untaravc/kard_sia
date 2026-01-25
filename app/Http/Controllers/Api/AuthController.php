@@ -289,7 +289,7 @@ class AuthController extends Controller
                 'children' => [
                     [ 'label' => 'Surat', 'to' => "{$basePath}/letter-records" ],
                     [ 'label' => 'Stase', 'to' => "{$basePath}/stases" ],
-                    [ 'label' => 'Task', 'to' => "{$basePath}/task" ],
+                    [ 'label' => 'Task', 'to' => "{$basePath}/tasks" ],
                     [ 'label' => 'Admin', 'to' => "{$basePath}/users" ],
                 ],
             ],

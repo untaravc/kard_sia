@@ -12,6 +12,9 @@ Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordW
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);
     Route::get('menu', [AuthController::class, 'menu']);
+
     Route::resource('users', 'Api\UserController');
     Route::resource('stases', 'Api\StaseController');
+    Route::resource('stase-tasks', 'Api\StaseTaskController');
+    Route::resource('tasks', 'Api\TaskController');
 });

@@ -2,15 +2,15 @@
     <div class="grid gap-6">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Stase Management</div>
-                <h1 class="text-2xl font-semibold text-ink">Stases</h1>
+                <div class="text-xs uppercase tracking-[0.2em] text-muted">Task Management</div>
+                <h1 class="text-2xl font-semibold text-ink">Tasks</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add Stase
+                Add Task
             </button>
         </header>
 
@@ -48,7 +48,7 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Stases</div>
+                <div class="font-semibold">Tasks</div>
                 <div class="text-xs text-muted" v-if="pagination.total">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -60,45 +60,41 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && stases.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No stases found.
+                <div v-if="!loading && tasks.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No tasks found.
                 </div>
                 <div
-                    v-for="(stase, index) in stases"
-                    :key="stase.id"
+                    v-for="(task, index) in tasks"
+                    :key="task.id"
                     class="flex flex-wrap items-center gap-3 px-5 py-4"
                 >
                     <div class="w-8 text-sm font-semibold text-muted">
                         {{ (pagination.from ? pagination.from - 1 : 0) + index + 1 }}
                     </div>
-                    <div class="flex h-8 w-8 items-center justify-center rounded-full border border-border">
-                        <span
-                            class="h-3 w-3 rounded-full"
-                            :style="{ backgroundColor: stase.color || '#e2e8f0' }"
-                        ></span>
-                    </div>
                     <div class="flex-1">
-                        <div class="font-semibold text-ink">{{ stase.name }}</div>
-                        <div class="text-xs text-muted">
-                            {{ stase.alias }}
-                            <span v-if="stase.desc">• {{ stase.desc }}</span>
+                        <div class="flex items-center gap-2">
+                            <div class="font-semibold text-ink">{{ task.name }}</div>
+                            <span
+                                v-if="task.is_latter"
+                                class="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700"
+                            >
+                                Latter
+                            </span>
                         </div>
-                    </div>
-                    <div class="text-xs text-muted" v-if="stase.stase_tasks_count !== undefined">
-                        {{ stase.stase_tasks_count }} tasks
+                        <div class="text-xs text-muted" v-if="task.desc">{{ task.desc }}</div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(stase)"
+                            @click="openEdit(task)"
                         >
                             Edit
                         </button>
                         <button
                             class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
                             type="button"
-                            @click="deleteStase(stase)"
+                            @click="deleteTask(task)"
                         >
                             Delete
                         </button>
@@ -128,8 +124,8 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit Stase' : 'Create Stase'"
-            :eyebrow="editMode ? 'Update rotation' : 'New rotation'"
+            :title="editMode ? 'Edit Task' : 'Create Task'"
+            :eyebrow="editMode ? 'Update task' : 'New task'"
             size="md"
             @close="closeModal"
         >
@@ -143,30 +139,6 @@
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Alias</span>
-                    <input
-                        v-model.trim="form.alias"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Color</span>
-                    <input
-                        v-model="form.color"
-                        type="color"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Font Color</span>
-                    <input
-                        v-model="form.font_color"
-                        type="color"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
                     <span class="text-muted">Description</span>
                     <input
                         v-model.trim="form.desc"
@@ -174,38 +146,15 @@
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Order</span>
+                <label class="flex items-center gap-3 text-sm">
                     <input
-                        v-model.number="form.stase_order"
-                        type="number"
-                        min="0"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        v-model.number="form.is_latter"
+                        type="checkbox"
+                        :true-value="1"
+                        :false-value="0"
+                        class="h-4 w-4 rounded border border-border"
                     />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Lecture Name</span>
-                    <input
-                        v-model.trim="form.lecture_name"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Lecture Names</span>
-                    <input
-                        v-model.trim="form.lecture_names"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Evaluation Link</span>
-                    <input
-                        v-model.trim="form.evaluation_link"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+                    <span class="text-muted">Latter task</span>
                 </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
@@ -215,7 +164,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update Stase' : 'Create Stase' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Task' : 'Create Task' }}
                 </button>
             </form>
         </Modal>
@@ -236,8 +185,8 @@ export default {
     },
     data() {
         return {
-            baseUrl: '/api/stases',
-            stases: [],
+            baseUrl: '/api/tasks',
+            tasks: [],
             pagination: {},
             filters: {
                 keyword: '',
@@ -246,14 +195,8 @@ export default {
             form: {
                 id: null,
                 name: '',
-                alias: '',
-                color: '',
-                font_color: '',
                 desc: '',
-                stase_order: null,
-                lecture_name: '',
-                lecture_names: '',
-                evaluation_link: '',
+                is_latter: 0,
             },
             editMode: false,
             modalOpen: false,
@@ -265,7 +208,7 @@ export default {
     },
     created() {
         this.initToast();
-        this.fetchStases();
+        this.fetchTasks();
     },
     methods: {
         initToast() {
@@ -283,7 +226,7 @@ export default {
             }
             this.toast.fire({ title, icon });
         },
-        fetchStases() {
+        fetchTasks() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -294,11 +237,11 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.stases = data;
+                    this.tasks = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.stases = [];
+                    this.tasks = [];
                     this.pagination = {};
                 })
                 .finally(() => {
@@ -307,16 +250,16 @@ export default {
         },
         applyFilter() {
             this.filters.page = 1;
-            this.fetchStases();
+            this.fetchTasks();
         },
         resetFilter() {
             this.filters.keyword = '';
             this.filters.page = 1;
-            this.fetchStases();
+            this.fetchTasks();
         },
         changePage(page) {
             this.filters.page = page;
-            this.fetchStases();
+            this.fetchTasks();
         },
         openCreate() {
             this.editMode = false;
@@ -324,19 +267,13 @@ export default {
             this.errorMessage = '';
             this.modalOpen = true;
         },
-        openEdit(stase) {
+        openEdit(task) {
             this.editMode = true;
             this.form = {
-                id: stase.id,
-                name: stase.name || '',
-                alias: stase.alias || '',
-                color: stase.color || '',
-                font_color: stase.font_color || '',
-                desc: stase.desc || '',
-                stase_order: stase.stase_order ?? null,
-                lecture_name: stase.lecture_name || '',
-                lecture_names: stase.lecture_names || '',
-                evaluation_link: stase.evaluation_link || '',
+                id: task.id,
+                name: task.name || '',
+                desc: task.desc || '',
+                is_latter: task.is_latter ? 1 : 0,
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -352,75 +289,69 @@ export default {
             this.form = {
                 id: null,
                 name: '',
-                alias: '',
-                color: '',
-                font_color: '',
                 desc: '',
-                stase_order: null,
-                lecture_name: '',
-                lecture_names: '',
-                evaluation_link: '',
+                is_latter: 0,
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateStase();
+                return this.updateTask();
             }
 
-            return this.createStase();
+            return this.createTask();
         },
-        createStase() {
+        createTask() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.post(this.baseUrl, this.form)
                 .then(() => {
                     this.closeModal();
-                    this.fetchStases();
-                    this.showToast('Stase created successfully.');
+                    this.fetchTasks();
+                    this.showToast('Task created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create stase.';
+                        : 'Failed to create task.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateStase() {
+        updateTask() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
                 .then(() => {
-                    this.fetchStases();
+                    this.fetchTasks();
                     this.closeModal();
-                    this.showToast('Stase updated successfully.');
+                    this.showToast('Task updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update stase.';
+                        : 'Failed to update task.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        deleteStase(stase) {
-            if (!window.confirm(`Delete stase ${stase.name}?`)) {
+        deleteTask(task) {
+            if (!window.confirm(`Delete task ${task.name}?`)) {
                 return;
             }
 
-            Repository.delete(`${this.baseUrl}/${stase.id}`)
+            Repository.delete(`${this.baseUrl}/${task.id}`)
                 .then(() => {
-                    this.fetchStases();
-                    this.showToast('Stase deleted successfully.');
+                    this.fetchTasks();
+                    this.showToast('Task deleted successfully.');
                 })
                 .catch(() => {
-                    this.errorMessage = 'Failed to delete stase.';
+                    this.errorMessage = 'Failed to delete task.';
                 });
         },
     },

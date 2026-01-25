@@ -3,19 +3,12 @@
         class="flex w-full flex-col gap-8 bg-[radial-gradient(circle_at_top,_theme(colors.sidebar-accent)_0%,_theme(colors.sidebar)_65%)] px-2.5 py-4 text-sidebar-text lg:shrink-0"
         :class="collapsed ? 'lg:w-20' : 'lg:w-64'"
     >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 justify-center">
             <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent text-lg font-bold text-ink">K</span>
             <div v-if="!collapsed" class="leading-tight">
                 <div class="font-semibold tracking-wide">Kardio</div>
                 <div class="text-xs text-sidebar-text/70">Admin Suite</div>
             </div>
-            <button
-                class="ml-auto rounded-lg border border-sidebar-text/20 px-2 py-1 text-xs text-sidebar-text/80 hover:text-sidebar-text"
-                type="button"
-                @click="toggleCollapsed"
-            >
-                {{ collapsed ? 'Expand' : 'Collapse' }}
-            </button>
         </div>
         <nav class="flex flex-col gap-2.5" v-show="!isMobile || !collapsed">
             <div v-for="item in menuItems" :key="item.label">
@@ -93,36 +86,27 @@ export default {
             type: String,
             default: '/cblu',
         },
+        collapsed: {
+            type: Boolean,
+            default: false,
+        },
+        isMobile: {
+            type: Boolean,
+            default: false,
+        },
     },
     data() {
         return {
             openGroups: {},
             menuItems: [],
-            collapsed: false,
-            isMobile: false,
         };
     },
     created() {
         this.fetchMenu();
     },
-    mounted() {
-        this.handleResize();
-        window.addEventListener('resize', this.handleResize);
-    },
-    beforeDestroy() {
-        window.removeEventListener('resize', this.handleResize);
-    },
     methods: {
         resolveIcon(iconKey) {
             return ICONS[iconKey] || iconKey || '';
-        },
-        handleResize() {
-            const isMobile = window.innerWidth < 1024;
-            this.isMobile = isMobile;
-            this.collapsed = isMobile;
-        },
-        toggleCollapsed() {
-            this.collapsed = !this.collapsed;
         },
         fetchMenu() {
             return Repository.get('/api/menu', {
