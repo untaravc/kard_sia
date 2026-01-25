@@ -260,7 +260,7 @@ class AuthController extends Controller
                 'children' => [
                     [ 'label' => 'Data', 'to' => "{$basePath}/students" ],
                     [ 'label' => 'Presensi', 'to' => "{$basePath}/presences" ],
-                    // [ 'label' => 'Presensi Harian', 'to' => "{$basePath}/presence-resume" ],
+                    [ 'label' => 'Presensi Harian', 'to' => "{$basePath}/presences/daily" ],
                     // [ 'label' => 'Resume Presensi', 'to' => "{$basePath}/presence-ilmiah-resume" ],
                     // [ 'label' => 'Stase Residen', 'to' => "{$basePath}/stase-plots" ],
                     // [ 'label' => 'Ujian', 'to' => "{$basePath}/exams" ],

@@ -55,6 +55,8 @@ const routes = [
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default },
             { path: 'students', component: require('./pages/students/Index.vue').default },
             { path: 'presences', component: require('./pages/presences/Index.vue').default },
+            { path: 'presences/daily', component: require('./pages/presences/Daily.vue').default },
+            { path: 'presences/montly', component: require('./pages/presences/Monthly.vue').default },
         ],
     },
 ];
