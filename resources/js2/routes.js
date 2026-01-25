@@ -54,6 +54,7 @@ const routes = [
             { path: 'stase-tasks/:stase_id', component: require('./pages/stases/Task.vue').default },
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default },
             { path: 'students', component: require('./pages/students/Index.vue').default },
+            { path: 'presences', component: require('./pages/presences/Index.vue').default },
         ],
     },
 ];

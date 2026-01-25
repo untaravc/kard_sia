@@ -19,4 +19,5 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('tasks', 'Api\TaskController');
     Route::resource('lectures', 'Api\LectureController');
     Route::resource('students', 'Api\StudentController');
+    Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
 });

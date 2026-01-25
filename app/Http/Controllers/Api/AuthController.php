@@ -259,7 +259,7 @@ class AuthController extends Controller
                 'icon' => 'resident',
                 'children' => [
                     [ 'label' => 'Data', 'to' => "{$basePath}/students" ],
-                    // [ 'label' => 'Presensi', 'to' => "{$basePath}/presences" ],
+                    [ 'label' => 'Presensi', 'to' => "{$basePath}/presences" ],
                     // [ 'label' => 'Presensi Harian', 'to' => "{$basePath}/presence-resume" ],
                     // [ 'label' => 'Resume Presensi', 'to' => "{$basePath}/presence-ilmiah-resume" ],
                     // [ 'label' => 'Stase Residen', 'to' => "{$basePath}/stase-plots" ],
