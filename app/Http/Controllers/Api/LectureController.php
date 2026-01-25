@@ -106,6 +106,20 @@ class LectureController extends Controller
         ]);
     }
 
+    public function list()
+    {
+        $lectures = Lecture::whereStatus(1)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Lecture List Success',
+            'result' => $lectures,
+        ]);
+    }
+
     public function validateData($request)
     {
         $this->validate($request, [

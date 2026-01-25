@@ -1,0 +1,209 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\StudentLog;
+use Illuminate\Http\Request;
+
+class LogbookController extends Controller
+{
+    public function index(Request $request)
+    {
+        $studentId = $this->resolveStudentId($request);
+        $dataContent = StudentLog::with(['lecture', 'stase'])
+            ->when($studentId, function ($query) use ($studentId) {
+                $query->where('student_id', $studentId);
+            })
+            ->orderByDesc('date');
+        $dataContent = $this->withFilter($dataContent, $request);
+        $dataContent = $dataContent->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Logbooks Success',
+            'result' => $dataContent,
+        ]);
+    }
+
+    public function bulk(Request $request)
+    {
+        $studentId = $this->resolveStudentId($request);
+
+        $request->merge([
+            'student_id' => $studentId,
+            'status' => 0,
+            'date' => $request->date ?? date('Y-m-d'),
+        ]);
+
+        $this->validateData($request);
+
+        if (is_array($request->data) && count($request->data) > 0) {
+            foreach ($request->data as $datum) {
+                StudentLog::create([
+                    'student_id' => $request->student_id,
+                    'status' => $request->status,
+                    'stase_id' => $request->stase_id,
+                    'type' => $request->type,
+                    'lecture_id' => $request->lecture_id,
+                    'date' => $request->date,
+                    'category' => $request->category,
+                    'field_1' => $datum['field_1'] ?? null,
+                    'field_2' => $datum['field_2'] ?? null,
+                    'field_3' => $datum['field_3'] ?? null,
+                    'field_4' => $datum['field_4'] ?? null,
+                    'field_5' => $datum['field_5'] ?? null,
+                    'field_6' => $datum['field_6'] ?? null,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Bulk create logbook success',
+            'result' => null,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $studentId = $this->resolveStudentId($request);
+
+        $request->merge([
+            'student_id' => $studentId,
+            'status' => 0,
+            'date' => $request->date ?? date('Y-m-d'),
+        ]);
+
+        $this->validateData($request);
+
+        $logbook = StudentLog::create($request->all());
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Logbook Success',
+            'result' => $logbook,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $studentId = $this->resolveStudentId($request);
+
+        $request->merge([
+            'student_id' => $studentId,
+            'status' => 0,
+            'date' => $request->date ?? date('Y-m-d'),
+        ]);
+
+        $this->validateData($request);
+
+        $logbook = StudentLog::find($id);
+        if (!$logbook) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Logbook not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $logbook->update($request->all());
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Logbook Success',
+            'result' => $logbook,
+        ]);
+    }
+
+    public function show($id)
+    {
+        $logbook = StudentLog::with(['lecture', 'stase'])->find($id);
+
+        if (!$logbook) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Logbook not found',
+                'result' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Logbook Success',
+            'result' => $logbook,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $logbook = StudentLog::find($id);
+        if (!$logbook) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Logbook not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $logbook->delete();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Delete Logbook Success',
+            'result' => null,
+        ]);
+    }
+
+    public function validateData($request)
+    {
+        $this->validate($request, [
+            'student_id' => 'required|integer',
+            'stase_id' => 'required|integer',
+            'type' => 'required',
+            'category' => 'nullable',
+            'lecture_id' => 'nullable|integer',
+            'date' => 'nullable|date',
+        ]);
+    }
+
+    public function withFilter($dataContent, $request)
+    {
+        if ($request->stase_id != null) {
+            $dataContent = $dataContent->where('stase_id', $request->stase_id);
+        }
+
+        if ($request->type != null) {
+            $dataContent = $dataContent->where('type', $request->type);
+        }
+
+        if ($request->keyword != null) {
+            $dataContent = $dataContent->where(function ($q) use ($request) {
+                $q->where('field_1', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('field_2', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('field_3', 'LIKE', '%' . $request->keyword . '%');
+            });
+        }
+
+        return $dataContent;
+    }
+
+    private function resolveStudentId(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $logAsType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        $logAsId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+        $authId = $payload ? data_get($payload, 'auth_id') : null;
+
+        if ($logAsType === 'student' && $logAsId) {
+            return $logAsId;
+        }
+
+        if ($authType === 'student' && $authId) {
+            return $authId;
+        }
+
+        return $request->student_id;
+    }
+}

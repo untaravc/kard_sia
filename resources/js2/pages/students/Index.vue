@@ -112,6 +112,13 @@
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
+                            @click="logAs(student)"
+                        >
+                            Log As
+                        </button>
+                        <button
+                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
+                            type="button"
                             @click="openEdit(student)"
                         >
                             Edit
@@ -423,6 +430,30 @@ export default {
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete student.';
+                });
+        },
+        logAs(student) {
+            if (!student || !student.id) {
+                return;
+            }
+
+            Repository.post('/api/log-as', {
+                auth_type: 'student',
+                auth_id: student.id,
+            })
+                .then((response) => {
+                    const token = response && response.data && response.data.result
+                        ? response.data.result.token
+                        : null;
+                    if (!token) {
+                        this.errorMessage = 'Failed to log as student.';
+                        return;
+                    }
+                    localStorage.setItem('token', token);
+                    window.open('/cblu/dashboard', '_blank');
+                })
+                .catch(() => {
+                    this.errorMessage = 'Failed to log as student.';
                 });
         },
     },

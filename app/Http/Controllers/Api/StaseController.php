@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Stase;
+use App\Models\StaseLog;
 use Illuminate\Http\Request;
 
 class StaseController extends Controller
@@ -94,6 +95,27 @@ class StaseController extends Controller
             'success' => true,
             'text' => 'Delete Stase Success',
             'result' => null,
+        ]);
+    }
+
+    public function list(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        $staseLogs = StaseLog::with('stase')
+            ->whereStudentId($studentId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Stase List Success',
+            'result' => $staseLogs,
         ]);
     }
 

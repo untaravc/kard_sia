@@ -9,6 +9,14 @@
             <Icon :icon="collapsed ? 'mdi:menu-open' : 'mdi:menu'" class="h-5 w-5" />
         </button>
         <div class="flex items-center gap-2.5">
+            <button
+                v-if="user && user.log_as_auth_type"
+                class="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
+                type="button"
+                @click="logoutAs"
+            >
+                Logout As
+            </button>
             <div class="grid h-8 w-8 place-items-center rounded-full bg-accent text-sm font-semibold text-ink">
                 {{ initials }}
             </div>
@@ -43,6 +51,12 @@ export default {
         displayName() {
             return this.user && this.user.name ? this.user.name : 'User';
         },
+        authType() {
+            if (this.user && this.user.log_as_auth_type) {
+                return this.user.log_as_auth_type;
+            }
+            return this.user && this.user.auth_type ? this.user.auth_type : '';
+        },
         displaySubtitle() {
             if (this.user && this.user.email) {
                 return this.user.email;
@@ -73,10 +87,46 @@ export default {
                 .then((response) => {
                     const payload = response && response.data ? response.data.result : null;
                     this.user = payload || null;
+                    this.handleAuthRedirect();
                 })
                 .catch(() => {
                     this.user = null;
                 });
+        },
+        handleAuthRedirect() {
+            const authType = this.authType;
+            if (!authType) {
+                return;
+            }
+
+            const path = window.location.pathname || '';
+            const isDashboard = path === '/dashboard' || path.endsWith('/dashboard');
+            if (!isDashboard) {
+                return;
+            }
+
+            if (authType === 'lecture') {
+                window.location.href = path.replace(/\/dashboard$/, '/dashboard-lecture');
+                return;
+            }
+
+            if (authType === 'student') {
+                window.location.href = path.replace(/\/dashboard$/, '/dashboard-student');
+            }
+        },
+        logoutAs() {
+            return Repository.post('/api/logout-as')
+                .then((response) => {
+                    const token = response && response.data && response.data.result
+                        ? response.data.result.token
+                        : null;
+                    if (!token) {
+                        return;
+                    }
+                    localStorage.setItem('token', token);
+                    window.location.href = '/cblu/dashboard';
+                })
+                .catch(() => {});
         },
     },
 };
