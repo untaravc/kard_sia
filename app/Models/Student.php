@@ -13,70 +13,90 @@ class Student extends Authenticatable
     use SoftDeletes;
 
     protected $connection = 'mysql';
-    protected $guarded =[];
+    protected $fillable = [
+        "status",
+        "year",
+        "name",
+        "password",
+        "email",
+    ];
     protected $appends = ['image_link'];
 
     protected $hidden = [
         'password',
     ];
 
-    public function staseLogs(){
+    public function staseLogs()
+    {
         return $this->hasMany(StaseLog::class);
     }
 
-    public function staseLogsActive(){
+    public function staseLogsActive()
+    {
         return $this->hasOne(StaseLog::class)->where('status', 'ongoing');
     }
 
-    public function staseTasks(){
+    public function staseTasks()
+    {
         return $this->hasMany(StaseTask::class);
     }
 
-    public function staseTaskLogs(){
+    public function staseTaskLogs()
+    {
         return $this->hasMany(StaseTaskLog::class);
     }
 
-    public function staseTaskLogFilled(){
+    public function staseTaskLogFilled()
+    {
         return $this->hasMany(StaseTaskLog::class)
             ->where('point_average', '!=', null);
     }
 
-    public function studentProfile(){
+    public function studentProfile()
+    {
         return $this->hasOne(StudentProfile::class);
     }
 
-    public function files(){
+    public function files()
+    {
         return $this->hasMany(File::class);
     }
 
-    public function studentLogPending(){
+    public function studentLogPending()
+    {
         return $this->hasMany(StudentLog::class)->where('status', 0);
     }
 
-    public function today_presence() {
+    public function today_presence()
+    {
         return $this->hasOne(Presence::class)
-            ->where('checkin', '>', date('Y-m-d H:i:s',strtotime(date('Y-m-d H:i:s') . '-15 hours')))
+            ->where('checkin', '>', date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . '-15 hours')))
             ->orderByDesc('id');
     }
 
-    public function presences() {
+    public function presences()
+    {
         return $this->hasMany(Presence::class)->whereDate('checkin', now());
     }
 
-    public function today_activity() {
+    public function today_activity()
+    {
         return $this->hasMany(ActivityStudent::class)
             ->whereDate('created_at', now());
     }
 
-    public function open_stase_task() {
+    public function open_stase_task()
+    {
         return $this->hasMany(OpenStaseTask::class);
     }
 
-    public function getImageLinkAttribute(){
+    public function getImageLinkAttribute()
+    {
         return asset('/') . 'storage/students/default-avatar.jpeg';
     }
 
-    public function last_presence(){
+    public function last_presence()
+    {
         return $this->hasOne(Presence::class)->orderByDesc('id');
     }
 }

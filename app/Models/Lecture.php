@@ -17,7 +17,15 @@ class Lecture extends Authenticatable
         'password',
     ];
 
-    protected $guarded = [];
+    protected $fillable = [
+        "password",
+        "name_alt",
+        "last_act",
+        "status", // active, nonactive
+        "email",
+        "is_in_house",
+        "name",
+    ];
 
     public function lectureProfile(){
         return $this->hasOne(LectureProfile::class);

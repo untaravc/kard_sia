@@ -246,14 +246,14 @@ class AuthController extends Controller
 
         $menu = [
             [ 'label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard" ],
-            // [
-            //     'label' => 'Dosen',
-            //     'icon' => 'dosen',
-            //     'children' => [
-            //         [ 'label' => 'Data', 'to' => "{$basePath}/lecture" ],
-            //         [ 'label' => 'Dokumen', 'to' => "{$basePath}/lecture-file" ],
-            //     ],
-            // ],
+            [
+                'label' => 'Dosen',
+                'icon' => 'dosen',
+                'children' => [
+                    [ 'label' => 'Data', 'to' => "{$basePath}/lectures" ],
+                    // [ 'label' => 'Dokumen', 'to' => "{$basePath}/lecture-file" ],
+                ],
+            ],
             // [
             //     'label' => 'Residen',
             //     'icon' => 'resident',
