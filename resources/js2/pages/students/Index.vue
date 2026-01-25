@@ -2,15 +2,15 @@
     <div class="grid gap-6">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Lecture Management</div>
-                <h1 class="text-2xl font-semibold text-ink">Lectures</h1>
+                <div class="text-xs uppercase tracking-[0.2em] text-muted">Student Management</div>
+                <h1 class="text-2xl font-semibold text-ink">Students</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add Lecture
+                Add Student
             </button>
         </header>
 
@@ -21,10 +21,35 @@
                     <input
                         v-model.trim="filters.keyword"
                         type="text"
-                        @keyup.enter="applyFilter"
                         placeholder="Search name or email..."
+                        @keyup.enter="applyFilter"
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
+                </div>
+                <div class="flex-1 min-w-[180px]">
+                    <label class="text-xs text-muted">Status</label>
+                    <select
+                        v-model="filters.status"
+                        @change="applyFilter"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option :value="null">All</option>
+                        <option :value="1">Active</option>
+                        <option :value="0">Nonactive</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[180px]">
+                    <label class="text-xs text-muted">Year</label>
+                    <select
+                        v-model="filters.year"
+                        @change="applyFilter"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="year in yearOptions" :key="year" :value="year">
+                            {{ year }}
+                        </option>
+                    </select>
                 </div>
                 <div class="flex items-end gap-2">
                     <button
@@ -48,7 +73,7 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Lectures</div>
+                <div class="font-semibold">Students</div>
                 <div class="text-xs text-muted" v-if="pagination.total">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -60,12 +85,12 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && lectures.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No lectures found.
+                <div v-if="!loading && students.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No students found.
                 </div>
                 <div
-                    v-for="(lecture, index) in lectures"
-                    :key="lecture.id"
+                    v-for="(student, index) in students"
+                    :key="student.id"
                     class="flex flex-wrap items-center gap-3 px-5 py-4"
                 >
                     <div class="w-8 text-sm font-semibold text-muted">
@@ -73,31 +98,28 @@
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
-                            <div class="font-semibold text-ink">{{ lecture.name }}</div>
-                            <span v-if="lecture.status !== null && lecture.status !== undefined" class="text-xs text-muted">
-                                Status: {{ lecture.status }}
-                            </span>
-                            <span v-if="lecture.is_in_house" class="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                                In House
+                            <div class="font-semibold text-ink">{{ student.name }}</div>
+                            <span v-if="student.status !== null && student.status !== undefined" class="text-xs text-muted">
+                                Status: {{ student.status }}
                             </span>
                         </div>
                         <div class="text-xs text-muted">
-                            <span v-if="lecture.email">{{ lecture.email }}</span>
-                            <span v-if="lecture.name_alt">• {{ lecture.name_alt }}</span>
+                            <span v-if="student.email">{{ student.email }}</span>
+                            <span v-if="student.year">• Year: {{ student.year }}</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(lecture)"
+                            @click="openEdit(student)"
                         >
                             Edit
                         </button>
                         <button
                             class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
                             type="button"
-                            @click="deleteLecture(lecture)"
+                            @click="deleteStudent(student)"
                         >
                             Delete
                         </button>
@@ -127,8 +149,8 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit Lecture' : 'Create Lecture'"
-            :eyebrow="editMode ? 'Update lecture' : 'New lecture'"
+            :title="editMode ? 'Edit Student' : 'Create Student'"
+            :eyebrow="editMode ? 'Update student' : 'New student'"
             size="md"
             @close="closeModal"
         >
@@ -158,9 +180,9 @@
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Alternate Name</span>
+                    <span class="text-muted">Year</span>
                     <input
-                        v-model.trim="form.name_alt"
+                        v-model.trim="form.year"
                         type="text"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
@@ -168,22 +190,12 @@
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Status</span>
                     <select
-                        v-model="form.status"
+                        v-model.number="form.status"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     >
                         <option value="active">Active</option>
                         <option value="nonactive">Nonactive</option>
                     </select>
-                </label>
-                <label class="flex items-center gap-3 text-sm">
-                    <input
-                        v-model.number="form.is_in_house"
-                        type="checkbox"
-                        :true-value="1"
-                        :false-value="0"
-                        class="h-4 w-4 rounded border border-border"
-                    />
-                    <span class="text-muted">In House</span>
                 </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
@@ -193,7 +205,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update Lecture' : 'Create Lecture' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Student' : 'Create Student' }}
                 </button>
             </form>
         </Modal>
@@ -214,11 +226,13 @@ export default {
     },
     data() {
         return {
-            baseUrl: '/api/lectures',
-            lectures: [],
+            baseUrl: '/api/students',
+            students: [],
             pagination: {},
             filters: {
                 keyword: '',
+                status: null,
+                year: '',
                 page: 1,
             },
             form: {
@@ -226,10 +240,8 @@ export default {
                 name: '',
                 email: '',
                 password: '',
-                name_alt: '',
-                last_act: '',
+                year: '',
                 status: null,
-                is_in_house: 0,
             },
             editMode: false,
             modalOpen: false,
@@ -237,13 +249,33 @@ export default {
             submitting: false,
             errorMessage: '',
             toast: null,
+            yearOptions: [],
         };
     },
     created() {
         this.initToast();
-        this.fetchLectures();
+        this.yearOptions = this.buildYearOptions();
+        this.fetchStudents();
     },
     methods: {
+        buildYearOptions() {
+            const options = [];
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            const availableMonths = [1, 7];
+
+            for (let year = 2016; year <= currentYear; year += 1) {
+                availableMonths.forEach((month) => {
+                    if (year < currentYear || month <= currentMonth) {
+                        const monthLabel = String(month).padStart(2, '0');
+                        options.push(`${year}-${monthLabel}`);
+                    }
+                });
+            }
+
+            return options;
+        },
         initToast() {
             this.toast = Swal.mixin({
                 toast: true,
@@ -259,7 +291,7 @@ export default {
             }
             this.toast.fire({ title, icon });
         },
-        fetchLectures() {
+        fetchStudents() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -270,11 +302,11 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.lectures = data;
+                    this.students = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.lectures = [];
+                    this.students = [];
                     this.pagination = {};
                 })
                 .finally(() => {
@@ -283,16 +315,18 @@ export default {
         },
         applyFilter() {
             this.filters.page = 1;
-            this.fetchLectures();
+            this.fetchStudents();
         },
         resetFilter() {
             this.filters.keyword = '';
+            this.filters.status = null;
+            this.filters.year = '';
             this.filters.page = 1;
-            this.fetchLectures();
+            this.fetchStudents();
         },
         changePage(page) {
             this.filters.page = page;
-            this.fetchLectures();
+            this.fetchStudents();
         },
         openCreate() {
             this.editMode = false;
@@ -300,17 +334,15 @@ export default {
             this.errorMessage = '';
             this.modalOpen = true;
         },
-        openEdit(lecture) {
+        openEdit(student) {
             this.editMode = true;
             this.form = {
-                id: lecture.id,
-                name: lecture.name || '',
-                email: lecture.email || '',
+                id: student.id,
+                name: student.name || '',
+                email: student.email || '',
                 password: '',
-                name_alt: lecture.name_alt || '',
-                last_act: lecture.last_act || '',
-                status: lecture.status ?? null,
-                is_in_house: lecture.is_in_house ? 1 : 0,
+                year: student.year || '',
+                status: student.status ?? null,
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -328,71 +360,69 @@ export default {
                 name: '',
                 email: '',
                 password: '',
-                name_alt: '',
-                last_act: '',
+                year: '',
                 status: null,
-                is_in_house: 0,
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateLecture();
+                return this.updateStudent();
             }
 
-            return this.createLecture();
+            return this.createStudent();
         },
-        createLecture() {
+        createStudent() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.post(this.baseUrl, this.form)
                 .then(() => {
                     this.closeModal();
-                    this.fetchLectures();
-                    this.showToast('Lecture created successfully.');
+                    this.fetchStudents();
+                    this.showToast('Student created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create lecture.';
+                        : 'Failed to create student.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateLecture() {
+        updateStudent() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
                 .then(() => {
-                    this.fetchLectures();
+                    this.fetchStudents();
                     this.closeModal();
-                    this.showToast('Lecture updated successfully.');
+                    this.showToast('Student updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update lecture.';
+                        : 'Failed to update student.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        deleteLecture(lecture) {
-            if (!window.confirm(`Delete lecture ${lecture.name}?`)) {
+        deleteStudent(student) {
+            if (!window.confirm(`Delete student ${student.name}?`)) {
                 return;
             }
 
-            Repository.delete(`${this.baseUrl}/${lecture.id}`)
+            Repository.delete(`${this.baseUrl}/${student.id}`)
                 .then(() => {
-                    this.fetchLectures();
-                    this.showToast('Lecture deleted successfully.');
+                    this.fetchStudents();
+                    this.showToast('Student deleted successfully.');
                 })
                 .catch(() => {
-                    this.errorMessage = 'Failed to delete lecture.';
+                    this.errorMessage = 'Failed to delete student.';
                 });
         },
     },

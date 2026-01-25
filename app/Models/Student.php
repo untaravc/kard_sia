@@ -14,7 +14,7 @@ class Student extends Authenticatable
 
     protected $connection = 'mysql';
     protected $fillable = [
-        "status",
+        "status", // active / nonactive
         "year",
         "name",
         "password",
