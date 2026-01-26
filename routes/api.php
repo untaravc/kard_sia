@@ -9,6 +9,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('check-reset-password-token', [AuthController::class, 'checkResetPasswordToken']);
     Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordWithToken']);
+Route::get('firebase-config', [AuthController::class, 'firebaseConfig']);
 
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);

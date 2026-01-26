@@ -245,8 +245,12 @@ class LectureController extends Controller
         $profile = LectureProfile::whereLectureId($authId)->first();
         $pathName = $profile ? $profile->image : null;
 
-        if ($request->image && strlen($request->image) > 100) {
-            $pathName = $this->imageProcessing($request->image, 'lectures', false);
+        if ($request->image) {
+            if (str_starts_with($request->image, 'http')) {
+                $pathName = $request->image;
+            } elseif (strlen($request->image) > 100) {
+                $pathName = $this->imageProcessing($request->image, 'lectures', false);
+            }
         }
 
         $profileData = [];

@@ -31,6 +31,7 @@
 <script>
 import { Icon } from '../icons';
 import Repository from '../repository';
+import { useFirebaseConfigStore } from '../stores/firebaseConfig';
 
 export default {
     components: {
@@ -45,6 +46,7 @@ export default {
     data() {
         return {
             user: null,
+            firebaseConfigStore: null,
         };
     },
     computed: {
@@ -79,6 +81,8 @@ export default {
         },
     },
     mounted() {
+        this.firebaseConfigStore = useFirebaseConfigStore();
+        this.firebaseConfigStore.fetchConfig();
         this.fetchUser();
     },
     methods: {

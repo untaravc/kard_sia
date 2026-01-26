@@ -51,6 +51,9 @@
 
 <script>
 import Repository from '../../repository';
+import { getApps, initializeApp } from 'firebase/app';
+import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
+import { useFirebaseConfigStore } from '../../stores/firebaseConfig';
 import ProfileCard from './ProfileCard.vue';
 import QuickLinkCard from './QuickLinkCard.vue';
 import AgendaCard from './AgendaCard.vue';
@@ -78,6 +81,8 @@ export default {
             detailModalOpen: false,
             profileModalOpen: false,
             updatingProfile: false,
+            uploadingImage: false,
+            firebaseConfigStore: null,
             dataRaw: {
                 image_url: '',
                 info_cards: {
@@ -108,6 +113,7 @@ export default {
         },
     },
     created() {
+        this.firebaseConfigStore = useFirebaseConfigStore();
         this.loadData();
         this.loadDataAll();
         this.loadSchedule();
@@ -159,7 +165,11 @@ export default {
                         phone: profile.phone || '',
                         image: profile.image || '',
                     };
-                    this.dataRaw.image_url = profile.image ? `/storage/${profile.image}` : '';
+                    if (profile.image && profile.image.startsWith('http')) {
+                        this.dataRaw.image_url = profile.image;
+                    } else {
+                        this.dataRaw.image_url = profile.image ? `/storage/${profile.image}` : '';
+                    }
                 })
                 .catch(() => {
                     this.user = {
@@ -208,7 +218,7 @@ export default {
                     this.updatingProfile = false;
                 });
         },
-        getImage(event) {
+        async getImage(event) {
             const file = event && event.target ? event.target.files[0] : null;
             if (!file) {
                 return;
@@ -219,12 +229,28 @@ export default {
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                this.user.image = reader.result;
-            };
-            this.dataRaw.image_url = URL.createObjectURL(file);
-            reader.readAsDataURL(file);
+            this.uploadingImage = true;
+            try {
+                const config = await this.firebaseConfigStore.fetchConfig();
+                if (!config) {
+                    return;
+                }
+
+                if (!getApps().length) {
+                    initializeApp(config);
+                }
+
+                const storage = getStorage();
+                const prefix = 'KardiologiFkkmk/Lecture/Profile';
+                const safeName = `${Date.now()}-${file.name}`.replace(/\s+/g, '-');
+                const storageRef = ref(storage, `${prefix}/${safeName}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                this.user.image = url;
+                this.dataRaw.image_url = url;
+            } finally {
+                this.uploadingImage = false;
+            }
         },
     },
 };

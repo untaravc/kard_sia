@@ -109,6 +109,24 @@ class AuthController extends Controller
         return $this->response;
     }
 
+    public function firebaseConfig()
+    {
+        $this->response['success'] = true;
+        $this->response['text'] = 'Retrieve Firebase Config Success';
+        $this->response['result'] = [
+            'apiKey' => env('FB_API_KEY'),
+            'authDomain' => env('FB_AUTH_DOMAIN'),
+            'databaseURL' => env('FB_DATABASE_URL'),
+            'projectId' => env('FB_PROJECT_ID'),
+            'storageBucket' => env('FB_STORAGE_BUCKET'),
+            'messagingSenderId' => env('FB_MESSAGING_SENDER_ID'),
+            'appId' => env('FB_APP_ID'),
+            'measurementId' => env('FB_MEASUREMENT_ID'),
+        ];
+
+        return $this->response;
+    }
+
     public function auth(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');

@@ -28,8 +28,11 @@
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
+        "@vue/composition-api": "^1.7.2",
         "chart.js": "^2.9.4",
+        "firebase": "^12.8.0",
         "laravel-vue-pagination": "^2.3.1",
+        "pinia": "^2.3.1",
         "rxjs": "^6.6.7",
         "sweetalert2": "^9.17.2",
         "vform": "^1.0.1",

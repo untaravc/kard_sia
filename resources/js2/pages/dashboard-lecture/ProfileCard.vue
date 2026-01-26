@@ -105,6 +105,9 @@ export default {
     computed: {
         profileStyle() {
             if (this.user && this.user.image) {
+                if (this.user.image.startsWith('http')) {
+                    return `background-image: url(${this.user.image})`;
+                }
                 return `background-image: url(/storage/${this.user.image})`;
             }
             return 'background-image: url(/assets/images/dr_default.jpeg)';
