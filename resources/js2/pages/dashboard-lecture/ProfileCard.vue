@@ -22,13 +22,6 @@
                     <i class="fa fa-user-edit text-slate-500"></i>
                     Perbarui Profil
                 </button>
-                <router-link
-                    to="/dosen/ksm-schedules"
-                    class="rounded-xl bg-primary px-3 py-2 text-center text-xs font-semibold text-white"
-                >
-                    <i class="fa fa-table"></i>
-                    Jadwal Tindakan
-                </router-link>
             </div>
 
             <div class="mt-4 grid grid-cols-3 gap-3 text-center">

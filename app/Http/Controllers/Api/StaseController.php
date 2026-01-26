@@ -11,9 +11,9 @@ class StaseController extends Controller
 {
     public function index(Request $request)
     {
-        $dataContent = Stase::withCount('staseTasks')->orderBy('stase_order');
+        $dataContent = Stase::withCount('staseTasks')->orderBy('name');
         $dataContent = $this->withFilter($dataContent, $request);
-        $dataContent = $dataContent->paginate(10);
+        $dataContent = $dataContent->paginate($request->per_page ?? 10);
 
         return response()->json([
             'success' => true,

@@ -11,129 +11,166 @@ class Activity extends Model
 {
     use SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        "name",
+        "title",
+        "place",
+        "speaker",
+        "start_date",
+        "end_date",
+        "note",
+        "desc",
+        "created_by",
+        "status",
+        "lecture_pembimbing",
+        "lecture_penguji",
+        "lecture_pengampu",
+        "link",
+        "passcode",
+        "category",
+        "type",
+        "activity_id",
+        "stase_id",
+    ];
     protected $appends = [
         'absence',
-//        'penguji',
-//        'pembimbing',
-//        'pengampu',
+        //        'penguji',
+        //        'pembimbing',
+        //        'pengampu',
         'is_author',
         'type_label',
         'category_label',
-//        'attended',
+        //        'attended',
     ];
 
-    public function lectures(){
+    public function lectures()
+    {
         return $this->belongsToMany(Lecture::class, 'activity_lectures');
     }
 
-    public function stase(){
+    public function stase()
+    {
         return $this->belongsTo(Stase::class);
     }
 
-    public function activity_lectures(){
+    public function activity_lectures()
+    {
         return $this->hasMany(ActivityLecture::class);
     }
 
-    public function students(){
+    public function students()
+    {
         return $this->belongsToMany(Student::class, 'activity_students');
     }
 
-    public function activity_students(){
+    public function activity_students()
+    {
         return $this->hasMany(ActivityStudent::class);
     }
 
-    public function creator(){
+    public function creator()
+    {
         return $this->belongsTo(Student::class, 'created_by');
     }
 
-    public function getAbsenceAttribute(){
-        if (Auth::guard('lecture')->check()){
+    public function getAbsenceAttribute()
+    {
+        if (Auth::guard('lecture')->check()) {
             $id = Auth::guard('lecture')->user()->id;
             return ActivityLecture::whereActivityId($this->attributes['id'])->whereLectureId($id)->first();
         }
 
-        if (Auth::guard('student')->check()){
+        if (Auth::guard('student')->check()) {
             $id = Auth::guard('student')->user()->id;
             return ActivityStudent::whereActivityId($this->attributes['id'])->whereStudentId($id)->first();
         }
         return 0;
     }
 
-    public function getLecturePengujiAttribute(){
-        if($this->attributes['lecture_penguji'] == null){
+    public function getLecturePengujiAttribute()
+    {
+        if ($this->attributes['lecture_penguji'] == null) {
             return [];
         }
         return $this->attributes['lecture_penguji'];
     }
 
-    public function penguji() {
-        if(!isset($this->attributes['lecture_penguji'])){
+    public function penguji()
+    {
+        if (!isset($this->attributes['lecture_penguji'])) {
             return [];
         }
         $ids = json_decode($this->attributes['lecture_penguji']);
         return Lecture::whereIn('id', $ids)->get();
     }
 
-    public function getLecturePengampuAttribute(){
-        if($this->attributes['lecture_pengampu'] == null){
+    public function getLecturePengampuAttribute()
+    {
+        if ($this->attributes['lecture_pengampu'] == null) {
             return [];
         }
         return $this->attributes['lecture_pengampu'];
     }
 
-    public function pengampu() {
-        if(!isset($this->attributes['lecture_pengampu'])){
+    public function pengampu()
+    {
+        if (!isset($this->attributes['lecture_pengampu'])) {
             return [];
         }
         $ids = json_decode($this->attributes['lecture_pengampu']);
         return Lecture::whereIn('id', $ids)->get();
     }
 
-    public function getLecturePembimbingAttribute(){
-        if($this->attributes['lecture_pembimbing'] == null){
+    public function getLecturePembimbingAttribute()
+    {
+        if ($this->attributes['lecture_pembimbing'] == null) {
             return [];
         }
         return $this->attributes['lecture_pembimbing'];
     }
 
-    public function pembimbing() {
-        if(!isset($this->attributes['lecture_pembimbing'])){
+    public function pembimbing()
+    {
+        if (!isset($this->attributes['lecture_pembimbing'])) {
             return [];
         }
         $ids = json_decode($this->attributes['lecture_pembimbing']);
         return Lecture::whereIn('id', $ids)->get();
     }
 
-    public function getHasPasscodeAttribute() {
-        if($this->attribute['passcode']){
+    public function getHasPasscodeAttribute()
+    {
+        if ($this->attribute['passcode']) {
             return true;
         }
         return false;
     }
 
-    public function getIsAuthorAttribute() {
-        if (Auth::guard('student')->check()){
+    public function getIsAuthorAttribute()
+    {
+        if (Auth::guard('student')->check()) {
             $id = Auth::guard('student')->user()->id;
-            if($this->attributes['created_by'] == $id){
+            if ($this->attributes['created_by'] == $id) {
                 return true;
             }
         }
         return false;
     }
 
-    public function scopeMyOwn($q){
-        if(Auth::guard('student')->check()){
+    public function scopeMyOwn($q)
+    {
+        if (Auth::guard('student')->check()) {
             return $q->whereCreatedBy(Auth::guard('student')->user()->id);
         }
         return $q;
     }
 
-    public function getAttendedAttribute(){
-        if(Auth::guard('student')->check()){
+    public function getAttendedAttribute()
+    {
+        if (Auth::guard('student')->check()) {
             return ActivityStudent::whereActivityId($this->attributes['id'])
                 ->whereStudentId(Auth::guard('student')->id())->first();
-        } else if(Auth::guard('lecture')->check()){
+        } else if (Auth::guard('lecture')->check()) {
             return ActivityLecture::whereActivityId($this->attributes['id'])
                 ->whereLectureId(Auth::guard('lecture')->id())->first();
         }
@@ -142,8 +179,8 @@ class Activity extends Model
 
     public function getTypeLabelAttribute()
     {
-        if(isset($this->attributes['type'])){
-            switch ($this->attributes['type']){
+        if (isset($this->attributes['type'])) {
+            switch ($this->attributes['type']) {
                 case 0:
                     return "Umum";
                 case 1:
@@ -161,8 +198,8 @@ class Activity extends Model
 
     public function getCategoryLabelAttribute()
     {
-        if(isset($this->attributes['category'])){
-            switch ($this->attributes['category']){
+        if (isset($this->attributes['category'])) {
+            switch ($this->attributes['category']) {
                 case 0:
                     return "Lain-lain";
                 case 1:

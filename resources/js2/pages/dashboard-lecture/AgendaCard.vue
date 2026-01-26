@@ -21,18 +21,11 @@
                         <span v-if="schedule.speaker"><b>{{ schedule.speaker }}:</b> </span>
                         <span>{{ schedule.title }}</span>
                     </div>
-                    <div v-if="schedule.absence" class="mt-1 text-xs text-emerald-600">
-                        <i class="fa fa-check-circle"></i>
-                        Anda telah presensi pada {{ formatDateTime(schedule.absence.created_at) }}
+                    <div v-if="schedule.start_date || schedule.end_date" class="mt-1 text-xs text-muted">
+                        <span v-if="schedule.start_date">Mulai: {{ formatDateTime(schedule.start_date) }}</span>
+                        <span v-if="schedule.end_date"> • Selesai: {{ formatDateTime(schedule.end_date) }}</span>
                     </div>
                 </div>
-                <a
-                    v-if="!schedule.absence"
-                    :href="`/presensi/${schedule.id}`"
-                    class="rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white"
-                >
-                    Presensi
-                </a>
             </div>
             <div v-if="!schedules.length" class="px-5 py-6 text-sm text-muted">
                 Tidak ada agenda.

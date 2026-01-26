@@ -141,9 +141,9 @@ export default {
                 });
         },
         loadSchedule() {
-            return Repository.get('/cmsd/get-schedule')
+            return Repository.get('/api/activities-today')
                 .then((response) => {
-                    const data = response && response.data ? response.data : [];
+                    const data = response && response.data ? response.data.result : [];
                     this.schedules = Array.isArray(data) ? data : [];
                 })
                 .catch(() => {
