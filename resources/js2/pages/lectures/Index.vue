@@ -90,6 +90,13 @@
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
+                            @click="logAs(lecture)"
+                        >
+                            Log As
+                        </button>
+                        <button
+                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
+                            type="button"
                             @click="openEdit(lecture)"
                         >
                             Edit
@@ -393,6 +400,30 @@ export default {
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete lecture.';
+                });
+        },
+        logAs(lecture) {
+            if (!lecture || !lecture.id) {
+                return;
+            }
+
+            Repository.post('/api/log-as', {
+                auth_type: 'lecture',
+                auth_id: lecture.id,
+            })
+                .then((response) => {
+                    const token = response && response.data && response.data.result
+                        ? response.data.result.token
+                        : null;
+                    if (!token) {
+                        this.errorMessage = 'Failed to log as lecture.';
+                        return;
+                    }
+                    localStorage.setItem('token', token);
+                    window.open('/cblu/dashboard', '_blank');
+                })
+                .catch(() => {
+                    this.errorMessage = 'Failed to log as lecture.';
                 });
         },
     },

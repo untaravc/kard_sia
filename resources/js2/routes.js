@@ -47,6 +47,7 @@ const routes = [
         children: [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default },
             { path: 'dashboard-student', component: require('./pages/dashboard-student/Index.vue').default },
+            { path: 'dashboard-lecture', component: require('./pages/dashboard-lecture/Index.vue').default },
             { path: 'users', component: require('./pages/users/Index.vue').default },
             { path: 'logbooks', component: require('./pages/logbooks/Submit.vue').default },
             { path: 'logbooks/bulk', component: require('./pages/logbooks/AddBulk.vue').default },

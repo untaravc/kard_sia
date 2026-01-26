@@ -186,11 +186,13 @@ class AuthController extends Controller
             return $this->response;
         }
 
+        $user = User::find(data_get($payload, 'auth_id'));
+
         $token = $this->buildToken([
-            'email' => data_get($payload, 'email'),
+            'email' => $user->email,
             'auth_type' => $authType,
             'auth_id' => data_get($payload, 'auth_id'),
-            'name' => data_get($payload, 'name'),
+            'name' => $user->name,
         ]);
 
         $this->response['success'] = true;
@@ -397,7 +399,7 @@ class AuthController extends Controller
                 ],
             ],
             'student' => [
-                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard"],
+                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-student"],
                 [
                     'label' => 'Presensi',
                     'icon' => 'resident',
@@ -409,7 +411,7 @@ class AuthController extends Controller
                 ],
             ],
             'lecture' => [
-                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard"],
+                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-lecture"],
                 [
                     'label' => 'Residen',
                     'icon' => 'resident',

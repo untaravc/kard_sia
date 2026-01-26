@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\LectureController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
@@ -22,6 +23,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('tasks', 'Api\TaskController');
     Route::resource('lectures', 'Api\LectureController');
     Route::get('lecture-list', [\App\Http\Controllers\Api\LectureController::class, 'list']);
+    Route::get('lecture-profile', [LectureController::class, 'profile']);
+    Route::patch('lecture-profile', [LectureController::class, 'updateProfile']);
     Route::resource('students', 'Api\StudentController');
     Route::post('logbooks/bulk', [\App\Http\Controllers\Api\LogbookController::class, 'bulk']);
     Route::resource('logbooks', 'Api\LogbookController');

@@ -58,6 +58,9 @@ const Repository = {
     put(url, payload, config) {
         return axios.put(url, payload, config);
     },
+    patch(url, payload, config) {
+        return axios.patch(url, payload, config);
+    },
     delete(url, config) {
         return axios.delete(url, config);
     },
