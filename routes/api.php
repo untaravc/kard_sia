@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\LectureController;
+use App\Http\Controllers\Api\OpenStaseTaskController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
@@ -28,6 +29,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('lecture-profile', [LectureController::class, 'profile']);
     Route::patch('lecture-profile', [LectureController::class, 'updateProfile']);
     Route::get('activities-today', [ActivityController::class, 'activitiesToday']);
+    Route::get('open-stase-tasks', [OpenStaseTaskController::class, 'openStaseTask']);
     Route::resource('activities', 'Api\ActivityController');
     Route::resource('students', 'Api\StudentController');
     Route::post('logbooks/bulk', [\App\Http\Controllers\Api\LogbookController::class, 'bulk']);

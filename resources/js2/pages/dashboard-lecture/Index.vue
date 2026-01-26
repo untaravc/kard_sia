@@ -1,12 +1,13 @@
 <template>
-    <div class="grid gap-6">
-        <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
-            <div class="grid gap-6">
+    <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
+            <div class="flex w-full flex-col gap-6 lg:max-w-[360px] lg:flex-none">
                 <ProfileCard
                     :user="user"
                     :info-cards="dataRaw.info_cards"
                     :schedules-count="schedules.length"
                     :score-pending="scorePending"
+                    :loading="loadingProfile"
                     @edit-profile="openProfileModal"
                 />
                 <QuickLinkCard
@@ -16,17 +17,45 @@
                 />
                 <AgendaCard
                     :schedules="schedules"
+                    :loading="loadingSchedule"
                 />
             </div>
 
-            <div class="grid gap-6">
+            <div class="flex min-w-0 flex-1 flex-col gap-6">
                 <ScoringCard
                     :items="dataContent"
+                    :loading="loadingOpenTasks"
                     @open-file="openFileModal"
                 />
+                <div
+                    v-if="dataContentPagination && dataContentPagination.total"
+                    class="flex items-center justify-between rounded-2xl border border-border bg-panel px-5 py-3 text-xs text-muted"
+                >
+                    <button
+                        class="rounded-lg border border-border px-3 py-1.5"
+                        type="button"
+                        :disabled="dataContentPagination.current_page <= 1"
+                        @click="loadData(dataContentPagination.current_page - 1)"
+                    >
+                        Prev
+                    </button>
+                    <div>
+                        Page {{ dataContentPagination.current_page || 1 }}
+                        / {{ dataContentPagination.last_page || 1 }}
+                    </div>
+                    <button
+                        class="rounded-lg border border-border px-3 py-1.5"
+                        type="button"
+                        :disabled="dataContentPagination.current_page >= dataContentPagination.last_page"
+                        @click="loadData(dataContentPagination.current_page + 1)"
+                    >
+                        Next
+                    </button>
+                </div>
                 <ExamScoringCard
                     v-if="dataContentAll.length"
                     :items="dataContentAll"
+                    :loading="loadingOpenTasksAll"
                     @open-file="openFileModal"
                 />
             </div>
@@ -54,6 +83,7 @@ import Repository from '../../repository';
 import { getApps, initializeApp } from 'firebase/app';
 import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import { useFirebaseConfigStore } from '../../stores/firebaseConfig';
+import Swal from 'sweetalert2';
 import ProfileCard from './ProfileCard.vue';
 import QuickLinkCard from './QuickLinkCard.vue';
 import AgendaCard from './AgendaCard.vue';
@@ -75,6 +105,7 @@ export default {
     data() {
         return {
             dataContent: [],
+            dataContentPagination: {},
             dataContentAll: [],
             schedules: [],
             detailFile: {},
@@ -83,6 +114,11 @@ export default {
             updatingProfile: false,
             uploadingImage: false,
             firebaseConfigStore: null,
+            loadingProfile: false,
+            loadingSchedule: false,
+            loadingOpenTasks: false,
+            loadingOpenTasksAll: false,
+            toast: null,
             dataRaw: {
                 image_url: '',
                 info_cards: {
@@ -114,23 +150,51 @@ export default {
     },
     created() {
         this.firebaseConfigStore = useFirebaseConfigStore();
+        this.initToast();
         this.loadData();
         this.loadDataAll();
         this.loadSchedule();
         this.loadUser();
     },
     methods: {
-        loadData() {
-            return Repository.get('/cmsd/get-open-stase-task')
+        initToast() {
+            this.toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        },
+        showToast(title, icon = 'success') {
+            if (!this.toast) {
+                this.initToast();
+            }
+            this.toast.fire({ title, icon });
+        },
+        loadData(page = 1) {
+            this.loadingOpenTasks = true;
+            return Repository.get('/api/open-stase-tasks', {
+                params: {
+                    page,
+                },
+            })
                 .then((response) => {
-                    const data = response && response.data ? response.data : [];
-                    this.dataContent = Array.isArray(data) ? data : [];
+                    const result = response && response.data ? response.data.result : null;
+                    const data = result && Array.isArray(result.data) ? result.data : [];
+                    this.dataContent = data;
+                    this.dataContentPagination = result || {};
                 })
                 .catch(() => {
                     this.dataContent = [];
+                    this.dataContentPagination = {};
+                })
+                .finally(() => {
+                    this.loadingOpenTasks = false;
                 });
         },
         loadDataAll() {
+            this.loadingOpenTasksAll = true;
             return Repository.get('/cmsd/get-open-stase-task-all')
                 .then((response) => {
                     const data = response && response.data ? response.data : [];
@@ -138,9 +202,13 @@ export default {
                 })
                 .catch(() => {
                     this.dataContentAll = [];
+                })
+                .finally(() => {
+                    this.loadingOpenTasksAll = false;
                 });
         },
         loadSchedule() {
+            this.loadingSchedule = true;
             return Repository.get('/api/activities-today')
                 .then((response) => {
                     const data = response && response.data ? response.data.result : [];
@@ -148,9 +216,13 @@ export default {
                 })
                 .catch(() => {
                     this.schedules = [];
+                })
+                .finally(() => {
+                    this.loadingSchedule = false;
                 });
         },
         loadUser() {
+            this.loadingProfile = true;
             return Repository.get('/api/lecture-profile')
                 .then((response) => {
                     const payload = response && response.data && response.data.result
@@ -182,6 +254,9 @@ export default {
                         phone: '',
                         address: '',
                     };
+                })
+                .finally(() => {
+                    this.loadingProfile = false;
                 });
         },
         openFileModal(file) {
@@ -213,6 +288,7 @@ export default {
                     this.loadUser();
                     this.user.password = '';
                     this.user.password_confirmation = '';
+                    this.showToast('Profile updated successfully.');
                 })
                 .finally(() => {
                     this.updatingProfile = false;

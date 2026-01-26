@@ -1,5 +1,6 @@
 <template>
-    <div class="rounded-2xl border border-border bg-panel shadow-sm">
+    <div class="relative rounded-2xl border border-border bg-panel shadow-sm">
+        <Loading :active="loading" :is-full-page="false" />
         <div class="h-16 rounded-t-2xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-400"></div>
         <div class="px-5 pb-5">
             <div class="-mt-8 flex items-center gap-3">
@@ -76,7 +77,13 @@
 </template>
 
 <script>
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
+
 export default {
+    components: {
+        Loading,
+    },
     props: {
         user: {
             type: Object,
@@ -93,6 +100,10 @@ export default {
         scorePending: {
             type: Number,
             default: 0,
+        },
+        loading: {
+            type: Boolean,
+            default: false,
         },
     },
     computed: {

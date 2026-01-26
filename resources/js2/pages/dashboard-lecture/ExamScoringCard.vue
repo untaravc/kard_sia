@@ -1,5 +1,6 @@
 <template>
-    <div class="rounded-2xl border border-border bg-panel">
+    <div class="relative rounded-2xl border border-border bg-panel">
+        <Loading :active="loading" :is-full-page="false" />
         <div class="border-b border-border px-5 py-4">
             <div class="text-sm font-semibold text-ink">
                 Penilaian Ujian Umum
@@ -93,11 +94,21 @@
 </template>
 
 <script>
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
+
 export default {
+    components: {
+        Loading,
+    },
     props: {
         items: {
             type: Array,
             default: () => [],
+        },
+        loading: {
+            type: Boolean,
+            default: false,
         },
     },
     methods: {
