@@ -62,6 +62,7 @@ const routes = [
             { path: 'presences', component: require('./pages/presences/Index.vue').default },
             { path: 'presences/daily', component: require('./pages/presences/Daily.vue').default },
             { path: 'presences/monthly', component: require('./pages/presences/Monthly.vue').default },
+            { path: 'presences/student/:student_id', component: require('./pages/presences/Student.vue').default },
         ],
     },
 ];

@@ -103,6 +103,58 @@ class PresenceController extends Controller
         ]);
     }
 
+    public function student(Request $request, $student_id)
+    {
+        $period = $request->period;
+        $week = $period ? date('W', strtotime($period)) : date('W', strtotime(date('Y-m')));
+        if ((int) $week === 52) {
+            $week = 1;
+        }
+
+        $month = $period ? substr($period, 5, 2) : date('m');
+        $year = $period ? substr($period, 0, 4) : date('Y');
+
+        $presences = Presence::whereStudentId($student_id)
+            ->whereYear('checkin', $year)
+            ->whereMonth('checkin', $month)
+            ->get();
+
+        $activities = ActivityStudent::with('activity')
+            ->whereStudentId($student_id)
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->get();
+
+        $weeks = [];
+        for ($i = 0; $i < 5; $i += 1) {
+            $currentWeek = $this->getStartToEndDate((int) $week + $i, (int) $year);
+            for ($d = 0; $d < 7; $d += 1) {
+                foreach ($presences as $presence) {
+                    if (substr($presence->checkin, 0, 10) === $currentWeek[$d]['date']) {
+                        $currentWeek[$d]['presence'] = $presence;
+                    }
+                }
+
+                foreach ($activities as $activity) {
+                    if (substr($activity->created_at, 0, 10) === $currentWeek[$d]['date']) {
+                        $currentWeek[$d]['activities'][] = $activity;
+                    }
+                }
+            }
+            $weeks[] = $currentWeek;
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Presence Summary Success',
+            'result' => [
+                'data' => $weeks,
+                'resident' => Student::find($student_id),
+                'period' => sprintf('%04d-%02d', (int) $year, (int) $month),
+            ],
+        ]);
+    }
+
     public function withFilter($dataContent, $request)
     {
         if ($request->date != null && $request->date !== '') {
@@ -116,5 +168,22 @@ class PresenceController extends Controller
         }
 
         return $dataContent;
+    }
+
+    private function getStartToEndDate($week, $year)
+    {
+        $dto = new \DateTime();
+        $dto->setISODate($year, $week);
+        $ret = [];
+
+        for ($i = 0; $i < 7; $i += 1) {
+            $ret[] = [
+                'date' => $dto->format('Y-m-d'),
+            ];
+
+            $dto->modify('+1 days');
+        }
+
+        return $ret;
     }
 }

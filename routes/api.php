@@ -36,5 +36,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('logbooks', 'Api\LogbookController');
     Route::get('presences/daily', [\App\Http\Controllers\Api\PresenceController::class, 'daily']);
     Route::get('presences/monthly', [\App\Http\Controllers\Api\PresenceController::class, 'monthly']);
+    Route::get('presences/student/{student_id}', [\App\Http\Controllers\Api\PresenceController::class, 'student']);
     Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
 });

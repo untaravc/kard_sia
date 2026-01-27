@@ -123,6 +123,13 @@
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
+                                @click="handleAction('presence', student)"
+                            >
+                                Presences
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
                                 @click="handleAction('logAs', student)"
                             >
                                 Log As
@@ -347,6 +354,10 @@ export default {
         },
         handleAction(action, student) {
             this.closeActionMenu();
+            if (action === 'presence') {
+                this.$router.push(`/cblu/presences/student/${student.id}`);
+                return;
+            }
             if (action === 'logAs') {
                 this.logAs(student);
                 return;
