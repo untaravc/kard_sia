@@ -56,6 +56,7 @@ const routes = [
             { path: 'stase-tasks/:stase_id', component: require('./pages/stases/Task.vue').default },
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default },
             { path: 'students', component: require('./pages/students/Index.vue').default },
+            { path: 'students/:student_id/score', component: require('./pages/students/Score.vue').default },
             { path: 'activities', component: require('./pages/activities/Index.vue').default },
             { path: 'activities/create', component: require('./pages/activities/AddCreate.vue').default },
             { path: 'activities/:id', component: require('./pages/activities/AddCreate.vue').default },

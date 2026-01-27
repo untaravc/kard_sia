@@ -102,9 +102,14 @@ class StaseController extends Controller
     {
         $payload = $request->attributes->get('jwt_payload');
         $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
 
         if (!$studentId) {
             $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType === 'user' && $request->student_id) {
+            $studentId = (int) $request->student_id;
         }
 
         $staseLogs = StaseLog::with('stase')

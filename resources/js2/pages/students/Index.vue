@@ -123,6 +123,13 @@
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
+                                @click="handleAction('score', student)"
+                            >
+                                Score
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
                                 @click="handleAction('presence', student)"
                             >
                                 Presences
@@ -354,6 +361,10 @@ export default {
         },
         handleAction(action, student) {
             this.closeActionMenu();
+            if (action === 'score') {
+                this.$router.push(`/cblu/students/${student.id}/score`);
+                return;
+            }
             if (action === 'presence') {
                 this.$router.push(`/cblu/presences/student/${student.id}`);
                 return;

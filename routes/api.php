@@ -32,6 +32,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('open-stase-tasks', [OpenStaseTaskController::class, 'openStaseTask']);
     Route::resource('activities', 'Api\ActivityController');
     Route::resource('students', 'Api\StudentController');
+    Route::get('student-score/{student_id}', [\App\Http\Controllers\Api\StudentController::class, 'score']);
     Route::post('logbooks/bulk', [\App\Http\Controllers\Api\LogbookController::class, 'bulk']);
     Route::resource('logbooks', 'Api\LogbookController');
     Route::get('presences/daily', [\App\Http\Controllers\Api\PresenceController::class, 'daily']);
