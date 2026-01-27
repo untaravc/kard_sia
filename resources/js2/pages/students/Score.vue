@@ -103,20 +103,40 @@
                                     </div>
 
                                     <div v-if="group.scores && group.scores.length" class="mt-2 grid gap-1 text-xs">
-                                        <button
+                                        <div
                                             v-for="score in group.scores"
                                             :key="score.id"
-                                            type="button"
-                                            class="flex w-full items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-left text-slate-700 hover:bg-slate-100"
-                                            @click="openPointModal(score)"
+                                            class="flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1 text-slate-700"
                                         >
-                                            <span class="truncate">
-                                                {{ score.lecture ? score.lecture.name : 'Lecture' }}
-                                            </span>
-                                            <span v-if="score.point_average > 0" class="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                                                {{ score.point_average }}
-                                            </span>
-                                        </button>
+                                            <button
+                                                type="button"
+                                                class="flex min-w-0 flex-1 items-center justify-between text-left hover:text-primary"
+                                                @click="openPointModal(score)"
+                                            >
+                                                <span class="flex min-w-0 items-center gap-2">
+                                                    <span class="truncate">
+                                                        {{ score.lecture ? score.lecture.name : 'Lecture' }}
+                                                    </span>
+                                                    <span
+                                                        v-if="!scoreHasPoints(score)"
+                                                        class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700"
+                                                    >
+                                                        Final Score
+                                                    </span>
+                                                </span>
+                                                <span v-if="score.point_average > 0" class="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                                                    {{ score.point_average }}
+                                                </span>
+                                            </button>
+                                            <button
+                                                v-if="!score.lecture_id || !scoreHasPoints(score)"
+                                                type="button"
+                                                class="rounded-lg border border-border px-2 py-1 text-[11px] text-muted hover:bg-slate-100"
+                                                @click="openScoreModal('update', group, score)"
+                                            >
+                                                Update
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div v-else-if="group.status === 'pending'" class="mt-2 text-xs text-muted">
@@ -125,6 +145,13 @@
                                 </div>
 
                                 <div class="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        class="rounded-xl border border-border px-3 py-1.5 text-xs text-muted hover:bg-slate-50"
+                                        @click="openScoreModal('add', group)"
+                                    >
+                                        Add Score
+                                    </button>
                                     <button
                                         v-if="group.files && group.files[0]"
                                         type="button"
@@ -204,6 +231,89 @@
                 </button>
             </template>
         </Modal>
+
+        <Modal
+            :open="scoreModalOpen"
+            :title="scoreModalMode === 'add' ? 'Add Score' : 'Update Score'"
+            eyebrow="Score Form"
+            size="md"
+            @close="closeScoreModal"
+        >
+            <form class="grid gap-3" @submit.prevent="submitScore">
+                <div class="text-xs text-muted">
+                    {{ scoreModalStaseTaskName }}
+                </div>
+                <div
+                    v-if="scoreModalIsFinalScore"
+                    class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700"
+                >
+                    Final Score
+                </div>
+                <label class="grid gap-1 text-sm">
+                    <span class="text-muted">Lecture</span>
+                    <select
+                        v-model.number="scoreForm.lecture_id"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        required
+                    >
+                        <option :value="null">Select lecture</option>
+                        <option v-for="lecture in lectureOptions" :key="lecture.id" :value="lecture.id">
+                            {{ lecture.name }}
+                        </option>
+                    </select>
+                </label>
+                <label class="grid gap-1 text-sm">
+                    <span class="text-muted">Date</span>
+                    <input
+                        v-model="scoreForm.date"
+                        type="date"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        required
+                    />
+                </label>
+                <label class="grid gap-1 text-sm">
+                    <span class="text-muted">Point Average</span>
+                    <input
+                        v-model.number="scoreForm.point_average"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        required
+                    />
+                </label>
+
+                <div v-if="scoreErrorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ scoreErrorMessage }}
+                </div>
+            </form>
+            <template #footer>
+                <button
+                    v-if="scoreModalMode === 'update' && scoreModalIsFinalScore"
+                    class="rounded-xl bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-600"
+                    type="button"
+                    :disabled="scoreSubmitting"
+                    @click="deleteScore"
+                >
+                    Delete
+                </button>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closeScoreModal"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="scoreSubmitting"
+                    @click="submitScore"
+                >
+                    {{ scoreSubmitting ? 'Saving...' : scoreModalMode === 'add' ? 'Add Score' : 'Update Score' }}
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -226,6 +336,8 @@ export default {
             loading: false,
             errorMessage: '',
             scoreGroups: [],
+            lectureOptions: [],
+            lectureLoading: false,
             filters: {
                 stase_log_id: null,
             },
@@ -234,6 +346,23 @@ export default {
             pointNote: '',
             fileModalOpen: false,
             fileDetail: {},
+            scoreModalOpen: false,
+            scoreModalMode: 'add',
+            scoreSubmitting: false,
+            scoreErrorMessage: '',
+            scoreContext: {
+                group: null,
+                score: null,
+            },
+            scoreForm: {
+                stase_task_log_id: null,
+                stase_log_id: null,
+                stase_task_id: null,
+                student_id: null,
+                lecture_id: null,
+                date: '',
+                point_average: null,
+            },
         };
     },
     computed: {
@@ -244,12 +373,51 @@ export default {
             const active = this.staseLogs.find((log) => log.id === this.filters.stase_log_id);
             return active && active.stase ? active.stase.name : 'No stase selected';
         },
+        scoreModalStaseTaskName() {
+            const group = this.scoreContext.group;
+            if (!group || !group.stase_task) {
+                return 'Stase Task';
+            }
+            return group.stase_task.name;
+        },
+        scoreModalIsFinalScore() {
+            if (this.scoreModalMode !== 'update') {
+                return false;
+            }
+            const score = this.scoreContext.score;
+            if (!score) {
+                return false;
+            }
+            return !this.scoreHasPoints(score);
+        },
     },
     created() {
         this.fetchStudent();
         this.fetchStaseLogs();
+        this.fetchLectures();
     },
     methods: {
+        getTodayDate() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
+        fetchLectures() {
+            this.lectureLoading = true;
+            return Repository.get('/api/lecture-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.lectureOptions = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.lectureOptions = [];
+                })
+                .finally(() => {
+                    this.lectureLoading = false;
+                });
+        },
         fetchStudent() {
             if (!this.studentId) {
                 return;
@@ -338,6 +506,103 @@ export default {
         },
         closePointModal() {
             this.pointModalOpen = false;
+        },
+        scoreHasPoints(score) {
+            const points = score && Array.isArray(score.stase_task_log_point) ? score.stase_task_log_point : [];
+            return points.length > 0;
+        },
+        openScoreModal(mode, group, score = null) {
+            this.scoreModalMode = mode;
+            this.scoreContext = { group, score };
+            this.scoreErrorMessage = '';
+
+            const baseForm = {
+                stase_task_log_id: score ? score.id : null,
+                stase_log_id: this.filters.stase_log_id,
+                stase_task_id: group ? group.stase_task_id : null,
+                student_id: Number(this.studentId),
+                lecture_id: score && score.lecture_id ? score.lecture_id : null,
+                date: score && score.date ? String(score.date).slice(0, 10) : this.getTodayDate(),
+                point_average: score && score.point_average ? score.point_average : null,
+            };
+
+            this.scoreForm = baseForm;
+            this.scoreModalOpen = true;
+        },
+        closeScoreModal() {
+            this.scoreModalOpen = false;
+        },
+        submitScore() {
+            if (this.scoreSubmitting) {
+                return;
+            }
+            this.scoreSubmitting = true;
+            this.scoreErrorMessage = '';
+
+            const isUpdate = this.scoreModalMode === 'update';
+            const url = isUpdate ? '/api/update-score' : '/api/add-score';
+            const payload = isUpdate
+                ? {
+                    stase_task_log_id: this.scoreForm.stase_task_log_id,
+                    lecture_id: this.scoreForm.lecture_id,
+                    date: this.scoreForm.date,
+                    point_average: this.scoreForm.point_average,
+                }
+                : {
+                    stase_log_id: this.scoreForm.stase_log_id,
+                    stase_task_id: this.scoreForm.stase_task_id,
+                    student_id: this.scoreForm.student_id,
+                    lecture_id: this.scoreForm.lecture_id,
+                    date: this.scoreForm.date,
+                    point_average: this.scoreForm.point_average,
+                };
+
+            return Repository.post(url, payload)
+                .then(() => {
+                    this.closeScoreModal();
+                    this.fetchScores();
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to save score.';
+                    this.scoreErrorMessage = message;
+                })
+                .finally(() => {
+                    this.scoreSubmitting = false;
+                });
+        },
+        deleteScore() {
+            if (this.scoreSubmitting) {
+                return;
+            }
+            const score = this.scoreContext.score;
+            if (!score || !score.id) {
+                return;
+            }
+            if (!window.confirm('Delete this final score?')) {
+                return;
+            }
+
+            this.scoreSubmitting = true;
+            this.scoreErrorMessage = '';
+
+            return Repository.post('/api/delete-score', {
+                stase_task_log_id: score.id,
+            })
+                .then(() => {
+                    this.closeScoreModal();
+                    this.fetchScores();
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to delete score.';
+                    this.scoreErrorMessage = message;
+                })
+                .finally(() => {
+                    this.scoreSubmitting = false;
+                });
         },
         openFileModal(group) {
             this.fileDetail = group || {};
