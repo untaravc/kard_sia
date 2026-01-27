@@ -108,28 +108,40 @@
                             <span v-if="student.year">• Year: {{ student.year }}</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="logAs(student)"
+                            @click.stop="toggleActionMenu(student.id)"
                         >
-                            Log As
+                            Actions
                         </button>
-                        <button
-                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            type="button"
-                            @click="openEdit(student)"
+                        <div
+                            v-if="actionMenuOpenId === student.id"
+                            class="absolute right-0 z-10 mt-2 w-36 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
-                            Edit
-                        </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteStudent(student)"
-                        >
-                            Delete
-                        </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('logAs', student)"
+                            >
+                                Log As
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('edit', student)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', student)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -257,12 +269,19 @@ export default {
             errorMessage: '',
             toast: null,
             yearOptions: [],
+            actionMenuOpenId: null,
         };
     },
     created() {
         this.initToast();
         this.yearOptions = this.buildYearOptions();
         this.fetchStudents();
+    },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
         buildYearOptions() {
@@ -319,6 +338,36 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        toggleActionMenu(studentId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === studentId ? null : studentId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleAction(action, student) {
+            this.closeActionMenu();
+            if (action === 'logAs') {
+                this.logAs(student);
+                return;
+            }
+            if (action === 'edit') {
+                this.openEdit(student);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteStudent(student);
+            }
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
         },
         applyFilter() {
             this.filters.page = 1;
