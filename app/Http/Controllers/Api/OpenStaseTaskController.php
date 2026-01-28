@@ -46,6 +46,21 @@ class OpenStaseTaskController extends Controller
                 $query->where('lecture_id', $authId)
                     ->orWhere('lecture_id', 0);
             })
+            ->when($request->keyword, function ($query, $keyword) {
+                $query->where(function ($inner) use ($keyword) {
+                    $inner->where('title', 'LIKE', '%' . $keyword . '%')
+                        ->orWhereHas('student', function ($q) use ($keyword) {
+                            $q->where('name', 'LIKE', '%' . $keyword . '%')
+                                ->orWhere('email', 'LIKE', '%' . $keyword . '%');
+                        })
+                        ->orWhereHas('staseTask', function ($q) use ($keyword) {
+                            $q->where('name', 'LIKE', '%' . $keyword . '%')
+                                ->orWhereHas('task', function ($taskQuery) use ($keyword) {
+                                    $taskQuery->where('name', 'LIKE', '%' . $keyword . '%');
+                                });
+                        });
+                });
+            })
             // ->whereDate('created_at', '>', date('Y-m-d', strtotime(date('Y-m-d') . ' -3 months')))
             ->orderByDesc('created_at')
             ->get();

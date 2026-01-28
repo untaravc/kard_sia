@@ -1,9 +1,18 @@
 <template>
     <div class="relative rounded-2xl border border-border bg-panel">
         <Loading :active="loading" :is-full-page="false" />
-        <div class="flex items-center justify-between border-b border-border px-5 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
             <div class="text-sm font-semibold text-ink">Penilaian</div>
-            <router-link to="/dosen/history" class="text-xs text-primary underline">Riwayat penilaian</router-link>
+            <div class="flex flex-1 flex-wrap items-center justify-end gap-3">
+                <input
+                    :value="filterValue"
+                    type="text"
+                    placeholder="Filter name..."
+                    class="w-full max-w-[220px] rounded-lg border border-border bg-white px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    @input="$emit('filter-change', $event.target.value)"
+                />
+                <router-link to="/cblu/scores" class="text-xs text-primary underline">Riwayat penilaian</router-link>
+            </div>
         </div>
         <div class="divide-y divide-border">
             <div
@@ -45,14 +54,14 @@
                     </div>
                     <router-link
                         v-if="showScoring(item) && !item.data"
-                        :to="`/dosen/task/scoring/${item.id}`"
+                        :to="`/cblu/task-scoring/${item.id}`"
                         class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Nilai
                     </router-link>
                     <router-link
                         v-if="showScoring(item) && item.data"
-                        :to="`/dosen/task/scoring/${item.id}`"
+                        :to="`/cblu/task-scoring/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui
@@ -60,32 +69,32 @@
 
                     <router-link
                         v-if="isTesis(item) && !item.data"
-                        :to="`/dosen/task/nilai-tesis/${item.id}`"
+                        :to="`/cblu/task-scoring-thesis/${item.id}`"
                         class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                        Nilai
+                        Nilai Thesis
                     </router-link>
                     <router-link
                         v-if="isTesis(item) && item.data"
-                        :to="`/dosen/task/nilai-tesis/${item.id}`"
+                        :to="`/cblu/task-scoring-thesis/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                        Perbarui
+                        Perbarui Nilai Thesis
                     </router-link>
 
                     <router-link
                         v-if="isProposal(item) && !item.data"
-                        :to="`/dosen/task/nilai-proposal/${item.id}`"
+                        :to="`/cblu/task-scoring-proposal/${item.id}`"
                         class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                        Nilai
+                        Nilai Proposal
                     </router-link>
                     <router-link
                         v-if="isProposal(item) && item.data"
-                        :to="`/dosen/task/nilai-proposal/${item.id}`"
+                        :to="`/cblu/task-scoring-proposal/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
-                        Perbarui
+                        Perbarui Nilai Proposal
                     </router-link>
                 </div>
             </div>
@@ -112,6 +121,10 @@ export default {
         loading: {
             type: Boolean,
             default: false,
+        },
+        filterValue: {
+            type: String,
+            default: '',
         },
     },
     methods: {

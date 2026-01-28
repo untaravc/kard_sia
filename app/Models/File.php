@@ -21,7 +21,7 @@ class File extends Model
         if (strpos($value, '/storage') === 0) {
             return $value;
         }
-        return '/storage/' . ltrim($value, '/');
+        return 'https://sia.kardiologi-fkkmk.com/storage/' . ltrim($value, '/');
     }
 
     public function student(){

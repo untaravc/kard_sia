@@ -9,6 +9,8 @@ import { PiniaVuePlugin, createPinia } from 'pinia';
 import VueRouter from 'vue-router'
 Vue.use(VueRouter);
 
+import './mask';
+
 import routes from './routes';
 
 Vue.use(VueCompositionApi);

@@ -22,9 +22,28 @@
             </div>
 
             <div class="flex min-w-0 flex-1 flex-col gap-6">
+                <div class="grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-2xl border border-border bg-white p-4">
+                        <div class="text-xs uppercase tracking-[0.2em] text-muted">Tunda</div>
+                        <div class="mt-2 text-2xl font-semibold text-ink">{{ scoreStats.pending }}</div>
+                        <div class="text-xs text-muted">belum dinilai</div>
+                    </div>
+                    <div class="rounded-2xl border border-border bg-white p-4">
+                        <div class="text-xs uppercase tracking-[0.2em] text-muted">Selesai</div>
+                        <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ scoreStats.done_this_month }}</div>
+                        <div class="text-xs text-muted">dinilai bulan ini</div>
+                    </div>
+                    <div class="rounded-2xl border border-border bg-white p-4">
+                        <div class="text-xs uppercase tracking-[0.2em] text-muted">Riwayat</div>
+                        <div class="mt-2 text-2xl font-semibold text-slate-700">{{ scoreStats.total }}</div>
+                        <div class="text-xs text-muted">riwayat seluruh penilaian</div>
+                    </div>
+                </div>
                 <ScoringCard
                     :items="dataContent"
                     :loading="loadingOpenTasks"
+                    :filter-value="scoreFilter"
+                    @filter-change="handleScoreFilterChange"
                     @open-file="openFileModal"
                 />
                 <div
@@ -119,6 +138,13 @@ export default {
             loadingOpenTasks: false,
             loadingOpenTasksAll: false,
             toast: null,
+            scoreFilter: '',
+            scoreFilterTimer: null,
+            scoreStats: {
+                pending: 0,
+                done_this_month: 0,
+                total: 0,
+            },
             dataRaw: {
                 image_url: '',
                 info_cards: {
@@ -155,6 +181,7 @@ export default {
         this.loadDataAll();
         this.loadSchedule();
         this.loadUser();
+        this.loadScoreStats();
     },
     methods: {
         initToast() {
@@ -177,6 +204,7 @@ export default {
             return Repository.get('/api/open-stase-tasks', {
                 params: {
                     page,
+                    keyword: this.scoreFilter,
                 },
             })
                 .then((response) => {
@@ -192,6 +220,15 @@ export default {
                 .finally(() => {
                     this.loadingOpenTasks = false;
                 });
+        },
+        handleScoreFilterChange(value) {
+            this.scoreFilter = value;
+            if (this.scoreFilterTimer) {
+                clearTimeout(this.scoreFilterTimer);
+            }
+            this.scoreFilterTimer = setTimeout(() => {
+                this.loadData(1);
+            }, 350);
         },
         loadDataAll() {
             this.loadingOpenTasksAll = true;
@@ -257,6 +294,24 @@ export default {
                 })
                 .finally(() => {
                     this.loadingProfile = false;
+                });
+        },
+        loadScoreStats() {
+            return Repository.get('/api/scoring-stat')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.scoreStats = {
+                        pending: result && result.pending ? result.pending : 0,
+                        done_this_month: result && result.done_this_month ? result.done_this_month : 0,
+                        total: result && result.total ? result.total : 0,
+                    };
+                })
+                .catch(() => {
+                    this.scoreStats = {
+                        pending: 0,
+                        done_this_month: 0,
+                        total: 0,
+                    };
                 });
         },
         openFileModal(file) {

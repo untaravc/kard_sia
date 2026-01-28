@@ -8,6 +8,64 @@ use Illuminate\Http\Request;
 
 class StaseTaskLogController extends Controller
 {
+    public function index(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+//        return $authType;
+        $dataContent = StaseTaskLog::with([
+            'student',
+            'lecture',
+            'staseTask' => function ($query) {
+                $query->with(['stase', 'task']);
+            },
+        ])->orderByDesc('created_at');
+
+        if ($authType === 'lecture') {
+            $dataContent = $dataContent->whereLectureId($authId);
+        } elseif ($authType === 'student') {
+            $dataContent = $dataContent->whereStudentId($authId);
+        }
+
+        if ($request->keyword != null) {
+            $keyword = $request->keyword;
+            $dataContent = $dataContent->where(function ($query) use ($keyword) {
+                $query->where('title', 'LIKE', '%' . $keyword . '%')
+                    ->orWhereHas('student', function ($q) use ($keyword) {
+                        $q->where('name', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('email', 'LIKE', '%' . $keyword . '%');
+                    })
+                    ->orWhereHas('lecture', function ($q) use ($keyword) {
+                        $q->where('name', 'LIKE', '%' . $keyword . '%')
+                            ->orWhere('email', 'LIKE', '%' . $keyword . '%');
+                    })
+                    ->orWhereHas('staseTask', function ($q) use ($keyword) {
+                        $q->where('name', 'LIKE', '%' . $keyword . '%')
+                            ->orWhereHas('task', function ($taskQuery) use ($keyword) {
+                                $taskQuery->where('name', 'LIKE', '%' . $keyword . '%');
+                            });
+                    });
+            });
+        }
+
+        $dataContent = $dataContent->paginate($request->per_page ?? 10);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Stase Task Logs Success',
+            'result' => $dataContent,
+        ]);
+    }
+
     public function updateScore(Request $request)
     {
         $this->validate($request, [

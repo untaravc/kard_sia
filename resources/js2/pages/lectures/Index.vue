@@ -86,28 +86,40 @@
                             <span v-if="lecture.name_alt">• {{ lecture.name_alt }}</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="logAs(lecture)"
+                            @click.stop="toggleActionMenu(lecture.id)"
                         >
-                            Log As
+                            Actions
                         </button>
-                        <button
-                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            type="button"
-                            @click="openEdit(lecture)"
+                        <div
+                            v-if="actionMenuOpenId === lecture.id"
+                            class="absolute right-0 z-10 mt-2 w-36 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
-                            Edit
-                        </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteLecture(lecture)"
-                        >
-                            Delete
-                        </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('logAs', lecture)"
+                            >
+                                Log As
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('edit', lecture)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', lecture)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -244,11 +256,18 @@ export default {
             submitting: false,
             errorMessage: '',
             toast: null,
+            actionMenuOpenId: null,
         };
     },
     created() {
         this.initToast();
         this.fetchLectures();
+    },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
         initToast() {
@@ -300,6 +319,36 @@ export default {
         changePage(page) {
             this.filters.page = page;
             this.fetchLectures();
+        },
+        toggleActionMenu(lectureId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === lectureId ? null : lectureId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleAction(action, lecture) {
+            this.closeActionMenu();
+            if (action === 'logAs') {
+                this.logAs(lecture);
+                return;
+            }
+            if (action === 'edit') {
+                this.openEdit(lecture);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteLecture(lecture);
+            }
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
         },
         openCreate() {
             this.editMode = false;

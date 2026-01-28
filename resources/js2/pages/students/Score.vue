@@ -5,10 +5,7 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Student Management</div>
                 <h1 class="text-2xl font-semibold text-ink">Student Score</h1>
             </div>
-            <router-link
-                class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
-                to="/cblu/students"
-            >
+            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/cblu/students">
                 Back
             </router-link>
         </header>
@@ -21,17 +18,20 @@
                         <div class="text-xs text-muted">{{ student.email || '-' }}</div>
                         <ul class="mt-3 list-disc space-y-1 pl-5 text-xs text-ink">
                             <li>
-                                <button class="underline hover:text-primary" type="button" @click="printScore('tahap_1')">
+                                <button class="underline hover:text-primary" type="button"
+                                    @click="printScore('tahap_1')">
                                     Nilai Stase Tahap 1
                                 </button>
                             </li>
                             <li>
-                                <button class="underline hover:text-primary" type="button" @click="printScore('tahap_2')">
+                                <button class="underline hover:text-primary" type="button"
+                                    @click="printScore('tahap_2')">
                                     Nilai Stase Tahap 2
                                 </button>
                             </li>
                             <li>
-                                <button class="underline hover:text-primary" type="button" @click="printScore('tahap_3')">
+                                <button class="underline hover:text-primary" type="button"
+                                    @click="printScore('tahap_3')">
                                     Nilai Stase Tahap 3
                                 </button>
                             </li>
@@ -54,14 +54,10 @@
                             No stase logs found.
                         </div>
                         <div v-else class="grid gap-1 p-2">
-                            <button
-                                v-for="staseLog in staseLogs"
-                                :key="staseLog.id"
-                                type="button"
+                            <button v-for="staseLog in staseLogs" :key="staseLog.id" type="button"
                                 class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm"
                                 :class="staseLog.id === filters.stase_log_id ? 'bg-primary/10 text-primary' : 'text-ink hover:bg-slate-50'"
-                                @click="selectStaseLog(staseLog.id)"
-                            >
+                                @click="selectStaseLog(staseLog.id)">
                                 <span>{{ staseLog.stase ? staseLog.stase.name : `Stase ${staseLog.id}` }}</span>
                                 <span class="text-[10px] uppercase tracking-[0.2em] text-muted">
                                     {{ staseLog.status || '-' }}
@@ -84,7 +80,8 @@
 
                         <Loading :active="loading" :is-full-page="false" />
 
-                        <div v-if="errorMessage" class="border-b border-rose-100 bg-rose-50 px-4 py-3 text-xs text-rose-600">
+                        <div v-if="errorMessage"
+                            class="border-b border-rose-100 bg-rose-50 px-4 py-3 text-xs text-rose-600">
                             {{ errorMessage }}
                         </div>
 
@@ -96,81 +93,68 @@
                             <div v-for="group in scoreGroups" :key="group.id" class="flex flex-col gap-3 px-4 py-4">
                                 <div class="flex w-full flex-wrap items-start gap-3">
                                     <div class="flex-1">
-                                    <div class="font-semibold text-ink">
-                                        {{ group.stase_task ? group.stase_task.name : 'Task' }}
-                                    </div>
-                                    <div class="text-xs text-muted">
-                                        {{ group.title || '-' }}
-                                    </div>
+                                        <div class="font-semibold text-ink">
+                                            {{ group.stase_task ? group.stase_task.name : 'Task' }}
+                                        </div>
+                                        <div class="text-xs text-muted">
+                                            {{ group.title || '-' }}
+                                        </div>
 
-                                    <div v-if="group.scores && group.scores.length" class="mt-2 grid gap-1 text-xs">
-                                        <div
-                                            v-for="score in group.scores"
-                                            :key="score.id"
-                                            class="flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1 text-slate-700"
-                                        >
-                                            <button
-                                                type="button"
-                                                class="flex min-w-0 flex-1 items-center justify-between text-left hover:text-primary"
-                                                @click="openPointModal(score)"
-                                            >
-                                                <span class="flex min-w-0 items-center gap-2">
+                                        <div v-if="group.scores && group.scores.length" class="mt-2 grid gap-1 text-xs">
+                                            <div v-for="score in group.scores" :key="score.id"
+                                                class="flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1 text-slate-700">
+                                                <button type="button"
+                                                    class="flex min-w-0 flex-1 items-center justify-between text-left hover:text-primary"
+                                                    @click="openPointModal(score)">
+                                                    <span class="flex min-w-0 items-center gap-2">
                                                     <span class="truncate">
-                                                        {{ score.lecture ? score.lecture.name : 'Lecture' }}
+                                                        {{ (score.lecture ? score.lecture.name : 'Lecture') | truncate(30) }}
                                                     </span>
-                                                    <span
-                                                        v-if="!scoreHasPoints(score)"
-                                                        class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700"
-                                                    >
-                                                        Final Score
+                                                        <span v-if="!scoreHasPoints(score)"
+                                                            class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-700">
+                                                            Final Score
+                                                        </span>
                                                     </span>
-                                                </span>
-                                                <span v-if="score.point_average > 0" class="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                                                    {{ score.point_average }}
-                                                </span>
-                                            </button>
-                                            <button
-                                                v-if="!score.lecture_id || !scoreHasPoints(score)"
-                                                type="button"
-                                                class="rounded-lg border border-border px-2 py-1 text-[11px] text-muted hover:bg-slate-100"
-                                                @click="openScoreModal('update', group, score)"
-                                            >
-                                                Update
-                                            </button>
+                                                    <span v-if="score.point_average > 0"
+                                                        class="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                                                        {{ score.point_average }}
+                                                    </span>
+                                                </button>
+                                                <button v-if="!score.lecture_id || !scoreHasPoints(score)" type="button"
+                                                    class="rounded-lg border border-border px-2 py-1 text-[11px] text-muted hover:bg-slate-100"
+                                                    @click="openScoreModal('update', group, score)">
+                                                    Update
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div v-else-if="group.status === 'pending'" class="mt-2 text-xs text-muted">
-                                        Belum ada data penilaian.
-                                    </div>
-
-                                    <div v-if="group.files && group.files.length" class="mt-3">
-                                        <div class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">
-                                            Files
+                                        <div v-else-if="group.status === 'pending'" class="mt-2 text-xs text-muted">
+                                            Belum ada data penilaian.
                                         </div>
-                                        <div class="mt-2 grid gap-1 text-xs">
-                                            <button
-                                                v-for="file in group.files"
-                                                :key="file.id || file.link"
-                                                type="button"
-                                                class="flex items-center justify-between rounded-lg border border-border bg-white px-2 py-1 text-ink hover:bg-slate-50"
-                                                @click="openFileModal(file)"
-                                            >
+
+                                        <div v-if="group.files && group.files.length" class="mt-3">
+                                            <div
+                                                class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">
+                                                Files
+                                            </div>
+                                            <div class="mt-2 grid gap-1 text-xs">
+                                                <button v-for="file in group.files" :key="file.id || file.link"
+                                                    type="button"
+                                                    class="flex items-center justify-between rounded-lg border border-border bg-white px-2 py-1 text-ink hover:bg-slate-50"
+                                                    @click="openFileModal(file)">
                                                 <span class="min-w-0 truncate">
-                                                    {{ getFileTitle(file) }}
+                                                    {{ getFileTitle(file) | truncate(30) }}
                                                 </span>
-                                                <span class="text-[10px] text-muted">View</span>
-                                            </button>
+                                                    <span class="text-[10px] text-muted">View</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
                                 <div class="flex items-center justify-end">
-                                    <button
-                                        type="button"
+                                    <button type="button"
                                         class="rounded-xl border border-border px-3 py-1.5 text-xs text-muted hover:bg-slate-50"
-                                        @click="openScoreModal('add', group)"
-                                    >
+                                        @click="openScoreModal('add', group)">
                                         Add Score
                                     </button>
                                 </div>
@@ -183,7 +167,8 @@
 
         <Modal :open="pointModalOpen" title="Poin Penilaian" eyebrow="Score Detail" size="md" @close="closePointModal">
             <div class="grid gap-3">
-                <div v-if="pointDetails.length === 0" class="rounded-xl border border-border bg-white px-3 py-4 text-sm text-muted">
+                <div v-if="pointDetails.length === 0"
+                    class="rounded-xl border border-border bg-white px-3 py-4 text-sm text-muted">
                     Tidak ada detail poin.
                 </div>
                 <div v-else class="overflow-hidden rounded-xl border border-border">
@@ -208,85 +193,63 @@
                 </div>
             </div>
             <template #footer>
-                <button class="rounded-xl border border-border px-4 py-2 text-sm text-muted" type="button" @click="closePointModal">
+                <button class="rounded-xl border border-border px-4 py-2 text-sm text-muted" type="button"
+                    @click="closePointModal">
                     Tutup
                 </button>
             </template>
         </Modal>
 
-        <Modal :open="fileModalOpen" title="Uploaded File" eyebrow="File Detail" size="md" @close="closeFileModal">
-            <div class="grid gap-3 text-center">
-                <div class="text-sm font-semibold text-ink">{{ fileTitle }}</div>
-                <div class="text-xs text-muted">{{ fileDescription }}</div>
-                <div v-if="fileLink" class="overflow-hidden rounded-xl border border-border bg-white">
-                    <img
-                        v-if="fileIsImage"
-                        :src="fileLink"
-                        :alt="fileTitle"
-                        class="h-auto w-full object-contain"
-                    />
-                    <iframe
-                        v-else-if="fileIsPdf"
-                        :src="fileLink"
-                        class="h-80 w-full"
-                        title="File preview"
-                    ></iframe>
-                    <div v-else class="px-3 py-6 text-xs text-muted">
-                        Preview not available.
+        <Modal :open="fileModalOpen" title="Uploaded File" eyebrow="File Detail" size="xl" @close="closeFileModal">
+            <div class="max-h-[70vh] overflow-y-auto">
+                <div class="grid gap-3 text-center">
+                    <div class="text-sm font-semibold text-ink">{{ fileTitle }}</div>
+                    <div class="text-xs text-muted">{{ fileDescription }}</div>
+                    <div v-if="fileLink" class="overflow-hidden rounded-xl border border-border bg-white">
+                        <img v-if="fileIsImage" :src="fileLink" :alt="fileTitle" class="h-auto w-full object-contain" />
+                        <iframe v-else-if="fileIsPdf" :src="fileLink" class="h-[28rem] w-full"
+                            title="File preview"></iframe>
+                        <div v-else class="px-3 py-6 text-xs text-muted">
+                            Preview not available.
+                        </div>
                     </div>
                 </div>
-                <div class="pt-2">
-                    <a
-                        v-if="fileLink"
-                        class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                        :href="fileLink"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download
-                    >
-                        Download
-                    </a>
-                    <button
-                        v-else
-                        class="inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm text-muted"
-                        type="button"
-                        disabled
-                    >
-                        No file
-                    </button>
-                </div>
+            </div>
+            <div class="pt-2 text-center">
+                <a v-if="fileLink"
+                    class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    :href="fileLink" target="_blank" rel="noopener noreferrer" download>
+                    Download
+                </a>
+                <button v-else
+                    class="inline-flex items-center rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button" disabled>
+                    No file
+                </button>
             </div>
             <template #footer>
-                <button class="rounded-xl border border-border px-4 py-2 text-sm text-muted" type="button" @click="closeFileModal">
+                <button class="rounded-xl border border-border px-4 py-2 text-sm text-muted" type="button"
+                    @click="closeFileModal">
                     Close
                 </button>
             </template>
         </Modal>
 
-        <Modal
-            :open="scoreModalOpen"
-            :title="scoreModalMode === 'add' ? 'Add Score' : 'Update Score'"
-            eyebrow="Score Form"
-            size="md"
-            @close="closeScoreModal"
-        >
+        <Modal :open="scoreModalOpen" :title="scoreModalMode === 'add' ? 'Add Score' : 'Update Score'"
+            eyebrow="Score Form" size="md" @close="closeScoreModal">
             <form class="grid gap-3" @submit.prevent="submitScore">
                 <div class="text-xs text-muted">
                     {{ scoreModalStaseTaskName }}
                 </div>
-                <div
-                    v-if="scoreModalIsFinalScore"
-                    class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700"
-                >
+                <div v-if="scoreModalIsFinalScore"
+                    class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700">
                     Final Score
                 </div>
                 <label class="grid gap-1 text-sm">
                     <span class="text-muted">Lecture</span>
-                    <select
-                        v-model.number="scoreForm.lecture_id"
+                    <select v-model.number="scoreForm.lecture_id"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        required
-                    >
+                        required>
                         <option :value="null">Select lecture</option>
                         <option v-for="lecture in lectureOptions" :key="lecture.id" :value="lecture.id">
                             {{ lecture.name }}
@@ -295,52 +258,34 @@
                 </label>
                 <label class="grid gap-1 text-sm">
                     <span class="text-muted">Date</span>
-                    <input
-                        v-model="scoreForm.date"
-                        type="date"
+                    <input v-model="scoreForm.date" type="date"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        required
-                    />
+                        required />
                 </label>
                 <label class="grid gap-1 text-sm">
                     <span class="text-muted">Point Average</span>
-                    <input
-                        v-model.number="scoreForm.point_average"
-                        type="number"
-                        step="0.01"
-                        min="0"
+                    <input v-model.number="scoreForm.point_average" type="number" step="0.01" min="0"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        required
-                    />
+                        required />
                 </label>
 
-                <div v-if="scoreErrorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                <div v-if="scoreErrorMessage"
+                    class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ scoreErrorMessage }}
                 </div>
             </form>
             <template #footer>
-                <button
-                    v-if="scoreModalMode === 'update' && scoreModalIsFinalScore"
-                    class="rounded-xl bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-600"
-                    type="button"
-                    :disabled="scoreSubmitting"
-                    @click="deleteScore"
-                >
+                <button v-if="scoreModalMode === 'update' && scoreModalIsFinalScore"
+                    class="rounded-xl bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-600" type="button"
+                    :disabled="scoreSubmitting" @click="deleteScore">
                     Delete
                 </button>
-                <button
-                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
-                    type="button"
-                    @click="closeScoreModal"
-                >
+                <button class="rounded-xl border border-border px-4 py-2 text-sm text-muted" type="button"
+                    @click="closeScoreModal">
                     Cancel
                 </button>
-                <button
-                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                    type="button"
-                    :disabled="scoreSubmitting"
-                    @click="submitScore"
-                >
+                <button class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white" type="button"
+                    :disabled="scoreSubmitting" @click="submitScore">
                     {{ scoreSubmitting ? 'Saving...' : scoreModalMode === 'add' ? 'Add Score' : 'Update Score' }}
                 </button>
             </template>

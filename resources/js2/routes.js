@@ -55,6 +55,7 @@ const routes = [
             { path: 'tasks', component: require('./pages/tasks/Index.vue').default },
             { path: 'stase-tasks/:stase_id', component: require('./pages/stases/Task.vue').default },
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default },
+            { path: 'scores', component: require('./pages/scores/Index.vue').default },
             { path: 'students', component: require('./pages/students/Index.vue').default },
             { path: 'students/:student_id/score', component: require('./pages/students/Score.vue').default },
             { path: 'activities', component: require('./pages/activities/Index.vue').default },
@@ -64,6 +65,9 @@ const routes = [
             { path: 'presences/daily', component: require('./pages/presences/Daily.vue').default },
             { path: 'presences/monthly', component: require('./pages/presences/Monthly.vue').default },
             { path: 'presences/student/:student_id', component: require('./pages/presences/Student.vue').default },
+            { path: 'task-scoring/:open_stase_task_id', component: require('./pages/scores/TaskScore.vue').default },
+            { path: 'task-scoring-thesis/:open_stase_task_id', component: require('./pages/scores/TaskScoreThesis.vue').default },
+            { path: 'task-scoring-proposal/:open_stase_task_id', component: require('./pages/scores/TaskScoreProposal.vue').default },
         ],
     },
 ];
