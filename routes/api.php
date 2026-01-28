@@ -43,6 +43,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('student-score/{student_id}', [\App\Http\Controllers\Api\StudentController::class, 'score']);
     Route::post('update-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'updateScore']);
     Route::post('add-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'createScore']);
+    Route::post('lecture-add-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'lectureAddScore']);
     Route::post('delete-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'deleteScore']);
     Route::get('stase-task-logs', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'index']);
     Route::post('logbooks/bulk', [\App\Http\Controllers\Api\LogbookController::class, 'bulk']);

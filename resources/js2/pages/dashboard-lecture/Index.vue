@@ -45,6 +45,7 @@
                     :filter-value="scoreFilter"
                     @filter-change="handleScoreFilterChange"
                     @open-file="openFileModal"
+                    @open-direct-score="openDirectScoreModal"
                 />
                 <div
                     v-if="dataContentPagination && dataContentPagination.total"
@@ -85,6 +86,56 @@
             :file="detailFile"
             @close="detailModalOpen = false"
         />
+        <Modal
+            :open="directScoreModalOpen"
+            title="Nilai Langsung"
+            eyebrow="Score Form"
+            size="md"
+            @close="closeDirectScoreModal"
+        >
+            <div class="grid gap-4">
+                <div class="rounded-xl border border-border bg-white px-4 py-3 text-sm">
+                    <div class="font-semibold text-ink">
+                        {{ directScoreDetail ? (directScoreDetail.student ? directScoreDetail.student.name : 'Student') : '-' }}
+                    </div>
+                    <div class="text-xs text-muted">
+                        {{ directScoreDetail && directScoreDetail.stase_task ? directScoreDetail.stase_task.name : '-' }}
+                        <span v-if="directScoreDetail && directScoreDetail.title">• {{ directScoreDetail.title }}</span>
+                    </div>
+                </div>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Point Average</span>
+                    <input
+                        v-model.number="directScoreForm.point_average"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        required
+                    />
+                </label>
+                <div v-if="directScoreError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ directScoreError }}
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closeDirectScoreModal"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="directScoreSubmitting"
+                    @click="submitDirectScore"
+                >
+                    {{ directScoreSubmitting ? 'Saving...' : 'Submit' }}
+                </button>
+            </template>
+        </Modal>
         <ProfileModal
             :open="profileModalOpen"
             :form="user"
@@ -110,6 +161,7 @@ import ScoringCard from './ScoringCard.vue';
 import ExamScoringCard from './ExamScoringCard.vue';
 import FileDetailModal from './FileDetailModal.vue';
 import ProfileModal from './ProfileModal.vue';
+import Modal from '../../components/Modal.vue';
 
 export default {
     components: {
@@ -120,6 +172,7 @@ export default {
         ExamScoringCard,
         FileDetailModal,
         ProfileModal,
+        Modal,
     },
     data() {
         return {
@@ -130,6 +183,17 @@ export default {
             detailFile: {},
             detailModalOpen: false,
             profileModalOpen: false,
+            directScoreModalOpen: false,
+            directScoreSubmitting: false,
+            directScoreError: '',
+            directScoreDetail: null,
+            directScoreForm: {
+                point_average: '',
+                stase_task_id: null,
+                student_id: null,
+                stase_id: null,
+                task_id: null,
+            },
             updatingProfile: false,
             uploadingImage: false,
             firebaseConfigStore: null,
@@ -312,6 +376,48 @@ export default {
                         done_this_month: 0,
                         total: 0,
                     };
+                });
+        },
+        openDirectScoreModal(item) {
+            this.directScoreDetail = item || null;
+            this.directScoreForm = {
+                point_average: item && item.data ? item.data.point_average : '',
+                stase_task_id: item ? item.stase_task_id : null,
+                student_id: item ? item.student_id : null,
+                stase_id: item && item.stase_task && item.stase_task.stase ? item.stase_task.stase.id : null,
+                task_id: item && item.stase_task && item.stase_task.task ? item.stase_task.task.id : null,
+            };
+            this.directScoreError = '';
+            this.directScoreModalOpen = true;
+        },
+        closeDirectScoreModal() {
+            this.directScoreModalOpen = false;
+        },
+        submitDirectScore() {
+            if (this.directScoreSubmitting) {
+                return;
+            }
+            if (!this.directScoreForm.stase_task_id || !this.directScoreForm.student_id || !this.directScoreForm.stase_id || !this.directScoreForm.task_id) {
+                this.directScoreError = 'Detail score is incomplete.';
+                return;
+            }
+            this.directScoreSubmitting = true;
+            this.directScoreError = '';
+
+            return Repository.post('/api/lecture-add-score', this.directScoreForm)
+                .then(() => {
+                    this.closeDirectScoreModal();
+                    this.loadData();
+                    this.loadScoreStats();
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to save score.';
+                    this.directScoreError = message;
+                })
+                .finally(() => {
+                    this.directScoreSubmitting = false;
                 });
         },
         openFileModal(file) {

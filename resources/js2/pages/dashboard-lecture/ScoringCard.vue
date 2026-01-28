@@ -59,13 +59,29 @@
                     >
                         Nilai
                     </router-link>
+                    <button
+                        v-if="showScoring(item) && !item.data"
+                        type="button"
+                        class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
+                        @click="$emit('open-direct-score', item)"
+                    >
+                        Nilai Langsung
+                    </button>
                     <router-link
-                        v-if="showScoring(item) && item.data"
+                        v-if="showScoring(item) && item.data && !item.data.admin"
                         :to="`/cblu/task-scoring/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui
                     </router-link>
+                    <button
+                        v-if="showScoring(item) && item.data && item.data.admin"
+                        type="button"
+                        class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
+                        @click="$emit('open-direct-score', item)"
+                    >
+                        Perbarui Langsung
+                    </button>
 
                     <router-link
                         v-if="isTesis(item) && !item.data"

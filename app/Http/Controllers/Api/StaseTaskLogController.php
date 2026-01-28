@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\StaseLog;
 use App\Models\StaseTaskLog;
+use App\Models\StaseTask;
 use Illuminate\Http\Request;
 
 class StaseTaskLogController extends Controller
@@ -125,6 +127,72 @@ class StaseTaskLogController extends Controller
             'success' => true,
             'text' => 'Create Score Success',
             'result' => $log,
+        ]);
+    }
+
+    public function lectureAddScore(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'lecture') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'stase_task_id' => 'required|integer',
+            'student_id' => 'required|integer',
+            'point_average' => 'required|numeric',
+            'stase_id' => 'required|integer',
+            'task_id' => 'required|integer',
+        ]);
+
+        $staseLog = StaseLog::whereStudentId($request->student_id)
+            ->whereStaseId($request->stase_id)
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$staseLog) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Stase log not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $log = StaseTaskLog::firstOrNew([
+            'stase_log_id' => $staseLog->id,
+            'stase_task_id' => $request->stase_task_id,
+            'student_id' => $request->student_id,
+            'lecture_id' => $authId,
+        ]);
+
+        $log->fill([
+            'point_average' => $request->point_average,
+            'date' => date('Y-m-d H:i:s'),
+            'admin' => true,
+            'status' => 'publish',
+            'stase_id' => $request->stase_id,
+            'task_id' => $request->task_id,
+        ]);
+        $log->save();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Score Success',
+            'result' => $log->fresh(),
         ]);
     }
 
