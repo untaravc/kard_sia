@@ -369,7 +369,7 @@ class AuthController extends Controller
             'user' => [
                 ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard"],
                 [
-                    'label' => 'Dosen',
+                    'label' => 'Lectures',
                     'icon' => 'dosen',
                     'children' => [
                         ['label' => 'Data', 'to' => "{$basePath}/lectures"],
@@ -377,13 +377,13 @@ class AuthController extends Controller
                     ],
                 ],
                 [
-                    'label' => 'Residen',
+                    'label' => 'Students',
                     'icon' => 'resident',
                     'children' => [
                         ['label' => 'Data', 'to' => "{$basePath}/students"],
-                        ['label' => 'Presensi', 'to' => "{$basePath}/presences"],
-                        ['label' => 'Presensi Harian', 'to' => "{$basePath}/presences/daily"],
-                        ['label' => 'Presensi Bulanan', 'to' => "{$basePath}/presences/monthly"],
+                        ['label' => 'Presences', 'to' => "{$basePath}/presences"],
+                        ['label' => 'Presences Daily', 'to' => "{$basePath}/presences/daily"],
+                        ['label' => 'Presences Monthly', 'to' => "{$basePath}/presences/monthly"],
                         // [ 'label' => 'Stase Residen', 'to' => "{$basePath}/stase-plots" ],
                         // [ 'label' => 'Ujian', 'to' => "{$basePath}/exams" ],
                         // [ 'label' => 'Dokumen', 'to' => "{$basePath}/letters" ],
@@ -404,12 +404,12 @@ class AuthController extends Controller
                 //     ],
                 // ],
                 // [ 'label' => 'Ujian Terbuka', 'icon' => 'open-exam', 'to' => "{$basePath}/open-exam" ],
-                [ 'label' => 'Agenda', 'icon' => 'agenda', 'to' => "{$basePath}/activities" ],
+                [ 'label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities" ],
                 [
                     'label' => 'Data Master',
                     'icon' => 'data-master',
                     'children' => [
-                        ['label' => 'Surat', 'to' => "{$basePath}/letter-records"],
+                        // ['label' => 'Surat', 'to' => "{$basePath}/letter-records"],
                         ['label' => 'Stase', 'to' => "{$basePath}/stases"],
                         ['label' => 'Task', 'to' => "{$basePath}/tasks"],
                         ['label' => 'Admin', 'to' => "{$basePath}/users"],

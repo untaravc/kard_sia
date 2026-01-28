@@ -11,6 +11,19 @@ class File extends Model
     use SoftDeletes;
     protected $guarded = [];
 
+    public function getLinkAttribute($value) {
+        if (!$value) {
+            return $value;
+        }
+        if (preg_match('/^https?:\/\//i', $value)) {
+            return $value;
+        }
+        if (strpos($value, '/storage') === 0) {
+            return $value;
+        }
+        return '/storage/' . ltrim($value, '/');
+    }
+
     public function student(){
         return $this->belongsTo(Student::class);
     }

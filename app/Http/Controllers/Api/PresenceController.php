@@ -32,7 +32,7 @@ class PresenceController extends Controller
         $students = Student::with('last_presence')->whereStatus('active')->get();
 
         $data['no_presence'] = $students->where('status', 'active')
-            ->whereNotIn('id', $presences->pluck('student_id'));
+            ->whereNotIn('id', $presences->pluck('student_id'))->flatten();
         $data['no_presence_count'] = count($data['no_presence']);
 
         $presentStudents = $students->whereIn('id', $presences->pluck('student_id'));

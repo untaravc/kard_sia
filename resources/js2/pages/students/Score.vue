@@ -93,8 +93,9 @@
                         </div>
 
                         <div v-else class="divide-y divide-border">
-                            <div v-for="group in scoreGroups" :key="group.id" class="flex flex-wrap items-start gap-3 px-4 py-4">
-                                <div class="flex-1">
+                            <div v-for="group in scoreGroups" :key="group.id" class="flex flex-col gap-3 px-4 py-4">
+                                <div class="flex w-full flex-wrap items-start gap-3">
+                                    <div class="flex-1">
                                     <div class="font-semibold text-ink">
                                         {{ group.stase_task ? group.stase_task.name : 'Task' }}
                                     </div>
@@ -142,23 +143,35 @@
                                     <div v-else-if="group.status === 'pending'" class="mt-2 text-xs text-muted">
                                         Belum ada data penilaian.
                                     </div>
-                                </div>
 
-                                <div class="flex items-center gap-2">
+                                    <div v-if="group.files && group.files.length" class="mt-3">
+                                        <div class="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">
+                                            Files
+                                        </div>
+                                        <div class="mt-2 grid gap-1 text-xs">
+                                            <button
+                                                v-for="file in group.files"
+                                                :key="file.id || file.link"
+                                                type="button"
+                                                class="flex items-center justify-between rounded-lg border border-border bg-white px-2 py-1 text-ink hover:bg-slate-50"
+                                                @click="openFileModal(file)"
+                                            >
+                                                <span class="min-w-0 truncate">
+                                                    {{ getFileTitle(file) }}
+                                                </span>
+                                                <span class="text-[10px] text-muted">View</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                                <div class="flex items-center justify-end">
                                     <button
                                         type="button"
                                         class="rounded-xl border border-border px-3 py-1.5 text-xs text-muted hover:bg-slate-50"
                                         @click="openScoreModal('add', group)"
                                     >
                                         Add Score
-                                    </button>
-                                    <button
-                                        v-if="group.files && group.files[0]"
-                                        type="button"
-                                        class="rounded-xl border border-border px-3 py-1.5 text-xs text-muted"
-                                        @click="openFileModal(group)"
-                                    >
-                                        File
                                     </button>
                                 </div>
                             </div>
@@ -203,15 +216,33 @@
 
         <Modal :open="fileModalOpen" title="Uploaded File" eyebrow="File Detail" size="md" @close="closeFileModal">
             <div class="grid gap-3 text-center">
-                <div class="text-sm font-semibold text-ink">{{ fileDetail.title || '-' }}</div>
-                <div class="text-xs text-muted">{{ fileDetail.title || '-' }}</div>
+                <div class="text-sm font-semibold text-ink">{{ fileTitle }}</div>
+                <div class="text-xs text-muted">{{ fileDescription }}</div>
+                <div v-if="fileLink" class="overflow-hidden rounded-xl border border-border bg-white">
+                    <img
+                        v-if="fileIsImage"
+                        :src="fileLink"
+                        :alt="fileTitle"
+                        class="h-auto w-full object-contain"
+                    />
+                    <iframe
+                        v-else-if="fileIsPdf"
+                        :src="fileLink"
+                        class="h-80 w-full"
+                        title="File preview"
+                    ></iframe>
+                    <div v-else class="px-3 py-6 text-xs text-muted">
+                        Preview not available.
+                    </div>
+                </div>
                 <div class="pt-2">
                     <a
-                        v-if="fileDetail.link"
+                        v-if="fileLink"
                         class="inline-flex items-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                        :href="fileDetail.link"
+                        :href="fileLink"
                         target="_blank"
                         rel="noopener noreferrer"
+                        download
                     >
                         Download
                     </a>
@@ -389,6 +420,24 @@ export default {
                 return false;
             }
             return !this.scoreHasPoints(score);
+        },
+        fileTitle() {
+            return this.getFileTitle(this.fileDetail);
+        },
+        fileDescription() {
+            if (this.fileDetail && this.fileDetail.desc) {
+                return this.fileDetail.desc;
+            }
+            return this.fileTitle;
+        },
+        fileLink() {
+            return this.fileDetail && this.fileDetail.link ? this.fileDetail.link : '';
+        },
+        fileIsImage() {
+            return this.isImageFile(this.fileLink);
+        },
+        fileIsPdf() {
+            return this.isPdfFile(this.fileLink);
         },
     },
     created() {
@@ -604,12 +653,37 @@ export default {
                     this.scoreSubmitting = false;
                 });
         },
-        openFileModal(group) {
-            this.fileDetail = group || {};
+        openFileModal(file) {
+            this.fileDetail = file || {};
             this.fileModalOpen = true;
         },
         closeFileModal() {
             this.fileModalOpen = false;
+        },
+        getFileTitle(file) {
+            if (file && file.title) {
+                return file.title;
+            }
+            if (file && file.link) {
+                const clean = String(file.link).split('?')[0].split('#')[0];
+                const lastPart = clean.split('/').pop();
+                return lastPart || 'Lampiran';
+            }
+            return 'Lampiran';
+        },
+        isImageFile(link) {
+            if (!link) {
+                return false;
+            }
+            const clean = String(link).split('?')[0].split('#')[0].toLowerCase();
+            return /\.(png|jpe?g|gif|webp|bmp|svg)$/.test(clean);
+        },
+        isPdfFile(link) {
+            if (!link) {
+                return false;
+            }
+            const clean = String(link).split('?')[0].split('#')[0].toLowerCase();
+            return clean.endsWith('.pdf');
         },
         printScore(stage) {
             if (!this.studentId) {
