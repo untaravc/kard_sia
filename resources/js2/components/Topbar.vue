@@ -1,6 +1,7 @@
 <template>
     <header class="flex items-center justify-between border-b border-border bg-panel px-9 py-3">
         <button
+            v-if="showToggle"
             class="grid h-9 w-9 place-items-center rounded-xl border border-border text-ink transition hover:bg-surface/70"
             type="button"
             @click="$emit('toggle-sidebar')"
@@ -41,6 +42,10 @@ export default {
         collapsed: {
             type: Boolean,
             default: false,
+        },
+        showToggle: {
+            type: Boolean,
+            default: true,
         },
     },
     data() {

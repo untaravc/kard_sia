@@ -1,28 +1,36 @@
 <template>
     <div class="min-h-screen bg-surface text-ink font-sans flex flex-col lg:flex-row">
-        <Sidebar :base-path="basePath" :collapsed="collapsed" :is-mobile="isMobile" />
+        <Sidebar v-if="!isStudent" :base-path="basePath" :collapsed="collapsed" :is-mobile="isMobile" />
         <div class="flex flex-1 flex-col">
             <Topbar
                 :title="title"
                 :subtitle="subtitle"
                 :collapsed="collapsed"
+                :show-toggle="!isStudent"
                 @toggle-sidebar="toggleSidebar"
             />
-            <main class="flex flex-col gap-7 px-9 pt-7 pb-10">
+            <main
+                class="flex flex-col gap-7"
+                :class="isStudent ? 'px-5 pt-5 pb-24' : 'px-9 pt-7 pb-10'"
+            >
                 <router-view />
             </main>
         </div>
+        <BottomNav v-if="isStudent" :base-path="basePath" />
     </div>
 </template>
 
 <script>
 import Sidebar from '../components/Sidebar.vue';
 import Topbar from '../components/Topbar.vue';
+import BottomNav from '../components/BottomNav.vue';
+import Repository from '../repository';
 
 export default {
     components: {
         Sidebar,
         Topbar,
+        BottomNav,
     },
     data() {
         return {
@@ -31,14 +39,21 @@ export default {
             subtitle: 'Overview for this week',
             collapsed: false,
             isMobile: false,
+            authType: '',
         };
     },
     mounted() {
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
+        this.fetchAuthType();
     },
     beforeDestroy() {
         window.removeEventListener('resize', this.handleResize);
+    },
+    computed: {
+        isStudent() {
+            return this.authType === 'student';
+        },
     },
     methods: {
         handleResize() {
@@ -53,6 +68,17 @@ export default {
         },
         toggleSidebar() {
             this.collapsed = !this.collapsed;
+        },
+        fetchAuthType() {
+            return Repository.get('/api/auth')
+                .then((response) => {
+                    const payload = response && response.data ? response.data.result : null;
+                    const authType = payload ? payload.log_as_auth_type || payload.auth_type : '';
+                    this.authType = authType || '';
+                })
+                .catch(() => {
+                    this.authType = '';
+                });
         },
     },
 };
