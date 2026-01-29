@@ -387,7 +387,7 @@ class AuthController extends Controller
                         // [ 'label' => 'Stase Residen', 'to' => "{$basePath}/stase-plots" ],
                         // [ 'label' => 'Ujian', 'to' => "{$basePath}/exams" ],
                         // [ 'label' => 'Dokumen', 'to' => "{$basePath}/letters" ],
-                        // [ 'label' => 'Log Book', 'to' => "{$basePath}/student-logs" ],
+                        [ 'label' => 'Log Book', 'to' => "{$basePath}/logbooks" ],
                         // [ 'label' => 'Download', 'to' => "{$basePath}/download" ],
                         // [ 'label' => 'Calon PPDS', 'to' => "{$basePath}/student-regs" ],
                         // [ 'label' => 'Pengabdian Masyarakat', 'to' => "{$basePath}/document-review" ],
@@ -420,7 +420,7 @@ class AuthController extends Controller
                 ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-student"],
                 ['label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities"],
                 ['label' => 'Presences', 'icon' => 'resident', 'to' => "{$basePath}/presences"],
-                ['label' => 'Daily', 'icon' => 'agenda', 'to' => "{$basePath}/presences/daily"],
+                ['label' => 'Logbooks', 'icon' => 'agenda', 'to' => "{$basePath}/logbooks"],
                 ['label' => 'Monthly', 'icon' => 'agenda', 'to' => "{$basePath}/presences/monthly"],
             ],
             'lecture' => [

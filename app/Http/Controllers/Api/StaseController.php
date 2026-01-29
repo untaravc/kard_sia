@@ -114,7 +114,9 @@ class StaseController extends Controller
 
         $staseLogs = StaseLog::with('stase')
             ->whereStudentId($studentId)
-            ->orderByDesc('created_at')
+            ->leftJoin('stases', 'stases.id', '=', 'stase_logs.stase_id')
+            ->orderBy('stases.name')
+            ->select('stase_logs.*')
             ->get();
 
         return response()->json([

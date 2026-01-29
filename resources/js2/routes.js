@@ -49,7 +49,7 @@ const routes = [
             { path: 'dashboard-student', component: require('./pages/dashboard-student/Index.vue').default },
             { path: 'dashboard-lecture', component: require('./pages/dashboard-lecture/Index.vue').default },
             { path: 'users', component: require('./pages/users/Index.vue').default },
-            { path: 'logbooks', component: require('./pages/logbooks/Submit.vue').default },
+            { path: 'logbooks', component: require('./pages/logbooks/Index.vue').default },
             { path: 'logbooks/bulk', component: require('./pages/logbooks/AddBulk.vue').default },
             { path: 'stases', component: require('./pages/stases/Index.vue').default },
             { path: 'tasks', component: require('./pages/tasks/Index.vue').default },

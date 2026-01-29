@@ -25,6 +25,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('users', 'Api\UserController');
     Route::resource('stases', 'Api\StaseController');
     Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
+    Route::get('stase-option/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'staseOption']);
     Route::resource('stase-tasks', 'Api\StaseTaskController');
     Route::resource('tasks', 'Api\TaskController');
     Route::resource('lectures', 'Api\LectureController');

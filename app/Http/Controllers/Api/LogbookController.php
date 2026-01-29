@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormOption;
 use App\Models\StudentLog;
+use App\Models\StudentLogSkill;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LogbookController extends Controller
 {
@@ -107,7 +110,40 @@ class LogbookController extends Controller
             ], 404);
         }
 
-        $logbook->update($request->all());
+        $logbook->update([
+            'student_id' => $request->student_id,
+            'stase_id' => $request->stase_id,
+            'type' => $request->type,
+            'category' => $request->category,
+            'lecture_id' => $request->lecture_id,
+            'date' => $request->date,
+            'status' => 0,
+            'field_1' => $request->field_1,
+            'field_2' => $request->field_2,
+            'field_3' => $request->field_3,
+            'field_4' => $request->field_4,
+            'field_5' => $request->field_5,
+            'field_6' => $request->field_6,
+        ]);
+
+        if ($request->skills) {
+            $skills = [];
+            foreach ($request->skills as $key => $value) {
+                if ($value) {
+                    $skills[] = $key;
+                }
+            }
+
+            StudentLogSkill::whereStudentLogId($id)->delete();
+            foreach ($skills as $skill) {
+                StudentLogSkill::create([
+                    'student_id' => $logbook->student_id,
+                    'stase_id' => $logbook->stase_id,
+                    'student_log_id' => $logbook->id,
+                    'form_option_id' => $skill,
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -128,10 +164,42 @@ class LogbookController extends Controller
             ], 404);
         }
 
+        $staseId = request()->query('stase_id') ?? $logbook->stase_id;
+        $types = collect();
+        $skills = collect();
+        $skillCount = collect();
+
+        if ($staseId) {
+            $options = FormOption::whereStatus(1)
+                ->whereRelationId($staseId)
+                ->get();
+            $types = $options->where('type', 'stase-logbook')->flatten();
+            $skills = $options->where('type', 'logbook-skill')->flatten();
+
+            $studentId = $this->resolveStudentId(request());
+            $skillCount = StudentLogSkill::whereStudentId($studentId)
+                ->select(DB::raw('count(*) as count, form_option_id'))
+                ->groupBy('form_option_id')
+                ->whereIn('form_option_id', $skills->pluck('id')->toArray())
+                ->get();
+
+            foreach ($skills as $skill) {
+                $selected = $skillCount->where('form_option_id', $skill->id)->first();
+                $skill->setAttribute('count', $selected ? $selected['count'] : 0);
+            }
+        }
+
         return response()->json([
             'success' => true,
             'text' => 'Retrieve Logbook Success',
-            'result' => $logbook,
+            'result' => [
+                'logbook' => $logbook,
+                'options' => [
+                    'types' => $types,
+                    'skills' => $skills,
+                    'skill_count' => $skillCount,
+                ],
+            ],
         ]);
     }
 
@@ -186,6 +254,38 @@ class LogbookController extends Controller
         }
 
         return $dataContent;
+    }
+
+    public function staseOption(Request $request, $stase_id)
+    {
+        $options = FormOption::whereStatus(1)
+            ->whereRelationId($stase_id)
+            ->get();
+        $types = $options->where('type', 'stase-logbook')->flatten();
+        $skills = $options->where('type', 'logbook-skill')->flatten();
+
+        $studentId = $this->resolveStudentId($request);
+
+        $skillCount = StudentLogSkill::whereStudentId($studentId)
+            ->select(DB::raw('count(*) as count, form_option_id'))
+            ->groupBy('form_option_id')
+            ->whereIn('form_option_id', $skills->pluck('id')->toArray())
+            ->get();
+
+        foreach ($skills as $skill) {
+            $selected = $skillCount->where('form_option_id', $skill->id)->first();
+            $skill->setAttribute('count', $selected ? $selected['count'] : 0);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Stase Options Success',
+            'result' => [
+                'types' => $types,
+                'skills' => $skills,
+                'skill_count' => $skillCount,
+            ],
+        ]);
     }
 
     private function resolveStudentId(Request $request)
