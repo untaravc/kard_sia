@@ -1,6 +1,6 @@
 <template>
     <div class="hidden rounded-2xl border border-border bg-panel p-4 shadow-sm lg:block">
-        <div class="text-sm font-semibold text-ink">Stase Terambil</div>
+        <div class="text-sm font-semibold text-ink">Taken Rotations</div>
         <div class="mt-3 grid gap-3">
             <div class="rounded-xl border border-border/60 bg-white px-3 py-2" v-for="item in stases" :key="item.id">
                 <div class="flex items-center justify-between gap-2">
@@ -17,7 +17,7 @@
                 </div>
                 <div class="mt-1 text-xs text-muted" v-if="item.evaluation_link">
                     <i class="fa fa-check-circle text-emerald-500" v-if="item.evaluated"></i>
-                    Form Evaluasi
+                    Evaluation Form
                 </div>
             </div>
         </div>

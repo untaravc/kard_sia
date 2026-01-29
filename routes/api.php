@@ -31,7 +31,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('lecture-list', [\App\Http\Controllers\Api\LectureController::class, 'list']);
     Route::get('lecture-profile', [LectureController::class, 'profile']);
     Route::patch('lecture-profile', [LectureController::class, 'updateProfile']);
+    Route::get('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'profile']);
+    Route::patch('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'updateProfile']);
     Route::get('activities-today', [ActivityController::class, 'activitiesToday']);
+    Route::post('activity-presence/{activity_id}', [ActivityController::class, 'presence']);
     Route::get('open-stase-tasks', [OpenStaseTaskController::class, 'openStaseTask']);
     Route::get('generate-task-log-detail', [ScoreController::class, 'generateTaskLogDetail']);
     Route::get('scoring-stat', [ScoreController::class, 'stat']);

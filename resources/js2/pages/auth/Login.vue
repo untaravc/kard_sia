@@ -3,19 +3,14 @@
         <div class="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
             <div class="grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                 <div class="rounded-3xl bg-gradient-to-br from-surface to-ext p-10">
-                    <div class="text-sm font-semibold text-primary">Kardio Admin</div>
-                    <h1 class="mt-3 text-3xl font-semibold">Welcome back.</h1>
-                    <p class="mt-4 text-muted">
-                        Sign in to manage rotations, exams, and resident activities.
+                    <h1 class="mt-3 text-5xl font-semibold tracking-tight text-sky-500 sm:text-6xl">
+                        BLU.
+                    </h1>
+                    <p class="mt-4 text-sm text-muted leading-relaxed">
+                        <span class="block">Code Blue is a call to act without delay.</span>
+                        <span class="block">BLU prepares cardiology residents for decisive moments.</span>
+                        <span class="block">Because every heartbeat matters.</span>
                     </p>
-                    <div class="mt-8 grid gap-4 text-sm text-muted">
-                        <div class="rounded-2xl bg-panel px-4 py-3">
-                            Fast access to daily schedules and logbook reviews.
-                        </div>
-                        <div class="rounded-2xl bg-panel px-4 py-3">
-                            Secure session with role-based navigation.
-                        </div>
-                    </div>
                 </div>
                 <div class="rounded-3xl border border-border bg-panel p-8">
                     <div class="text-lg font-semibold">Sign in</div>
@@ -89,7 +84,7 @@ export default {
                     this.$router.push('/cblu/dashboard');
                 })
                 .catch((error) => {
-                    console.log("ERROR",error)
+                    console.log("ERROR", error)
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
                         : 'Login failed';

@@ -10,11 +10,14 @@ class StudentProfile extends Model
     protected $appends = ['image_link'];
 
     public function getImageLinkAttribute(){
-        if(isset($this->attributes['image']) && $this->attributes['image'] != null){
-            return asset('/') . 'storage/' . $this->attributes['image'];
-        }else{
-            return asset('/') . 'storage/students/default-avatar.jpeg';
+        if (isset($this->attributes['image']) && $this->attributes['image'] != null) {
+            $image = $this->attributes['image'];
+            if (str_starts_with($image, 'http')) {
+                return $image;
+            }
+            return asset('/') . 'storage/' . $image;
         }
+        return asset('/') . 'storage/students/default-avatar.jpeg';
     }
 
     public function lecture(){

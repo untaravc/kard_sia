@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
+use App\Models\ActivityLecture;
+use App\Models\ActivityStudent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
@@ -104,9 +106,14 @@ class ActivityController extends Controller
         ]);
     }
 
-    public function activitiesToday()
+    public function activitiesToday(Request $request)
     {
-        $today = Carbon::today();
+        $dateParam = $request->query('date');
+        try {
+            $today = $dateParam ? Carbon::parse($dateParam)->startOfDay() : Carbon::today();
+        } catch (\Exception $e) {
+            $today = Carbon::today();
+        }
 
         $activities = Activity::whereDate('start_date', '=', $today)
             ->where(function ($query) use ($today) {
@@ -120,6 +127,61 @@ class ActivityController extends Controller
             'success' => true,
             'text' => 'Retrieve Today Activities Success',
             'result' => $activities,
+        ]);
+    }
+
+    public function presence(Request $request, $activity_id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if (!$authType || !$authId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $activity = Activity::find($activity_id);
+        if (!$activity) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Activity not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $presence = null;
+        if ($authType === 'student') {
+            $presence = ActivityStudent::firstOrCreate([
+                'activity_id' => $activity_id,
+                'student_id' => $authId,
+            ]);
+        } else if ($authType === 'lecture') {
+            $presence = ActivityLecture::firstOrCreate([
+                'activity_id' => $activity_id,
+                'lecture_id' => $authId,
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Presence recorded',
+            'result' => $presence,
         ]);
     }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\StaseLog;
 use App\Models\StaseTaskLog;
 use App\Models\Student;
+use App\Models\StudentProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -196,5 +197,140 @@ class StudentController extends Controller
         }
 
         return $dataContent;
+    }
+
+    public function profile(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $student = Student::find($authId);
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $profile = StudentProfile::whereStudentId($authId)->first();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Profile Success',
+            'result' => [
+                'student' => $student,
+                'profile' => $profile,
+            ],
+        ]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'email' => 'nullable|email',
+            'name' => 'nullable',
+            'password' => 'nullable|confirmed',
+        ]);
+
+        $student = Student::find($authId);
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        if ($request->password) {
+            $student->update([
+                'password' => Hash::make($request->password),
+            ]);
+        }
+
+        $studentData = [];
+        if ($request->has('email')) {
+            $studentData['email'] = $request->email;
+        }
+        if ($request->has('name')) {
+            $studentData['name'] = $request->name;
+        }
+        if (!empty($studentData)) {
+            $student->update($studentData);
+        }
+
+        $profile = StudentProfile::whereStudentId($authId)->first();
+        $pathName = $profile ? $profile->image : null;
+
+        if ($request->image) {
+            if (str_starts_with($request->image, 'http')) {
+                $pathName = $request->image;
+            } elseif (strlen($request->image) > 100) {
+                $pathName = $this->imageProcessing($request->image, 'students', false);
+            }
+        }
+
+        $profileData = [];
+        if ($request->has('address')) {
+            $profileData['address'] = $request->address;
+        }
+        if ($request->has('phone')) {
+            $profileData['phone'] = $request->phone;
+        }
+        if ($pathName !== null) {
+            $profileData['image'] = $pathName;
+        }
+
+        if ($profile) {
+            if (!empty($profileData)) {
+                $profile->update($profileData);
+            }
+        } else {
+            $profile = StudentProfile::create(array_merge([
+                'student_id' => $authId,
+            ], $profileData));
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Student Profile Success',
+            'result' => [
+                'student' => $student,
+                'profile' => $profile,
+            ],
+        ]);
     }
 }

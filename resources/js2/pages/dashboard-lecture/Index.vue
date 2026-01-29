@@ -18,6 +18,8 @@
                 <AgendaCard
                     :schedules="schedules"
                     :loading="loadingSchedule"
+                    :date="agendaDate"
+                    @date-change="handleAgendaDateChange"
                 />
             </div>
 
@@ -204,6 +206,7 @@ export default {
             toast: null,
             scoreFilter: '',
             scoreFilterTimer: null,
+            agendaDate: '',
             scoreStats: {
                 pending: 0,
                 done_this_month: 0,
@@ -241,6 +244,7 @@ export default {
     created() {
         this.firebaseConfigStore = useFirebaseConfigStore();
         this.initToast();
+        this.agendaDate = this.getDateString(new Date());
         this.loadData();
         this.loadDataAll();
         this.loadSchedule();
@@ -248,6 +252,12 @@ export default {
         this.loadScoreStats();
     },
     methods: {
+        getDateString(date) {
+            const year = date.getFullYear();
+            const month = `${date.getMonth() + 1}`.padStart(2, '0');
+            const day = `${date.getDate()}`.padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
         initToast() {
             this.toast = Swal.mixin({
                 toast: true,
@@ -308,9 +318,13 @@ export default {
                     this.loadingOpenTasksAll = false;
                 });
         },
-        loadSchedule() {
+        loadSchedule(date = this.agendaDate) {
             this.loadingSchedule = true;
-            return Repository.get('/api/activities-today')
+            return Repository.get('/api/activities-today', {
+                params: {
+                    date,
+                },
+            })
                 .then((response) => {
                     const data = response && response.data ? response.data.result : [];
                     this.schedules = Array.isArray(data) ? data : [];
@@ -321,6 +335,10 @@ export default {
                 .finally(() => {
                     this.loadingSchedule = false;
                 });
+        },
+        handleAgendaDateChange(value) {
+            this.agendaDate = value;
+            this.loadSchedule(value);
         },
         loadUser() {
             this.loadingProfile = true;

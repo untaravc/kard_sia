@@ -20,7 +20,6 @@ class Student extends Authenticatable
         "password",
         "email",
     ];
-    protected $appends = ['image_link'];
 
     protected $hidden = [
         'password',
@@ -88,11 +87,6 @@ class Student extends Authenticatable
     public function open_stase_task()
     {
         return $this->hasMany(OpenStaseTask::class);
-    }
-
-    public function getImageLinkAttribute()
-    {
-        return asset('/') . 'storage/students/default-avatar.jpeg';
     }
 
     public function last_presence()

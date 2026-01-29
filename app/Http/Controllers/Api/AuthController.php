@@ -419,12 +419,12 @@ class AuthController extends Controller
             'student' => [
                 ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-student"],
                 [
-                    'label' => 'Presensi',
+                    'label' => 'Presence',
                     'icon' => 'resident',
                     'children' => [
-                        ['label' => 'Presensi', 'to' => "{$basePath}/presences"],
-                        ['label' => 'Presensi Harian', 'to' => "{$basePath}/presences/daily"],
-                        ['label' => 'Presensi Bulanan', 'to' => "{$basePath}/presences/monthly"],
+                        ['label' => 'Data', 'to' => "{$basePath}/presences"],
+                        ['label' => 'Daily Report', 'to' => "{$basePath}/presences/daily"],
+                        ['label' => 'Monthly Report', 'to' => "{$basePath}/presences/monthly"],
                     ],
                 ],
             ],
