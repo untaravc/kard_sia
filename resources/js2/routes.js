@@ -63,6 +63,8 @@ const routes = [
             { path: 'logbooks/bulk', component: require('./pages/logbooks/AddBulk.vue').default },
             { path: 'stases', component: require('./pages/stases/Index.vue').default },
             { path: 'tasks', component: require('./pages/tasks/Index.vue').default },
+            { path: 'accreditations', component: require('./pages/accreditations/Index.vue').default },
+            { path: 'accreditations/:id', component: require('./pages/accreditations/Detail.vue').default },
             { path: 'stase-tasks/:stase_id', component: require('./pages/stases/Task.vue').default },
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default },
             { path: 'scores', component: require('./pages/scores/Index.vue').default },

@@ -151,10 +151,8 @@
 
 <script>
 import Repository from '../../repository';
-import { getApps, initializeApp } from 'firebase/app';
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
-import { useFirebaseConfigStore } from '../../stores/firebaseConfig';
 import Modal from '../../components/Modal.vue';
+import { uploadFirebaseFile } from '../../upload';
 
 export default {
     components: {
@@ -173,7 +171,6 @@ export default {
             },
             loadingProfile: false,
             uploadingImage: false,
-            firebaseConfigStore: null,
             profileModalOpen: false,
             updatingProfile: false,
             profileError: '',
@@ -183,7 +180,6 @@ export default {
         };
     },
     created() {
-        this.firebaseConfigStore = useFirebaseConfigStore();
         this.loadUser();
     },
     methods: {
@@ -282,23 +278,12 @@ export default {
 
             this.uploadingImage = true;
             try {
-                const config = await this.firebaseConfigStore.fetchConfig();
-                if (!config) {
-                    return;
-                }
-
-                if (!getApps().length) {
-                    initializeApp(config);
-                }
-
-                const storage = getStorage();
                 const prefix = 'KardiologiFkkmk/Student/Profile';
-                const safeName = `${Date.now()}-${file.name}`.replace(/\s+/g, '-');
-                const storageRef = ref(storage, `${prefix}/${safeName}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                this.user.image = url;
-                this.dataRaw.image_url = url;
+                const url = await uploadFirebaseFile({ file, prefix });
+                if (url) {
+                    this.user.image = url;
+                    this.dataRaw.image_url = url;
+                }
             } finally {
                 this.uploadingImage = false;
             }

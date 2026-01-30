@@ -405,6 +405,7 @@ class AuthController extends Controller
                 // ],
                 // [ 'label' => 'Ujian Terbuka', 'icon' => 'open-exam', 'to' => "{$basePath}/open-exam" ],
                 [ 'label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities" ],
+                [ 'label' => 'Accreditations', 'icon' => 'agenda', 'to' => "{$basePath}/accreditations" ],
                 [
                     'label' => 'Data Master',
                     'icon' => 'data-master',

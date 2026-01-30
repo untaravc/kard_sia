@@ -89,12 +89,10 @@
 
 <script>
 import Repository from '../../repository';
-import { getApps, initializeApp } from 'firebase/app';
-import { getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
-import { useFirebaseConfigStore } from '../../stores/firebaseConfig';
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import ProfileModal from './ProfileModal.vue';
+import { uploadFirebaseFile } from '../../upload';
 
 export default {
     components: {
@@ -106,7 +104,6 @@ export default {
             profileModalOpen: false,
             updatingProfile: false,
             uploadingImage: false,
-            firebaseConfigStore: null,
             loadingProfile: false,
             dataRaw: {
                 image_url: '',
@@ -130,7 +127,6 @@ export default {
         };
     },
     created() {
-        this.firebaseConfigStore = useFirebaseConfigStore();
         this.loadUser();
     },
     computed: {
@@ -227,23 +223,12 @@ export default {
 
             this.uploadingImage = true;
             try {
-                const config = await this.firebaseConfigStore.fetchConfig();
-                if (!config) {
-                    return;
-                }
-
-                if (!getApps().length) {
-                    initializeApp(config);
-                }
-
-                const storage = getStorage();
                 const prefix = 'KardiologiFkkmk/Lecture/Profile';
-                const safeName = `${Date.now()}-${file.name}`.replace(/\s+/g, '-');
-                const storageRef = ref(storage, `${prefix}/${safeName}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                this.user.image = url;
-                this.dataRaw.image_url = url;
+                const url = await uploadFirebaseFile({ file, prefix });
+                if (url) {
+                    this.user.image = url;
+                    this.dataRaw.image_url = url;
+                }
             } finally {
                 this.uploadingImage = false;
             }

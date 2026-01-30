@@ -15,6 +15,7 @@ Route::post('check-reset-password-token', [AuthController::class, 'checkResetPas
 Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordWithToken']);
 Route::get('firebase-config', [AuthController::class, 'firebaseConfig']);
 Route::get('cmd/clear-open-stase-task', [CmdController::class, 'celarOpenStaseTask']);
+Route::get('cmd/insert-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'insertInitData']);
 
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);
@@ -44,6 +45,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('stase-task-logs-update-score-proposal/{id}', [ScoreController::class, 'staseTaskLogUpdateProposal']);
     Route::resource('activities', 'Api\ActivityController');
     Route::resource('students', 'Api\StudentController');
+    Route::resource('accreditations', 'Api\AccreditationController');
+    Route::get('accreditation-parent', [\App\Http\Controllers\Api\AccreditationController::class, 'getParent']);
+    Route::get('accreditation-tree/{parent_idx}', [\App\Http\Controllers\Api\AccreditationController::class, 'dataTree'])
+        ->where('parent_idx', '.*');
     Route::get('student-score/{student_id}', [\App\Http\Controllers\Api\StudentController::class, 'score']);
     Route::post('update-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'updateScore']);
     Route::post('add-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'createScore']);
