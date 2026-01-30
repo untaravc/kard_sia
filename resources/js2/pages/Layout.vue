@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen bg-surface text-ink font-sans flex flex-col lg:flex-row">
-        <Sidebar v-if="!isStudent" :base-path="basePath" :collapsed="collapsed" :is-mobile="isMobile" />
+        <Sidebar v-if="showSidebar" :base-path="basePath" :collapsed="collapsed" :is-mobile="isMobile" />
         <div class="flex flex-1 flex-col">
             <Topbar
                 :title="title"
@@ -39,7 +39,7 @@ export default {
             subtitle: 'Overview for this week',
             collapsed: false,
             isMobile: false,
-            authType: '',
+            authType: localStorage.getItem('auth_type') || '',
         };
     },
     mounted() {
@@ -53,6 +53,12 @@ export default {
     computed: {
         isStudent() {
             return this.authType === 'student';
+        },
+        isLecture() {
+            return this.authType === 'lecture';
+        },
+        showSidebar() {
+            return !this.isStudent && !this.isLecture;
         },
         hasBottomNav() {
             return this.authType === 'student' || this.authType === 'lecture';
@@ -83,9 +89,12 @@ export default {
                     const payload = response && response.data ? response.data.result : null;
                     const authType = payload ? payload.log_as_auth_type || payload.auth_type : '';
                     this.authType = authType || '';
+                    if (this.authType) {
+                        localStorage.setItem('auth_type', this.authType);
+                    }
                 })
                 .catch(() => {
-                    this.authType = '';
+                    this.authType = this.authType || '';
                 });
         },
     },

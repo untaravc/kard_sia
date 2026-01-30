@@ -1,12 +1,63 @@
 <template>
     <div class="flex flex-col gap-6">
-        <AgendaCard
-            :schedules="schedules"
-            :loading="loadingSchedule"
-            :date="agendaDate"
-            @date-change="handleAgendaDateChange"
-            @open-presence="openPresenceModal"
-        />
+        <div class="relative rounded-2xl border border-border bg-panel p-4 shadow-sm">
+            <Loading :active="loadingSchedule" :is-full-page="false" />
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="text-sm font-semibold text-ink">{{ title }}</div>
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="rounded-lg border border-border px-2 py-1 text-xs text-muted"
+                        @click="shiftDate(-1)"
+                    >
+                        ‹
+                    </button>
+                    <div class="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                        {{ formattedDate }}
+                    </div>
+                    <button
+                        type="button"
+                        class="rounded-lg border border-border px-2 py-1 text-xs text-muted"
+                        @click="shiftDate(1)"
+                    >
+                        ›
+                    </button>
+                </div>
+            </div>
+            <div class="mt-3 divide-y divide-border">
+                <div
+                    v-for="(schedule, index) in schedules"
+                    :key="index"
+                    class="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
+                >
+                    <div class="min-w-0 flex-1">
+                        <div class="font-semibold text-ink">{{ schedule.name }}</div>
+                        <div class="text-xs text-muted">
+                            <span v-if="schedule.speaker"><b>{{ schedule.speaker }}:</b> </span>
+                            <span>{{ schedule.title }}</span>
+                        </div>
+                        <div v-if="schedule.absence" class="mt-1 text-xs text-emerald-600">
+                            You checked in at {{ formatDateTime(schedule.absence.created_at) }}
+                        </div>
+                        <div v-else-if="schedule.start_date || schedule.end_date" class="mt-1 text-xs text-muted">
+                            <span v-if="schedule.start_date">Start: {{ formatDateTime(schedule.start_date) }}</span>
+                            <span v-if="schedule.end_date"> • End: {{ formatDateTime(schedule.end_date) }}</span>
+                        </div>
+                    </div>
+                    <button
+                        v-if="!schedule.absence"
+                        type="button"
+                        class="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-white"
+                        @click="openPresenceModal(schedule)"
+                    >
+                        Check In
+                    </button>
+                </div>
+                <div v-if="!schedules.length && !loadingSchedule" class="py-4 text-xs text-muted">
+                    Agenda schedules will appear here.
+                </div>
+            </div>
+        </div>
         <Modal
             :open="presenceModalOpen"
             title="Agenda Details"
@@ -59,15 +110,34 @@
 
 <script>
 import Repository from '../../repository';
-import AgendaCard from './AgendaCard.vue';
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 
 export default {
     components: {
-        AgendaCard,
+        Loading,
         Modal,
     },
     computed: {
+        title() {
+            return this.isToday ? "Today's Agenda" : 'Agenda';
+        },
+        formattedDate() {
+            const date = this.parseDate(this.agendaDate) || new Date();
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+            });
+        },
+        isToday() {
+            if (!this.agendaDate) {
+                return true;
+            }
+            const today = this.getDateString(new Date());
+            return this.agendaDate === today;
+        },
         isLatePresence() {
             if (!this.selectedSchedule || !this.selectedSchedule.end_date) {
                 return false;
@@ -94,6 +164,16 @@ export default {
         this.loadSchedule();
     },
     methods: {
+        parseDate(value) {
+            if (!value) {
+                return null;
+            }
+            const date = new Date(`${value}T00:00:00`);
+            if (Number.isNaN(date.getTime())) {
+                return null;
+            }
+            return date;
+        },
         isAfterDate(value) {
             if (!value) {
                 return false;
@@ -109,6 +189,11 @@ export default {
             const month = `${date.getMonth() + 1}`.padStart(2, '0');
             const day = `${date.getDate()}`.padStart(2, '0');
             return `${year}-${month}-${day}`;
+        },
+        shiftDate(amount) {
+            const base = this.parseDate(this.agendaDate) || new Date();
+            base.setDate(base.getDate() + amount);
+            this.handleAgendaDateChange(this.getDateString(base));
         },
         loadSchedule(date = this.agendaDate) {
             this.loadingSchedule = true;
