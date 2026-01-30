@@ -250,7 +250,6 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
-import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -281,13 +280,11 @@ export default {
             loading: false,
             submitting: false,
             errorMessage: '',
-            toast: null,
             yearOptions: [],
             actionMenuOpenId: null,
         };
     },
     created() {
-        this.initToast();
         this.yearOptions = this.buildYearOptions();
         this.fetchStudents();
     },
@@ -315,21 +312,6 @@ export default {
             }
 
             return options;
-        },
-        initToast() {
-            this.toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        },
-        showToast(title, icon = 'success') {
-            if (!this.toast) {
-                this.initToast();
-            }
-            this.toast.fire({ title, icon });
         },
         fetchStudents() {
             this.loading = true;
@@ -457,7 +439,7 @@ export default {
                 .then(() => {
                     this.closeModal();
                     this.fetchStudents();
-                    this.showToast('Student created successfully.');
+                    this.$showToast('Student created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
@@ -477,7 +459,7 @@ export default {
                 .then(() => {
                     this.fetchStudents();
                     this.closeModal();
-                    this.showToast('Student updated successfully.');
+                    this.$showToast('Student updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
@@ -497,7 +479,7 @@ export default {
             Repository.delete(`${this.baseUrl}/${student.id}`)
                 .then(() => {
                     this.fetchStudents();
-                    this.showToast('Student deleted successfully.');
+                    this.$showToast('Student deleted successfully.');
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete student.';

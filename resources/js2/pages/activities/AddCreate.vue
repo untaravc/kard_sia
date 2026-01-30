@@ -251,7 +251,6 @@
 <script>
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
-import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -263,7 +262,6 @@ export default {
             submitting: false,
             loading: false,
             errorMessage: '',
-            toast: null,
             stases: [],
             lectureOptions: [],
             lectureLoading: false,
@@ -325,7 +323,6 @@ export default {
         },
     },
     created() {
-        this.initToast();
         this.fetchStases();
         this.fetchLectures();
         if (this.isEdit) {
@@ -333,21 +330,6 @@ export default {
         }
     },
     methods: {
-        initToast() {
-            this.toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        },
-        showToast(title, icon = 'success') {
-            if (!this.toast) {
-                this.initToast();
-            }
-            this.toast.fire({ title, icon });
-        },
         fetchStases() {
             return Repository.get('/api/stases', {
                 params: {
@@ -496,7 +478,7 @@ export default {
 
             request
                 .then(() => {
-                    this.showToast(this.isEdit ? 'Activity updated successfully.' : 'Activity created successfully.');
+                    this.$showToast(this.isEdit ? 'Activity updated successfully.' : 'Activity created successfully.');
                     this.$router.push('/cblu/activities');
                 })
                 .catch((error) => {

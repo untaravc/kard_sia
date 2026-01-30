@@ -129,7 +129,6 @@
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Repository from '../../repository';
-import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -146,29 +145,12 @@ export default {
             },
             loading: false,
             errorMessage: '',
-            toast: null,
         };
     },
     created() {
-        this.initToast();
         this.fetchActivities();
     },
     methods: {
-        initToast() {
-            this.toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        },
-        showToast(title, icon = 'success') {
-            if (!this.toast) {
-                this.initToast();
-            }
-            this.toast.fire({ title, icon });
-        },
         fetchActivities() {
             this.loading = true;
             this.errorMessage = '';
@@ -219,7 +201,7 @@ export default {
             Repository.delete(`${this.baseUrl}/${activity.id}`)
                 .then(() => {
                     this.fetchActivities();
-                    this.showToast('Activity deleted successfully.');
+                    this.$showToast('Activity deleted successfully.');
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete activity.';

@@ -11,12 +11,12 @@
             />
             <main
                 class="flex flex-col gap-7"
-                :class="isStudent ? 'px-5 pt-5 pb-24' : 'px-9 pt-7 pb-10'"
+                :class="contentPaddingClass"
             >
                 <router-view />
             </main>
         </div>
-        <BottomNav v-if="isStudent" :base-path="basePath" />
+        <BottomNav v-if="hasBottomNav" :base-path="basePath" :auth-type="authType" />
     </div>
 </template>
 
@@ -53,6 +53,14 @@ export default {
     computed: {
         isStudent() {
             return this.authType === 'student';
+        },
+        hasBottomNav() {
+            return this.authType === 'student' || this.authType === 'lecture';
+        },
+        contentPaddingClass() {
+            const base = this.isStudent ? 'px-5 pt-5' : 'px-9 pt-7';
+            const bottom = this.hasBottomNav ? 'pb-24' : 'pb-10';
+            return `${base} ${bottom}`;
         },
     },
     methods: {

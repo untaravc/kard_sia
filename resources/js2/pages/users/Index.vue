@@ -170,7 +170,6 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
-import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -197,29 +196,12 @@ export default {
             loading: false,
             submitting: false,
             errorMessage: '',
-            toast: null,
         };
     },
     created() {
-        this.initToast();
         this.fetchUsers();
     },
     methods: {
-        initToast() {
-            this.toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        },
-        showToast(title, icon = 'success') {
-            if (!this.toast) {
-                this.initToast();
-            }
-            this.toast.fire({ title, icon });
-        },
         fetchUsers() {
             this.loading = true;
             this.errorMessage = '';
@@ -302,7 +284,7 @@ export default {
                 .then(() => {
                     this.closeModal();
                     this.fetchUsers();
-                    this.showToast('User created successfully.');
+                    this.$showToast('User created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
@@ -327,7 +309,7 @@ export default {
                 .then(() => {
                     this.fetchUsers();
                     this.closeModal();
-                    this.showToast('User updated successfully.');
+                    this.$showToast('User updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data

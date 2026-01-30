@@ -4,6 +4,7 @@ require('./bootstrap');
 import Vue from 'vue';
 import VueCompositionApi from '@vue/composition-api';
 import { PiniaVuePlugin, createPinia } from 'pinia';
+import ToastPlugin from './toaster';
 
 //VUE ROUTER
 import VueRouter from 'vue-router'
@@ -15,6 +16,7 @@ import routes from './routes';
 
 Vue.use(VueCompositionApi);
 Vue.use(PiniaVuePlugin);
+Vue.use(ToastPlugin);
 
 const router = new VueRouter({
     mode : 'history',

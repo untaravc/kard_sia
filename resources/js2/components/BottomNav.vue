@@ -31,6 +31,10 @@ export default {
             type: String,
             default: '/cblu',
         },
+        authType: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {
@@ -38,6 +42,35 @@ export default {
         };
     },
     computed: {
+        studentItems() {
+            const base = `${this.basePath}/dashboard-student`;
+            return [
+                { label: 'Scoring', icon: 'mdi:clipboard-check-outline', to: `${base}/scoring` },
+                { label: 'Agenda', icon: 'mdi:calendar-month-outline', to: `${base}/agenda` },
+                { label: 'Report', icon: 'mdi:file-chart-outline', to: `${base}/report` },
+                { label: 'Document', icon: 'mdi:file-document-outline', to: `${base}/document` },
+                { label: 'Profile', icon: 'mdi:account-outline', to: `${base}/profile` },
+            ];
+        },
+        lectureItems() {
+            const base = `${this.basePath}/dashboard-lecture`;
+            return [
+                { label: 'Scoring', icon: 'mdi:clipboard-check-outline', to: `${base}/scoring` },
+                { label: 'Agenda', icon: 'mdi:calendar-month-outline', to: `${base}/agenda` },
+                { label: 'Report', icon: 'mdi:file-chart-outline', to: `${base}/report` },
+                { label: 'Document', icon: 'mdi:file-document-outline', to: `${base}/document` },
+                { label: 'Profile', icon: 'mdi:account-outline', to: `${base}/profile` },
+            ];
+        },
+        roleItems() {
+            if (this.authType === 'student') {
+                return this.studentItems;
+            }
+            if (this.authType === 'lecture') {
+                return this.lectureItems;
+            }
+            return [];
+        },
         normalizedMenu() {
             const flattened = [];
             this.menuItems.forEach((item) => {
@@ -64,6 +97,9 @@ export default {
             ];
         },
         displayItems() {
+            if (this.roleItems.length) {
+                return this.roleItems;
+            }
             const merged = [...this.normalizedMenu];
             if (merged.length < 5) {
                 this.defaultItems.forEach((item) => {

@@ -142,7 +142,6 @@
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Repository from '../../repository';
-import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -154,7 +153,6 @@ export default {
             submitting: false,
             loadingOptions: false,
             errorMessage: '',
-            toast: null,
             lectureOptions: [],
             staseOptions: [],
             staseTypes: [],
@@ -171,27 +169,11 @@ export default {
         };
     },
     created() {
-        this.initToast();
         this.fetchLectures();
         this.fetchStases();
         this.resetForm();
     },
     methods: {
-        initToast() {
-            this.toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        },
-        showToast(title, icon = 'success') {
-            if (!this.toast) {
-                this.initToast();
-            }
-            this.toast.fire({ title, icon });
-        },
         emptyBulkRow() {
             return {
                 field_1: '',
@@ -267,7 +249,7 @@ export default {
 
             return Repository.post(this.baseUrl, this.bulkForm)
                 .then(() => {
-                    this.showToast('Bulk logbook created successfully.');
+                    this.$showToast('Bulk logbook created successfully.');
                     this.resetForm();
                 })
                 .catch((error) => {

@@ -167,7 +167,6 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
-import Swal from 'sweetalert2';
 
 export default {
     components: {
@@ -197,11 +196,9 @@ export default {
             loading: false,
             submitting: false,
             errorMessage: '',
-            toast: null,
         };
     },
     created() {
-        this.initToast();
         this.fetchStase();
         this.fetchStaseTasks();
     },
@@ -213,21 +210,6 @@ export default {
         },
     },
     methods: {
-        initToast() {
-            this.toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        },
-        showToast(title, icon = 'success') {
-            if (!this.toast) {
-                this.initToast();
-            }
-            this.toast.fire({ title, icon });
-        },
         fetchStase() {
             const staseId = this.$route.params.stase_id;
             if (!staseId) {
@@ -340,7 +322,7 @@ export default {
                 .then(() => {
                     this.closeModal();
                     this.fetchStaseTasks();
-                    this.showToast('Stase task created successfully.');
+                    this.$showToast('Stase task created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
@@ -360,7 +342,7 @@ export default {
                 .then(() => {
                     this.fetchStaseTasks();
                     this.closeModal();
-                    this.showToast('Stase task updated successfully.');
+                    this.$showToast('Stase task updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
@@ -380,7 +362,7 @@ export default {
             Repository.delete(`${this.baseUrl}/${staseTask.id}`)
                 .then(() => {
                     this.fetchStaseTasks();
-                    this.showToast('Stase task deleted successfully.');
+                    this.$showToast('Stase task deleted successfully.');
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete stase task.';
