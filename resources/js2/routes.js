@@ -52,7 +52,7 @@ const routes = [
             { path: 'dashboard-student/report', component: require('./pages/dashboard-student/Report.vue').default },
             { path: 'dashboard-student/document', component: require('./pages/dashboard-student/Document.vue').default },
             { path: 'dashboard-student/profile', component: require('./pages/dashboard-student/Profile.vue').default },
-            { path: 'dashboard-lecture', component: require('./pages/dashboard-lecture/Index.vue').default },
+            { path: 'dashboard-lecture', redirect: 'dashboard-lecture/profile' },
             { path: 'dashboard-lecture/scoring', component: require('./pages/dashboard-lecture/Scoring.vue').default },
             { path: 'dashboard-lecture/agenda', component: require('./pages/dashboard-lecture/Agenda.vue').default },
             { path: 'dashboard-lecture/report', component: require('./pages/dashboard-lecture/Report.vue').default },

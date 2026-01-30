@@ -8,7 +8,7 @@ use \App\Http\Controllers\Sadmin\DashboardController;
 use \App\Http\Controllers\Object\PublicController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/cblu');
 });
 
 Route::get('/usulan-kurikulum', function () {

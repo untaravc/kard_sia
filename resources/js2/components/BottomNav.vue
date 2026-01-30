@@ -48,7 +48,7 @@ export default {
                 { label: 'Scoring', icon: 'mdi:clipboard-check-outline', to: `${base}/scoring` },
                 { label: 'Agenda', icon: 'mdi:calendar-month-outline', to: `${base}/agenda` },
                 { label: 'Report', icon: 'mdi:file-chart-outline', to: `${base}/report` },
-                { label: 'Document', icon: 'mdi:file-document-outline', to: `${base}/document` },
+                { label: 'Accreditations', icon: 'mdi:certificate-outline', to: `${this.basePath}/accreditations` },
                 { label: 'Profile', icon: 'mdi:account-outline', to: `${base}/profile` },
             ];
         },
@@ -58,7 +58,7 @@ export default {
                 { label: 'Scoring', icon: 'mdi:clipboard-check-outline', to: `${base}/scoring` },
                 { label: 'Agenda', icon: 'mdi:calendar-month-outline', to: `${base}/agenda` },
                 { label: 'Report', icon: 'mdi:file-chart-outline', to: `${base}/report` },
-                { label: 'Document', icon: 'mdi:file-document-outline', to: `${base}/document` },
+                { label: 'Accreditations', icon: 'mdi:certificate-outline', to: `${this.basePath}/accreditations` },
                 { label: 'Profile', icon: 'mdi:account-outline', to: `${base}/profile` },
             ];
         },

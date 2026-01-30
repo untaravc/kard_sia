@@ -11,7 +11,7 @@
                     Judul: {{ dataDetail.title }}
                 </div>
             </div>
-            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/cblu/dashboard-lecture">
+            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/cblu/dashboard-lecture/scoring">
                 Back
             </router-link>
         </header>
@@ -389,7 +389,7 @@ export default {
                         showConfirmButton: false,
                         timer: 1200,
                     });
-                    this.$router.push('/cblu/dashboard-lecture');
+                    this.$router.push('/cblu/dashboard-lecture/scoring');
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to save score.';

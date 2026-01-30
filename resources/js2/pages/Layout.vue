@@ -6,7 +6,7 @@
                 :title="title"
                 :subtitle="subtitle"
                 :collapsed="collapsed"
-                :show-toggle="!isStudent"
+                :show-toggle="!isStudent && !isLecture"
                 @toggle-sidebar="toggleSidebar"
             />
             <main

@@ -360,7 +360,7 @@ const TreeItem = {
                         <span v-if="item.parent_idx"> · Parent: {{ item.parent_idx }}</span>
                     </div>
                 </span>
-                <div class="flex items-center gap-2">
+                <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
                     <span
                         class="rounded-full px-2 py-0.5 text-[10px] font-semibold"
                         :class="item.is_complete ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'"
