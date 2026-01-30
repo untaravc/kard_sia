@@ -12,6 +12,7 @@ class AccreditationController extends Controller
     {
         $items = Accreditation::where('parent_idx', $parent_idx)
             ->orderBy('idx')
+            ->where('type','standard')
             ->get()
             ->map(function ($item) {
                 return $this->mapTreeNode($item);
@@ -35,6 +36,51 @@ class AccreditationController extends Controller
             'success' => true,
             'text' => 'Retrieve Accreditation Parents Success',
             'result' => $dataContent,
+        ]);
+    }
+
+    public function storeEvidence(Request $request)
+    {
+        $this->validate($request, [
+            'parent_id' => 'required|integer',
+            'parent_idx' => 'required|string',
+            'title' => 'nullable',
+            'description' => 'nullable',
+            'attachment_urls' => 'nullable',
+        ]);
+
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        $attachmentUrls = $request->attachment_urls;
+        if (is_array($attachmentUrls)) {
+            $attachmentUrls = json_encode($attachmentUrls);
+        }
+
+        $accreditation = Accreditation::create([
+            'parent_id' => $this->cleanValue($request->parent_id),
+            'parent_idx' => $this->cleanValue($request->parent_idx),
+            'type' => 'evidence',
+            'title' => $this->cleanValue($request->title),
+            'description' => $this->cleanValue($request->description),
+            'attachment_urls' => $attachmentUrls,
+            'auth_type' => $authType,
+            'auth_id' => $authId,
+            'is_complete' => 1,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Evidence Success',
+            'result' => $accreditation,
         ]);
     }
 
@@ -279,9 +325,19 @@ class AccreditationController extends Controller
     {
         $children = Accreditation::where('parent_idx', $item->idx)
             ->orderBy('idx')
+            ->where('type', 'standard')
             ->get()
             ->map(function ($child) {
                 return $this->mapTreeNode($child);
+            })
+            ->values();
+
+        $evidences = Accreditation::where('parent_idx', $item->idx)
+            ->orderBy('id', 'desc')
+            ->where('type', 'evidence')
+            ->get()
+            ->map(function ($evidence) {
+                return $this->mapEvidenceNode($evidence);
             })
             ->values();
 
@@ -302,7 +358,24 @@ class AccreditationController extends Controller
             'user_ids' => $item->user_ids,
             'auth_type' => $item->auth_type,
             'auth_id' => $item->auth_id,
+            'evidences' => $evidences,
             'children' => $children,
+        ];
+    }
+
+    private function mapEvidenceNode($item)
+    {
+        return [
+            'id' => $item->id,
+            'parent_id' => $item->parent_id,
+            'parent_idx' => $item->parent_idx,
+            'type' => $item->type,
+            'title' => $item->title,
+            'description' => $item->description,
+            'attachment_urls' => $item->attachment_urls,
+            'auth_type' => $item->auth_type,
+            'auth_id' => $item->auth_id,
+            'created_at' => $item->created_at,
         ];
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Accreditation extends Model
 {
     protected $fillable = [
-        "id",
+        "parent_id",
         "type",
         "parent_idx",
         "idx",
