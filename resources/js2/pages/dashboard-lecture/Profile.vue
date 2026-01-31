@@ -24,55 +24,14 @@
                         <i class="fa fa-user-edit text-slate-500"></i>
                         Perbarui Profil
                     </button>
-                </div>
-
-                <div class="mt-4 grid grid-cols-3 gap-3 text-center">
-                    <div class="rounded-xl bg-slate-50 px-3 py-2">
-                        <div class="text-lg font-semibold text-primary">{{ dataRaw.info_cards.avg_scoring || 0 }}</div>
-                        <div class="text-[11px] text-muted">Jumlah Menilai</div>
-                    </div>
-                    <div class="rounded-xl bg-slate-50 px-3 py-2">
-                        <div class="text-lg font-semibold text-sky-600">{{ dataRaw.info_cards.scoring || 0 }}</div>
-                        <div class="text-[11px] text-muted">Rata-rata Menilai</div>
-                    </div>
-                    <div class="rounded-xl bg-slate-50 px-3 py-2">
-                        <div class="text-lg font-semibold text-emerald-600">{{ dataRaw.info_cards.act_lect || 0 }}</div>
-                        <div class="text-[11px] text-muted">Presensi Agenda</div>
-                    </div>
-                </div>
-
-                <div class="mt-4 grid grid-cols-3 gap-3 text-center">
-                    <div class="rounded-xl bg-slate-100 px-2 py-3 text-xs font-semibold text-slate-600">
-                        <div class="relative mx-auto h-10 w-10">
-                            <i class="fa fa-calendar-check text-primary text-2xl"></i>
-                            <span class="absolute -bottom-2 -right-2 rounded-full bg-slate-700 px-2 py-0.5 text-[10px] text-white">
-                                0
-                            </span>
-                        </div>
-                        <div class="mt-2">Agenda Hari Ini</div>
-                    </div>
-                    <div class="rounded-xl bg-slate-100 px-2 py-3 text-xs font-semibold text-slate-600">
-                        <div class="relative mx-auto h-10 w-10">
-                            <i class="fa fa-edit text-2xl text-slate-500"></i>
-                            <span class="absolute -bottom-2 -right-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] text-white">
-                                0
-                            </span>
-                        </div>
-                        <div class="mt-2">Penilaian</div>
-                    </div>
                     <router-link
-                        to="/dosen/resident-logs"
-                        class="rounded-xl bg-slate-100 px-2 py-3 text-xs font-semibold text-slate-600"
+                        class="rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                        to="/cblu/release-note"
                     >
-                        <div class="relative mx-auto h-10 w-10">
-                            <i class="fa fa-book-medical text-2xl text-amber-500"></i>
-                            <span class="absolute -bottom-2 -right-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] text-white">
-                                {{ dataRaw.info_cards.log_pending || 0 }}
-                            </span>
-                        </div>
-                        <div class="mt-2">Logbook Approval</div>
+                        Release Notes
                     </router-link>
                 </div>
+
             </div>
         </div>
         <ProfileModal

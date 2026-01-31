@@ -33,14 +33,9 @@ class Activity extends Model
         "stase_id",
     ];
     protected $appends = [
-        'absence',
-        //        'penguji',
-        //        'pembimbing',
-        //        'pengampu',
         'is_author',
         'type_label',
         'category_label',
-        //        'attended',
     ];
 
     public function lectures()
@@ -71,20 +66,6 @@ class Activity extends Model
     public function creator()
     {
         return $this->belongsTo(Student::class, 'created_by');
-    }
-
-    public function getAbsenceAttribute()
-    {
-        if (Auth::guard('lecture')->check()) {
-            $id = Auth::guard('lecture')->user()->id;
-            return ActivityLecture::whereActivityId($this->attributes['id'])->whereLectureId($id)->first();
-        }
-
-        if (Auth::guard('student')->check()) {
-            $id = Auth::guard('student')->user()->id;
-            return ActivityStudent::whereActivityId($this->attributes['id'])->whereStudentId($id)->first();
-        }
-        return 0;
     }
 
     public function getLecturePengujiAttribute()

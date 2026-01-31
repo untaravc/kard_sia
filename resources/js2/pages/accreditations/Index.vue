@@ -83,8 +83,19 @@
                         <div class="text-xs text-muted" v-if="accreditation.description">
                             {{ accreditation.description }}
                         </div>
-                        <div class="mt-1 text-xs text-muted" v-if="accreditation.description">
-                            {{ accreditation.description }}
+                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
+                            <span>
+                                {{ accreditation.completion_percentage || 0 }}% complete
+                            </span>
+                            <span class="text-[10px] text-muted">
+                                {{ accreditation.completed_children || 0 }}/{{ accreditation.total_children || 0 }} items
+                            </span>
+                        </div>
+                        <div class="mt-2 h-2 w-full max-w-xs rounded-full bg-slate-100">
+                            <div
+                                class="h-2 rounded-full bg-emerald-400 transition-[width]"
+                                :style="{ width: `${accreditation.completion_percentage || 0}%` }"
+                            ></div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">

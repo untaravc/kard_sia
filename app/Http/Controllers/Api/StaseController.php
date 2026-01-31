@@ -126,6 +126,93 @@ class StaseController extends Controller
         ]);
     }
 
+    public function studentStase(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType === 'user' && $request->student_id) {
+            $studentId = (int) $request->student_id;
+        }
+
+        if (!$studentId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $takenLogs = StaseLog::with('stase')
+            ->whereStudentId($studentId)
+            ->leftJoin('stases', 'stases.id', '=', 'stase_logs.stase_id')
+            ->orderBy('stase_logs.start_date', 'desc')
+            ->select('stase_logs.*')
+            ->get();
+
+        $takenIds = $takenLogs->pluck('stase_id')->filter()->unique()->values();
+
+        $availableStase = $takenIds->isEmpty()
+            ? Stase::orderBy('name')->get()
+            : Stase::whereNotIn('id', $takenIds)->orderBy('name')->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Stase Success',
+            'result' => [
+                'taken_stase' => $takenLogs,
+                'available_stase' => $availableStase,
+            ],
+        ]);
+    }
+
+    public function storeStudentStase(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType === 'user' && $request->student_id) {
+            $studentId = (int) $request->student_id;
+        }
+
+        if (!$studentId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $this->validate($request, [
+            'stase_id' => 'required|integer|exists:stases,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $log = StaseLog::create([
+            'student_id' => $studentId,
+            'stase_id' => $request->stase_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Student Stase Success',
+            'result' => $log,
+        ]);
+    }
+
     public function validateData($request)
     {
         $this->validate($request, [

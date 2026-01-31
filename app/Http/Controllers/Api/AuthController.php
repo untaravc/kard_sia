@@ -422,7 +422,6 @@ class AuthController extends Controller
                 ['label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities"],
                 ['label' => 'Presences', 'icon' => 'resident', 'to' => "{$basePath}/presences"],
                 ['label' => 'Logbooks', 'icon' => 'agenda', 'to' => "{$basePath}/logbooks"],
-                ['label' => 'Monthly', 'icon' => 'agenda', 'to' => "{$basePath}/presences/monthly"],
             ],
             'lecture' => [
                 ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-lecture"],

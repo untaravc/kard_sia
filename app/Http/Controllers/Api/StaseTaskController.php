@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StaseTask;
+use App\Models\StaseTaskLog;
 use Illuminate\Http\Request;
 
 class StaseTaskController extends Controller
@@ -92,6 +93,65 @@ class StaseTaskController extends Controller
             'success' => true,
             'text' => 'Delete Stase Task Success',
             'result' => null,
+        ]);
+    }
+
+    public function studentStaseTask(Request $request, $stase_id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        $tasks = StaseTask::with([
+            'task',
+            'lecture',
+            'stase',
+            'openStaseTasks' => function ($query) use ($authType, $authId) {
+                if ($authType === 'student' && $authId) {
+                    $query->whereStudentId($authId);
+                }
+                $query->with(['lecture', 'files'])->orderByDesc('created_at');
+            },
+        ])
+            ->where('stase_id', $stase_id)
+            ->orderBy('name')
+            ->get();
+
+        if ($authType === 'student' && $authId) {
+            foreach ($tasks as $task) {
+                $logs = StaseTaskLog::with('lecture')
+                    ->whereStudentId($authId)
+                    ->whereStaseTaskId($task->id)
+                    ->orderByDesc('date')
+                    ->orderByDesc('id')
+                    ->get();
+                if ($logs->count()) {
+                    $task->setAttribute('stase_task_logs', $logs);
+                }
+                foreach ($task->openStaseTasks as $openTask) {
+                    $logId = StaseTaskLog::whereStudentId($authId)
+                        ->whereLectureId($openTask->lecture_id)
+                        ->whereStaseTaskId($openTask->stase_task_id)
+                        ->value('id');
+                    $openTask->setAttribute('stase_task_log_id', $logId);
+                    if ($logId) {
+                        $openTask->setAttribute('stase_task_log', StaseTaskLog::with('lecture')->find($logId));
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Stase Task Success',
+            'result' => $tasks,
         ]);
     }
 

@@ -1,21 +1,28 @@
 <template>
-    <div class="grid gap-6">
+    <div class="relative grid gap-6">
+        <div class="pointer-events-none absolute inset-0 overflow-hidden">
+            <div class="absolute -top-24 right-0 h-56 w-56 rounded-full bg-amber-200/30 blur-3xl"></div>
+            <div class="absolute -bottom-24 left-8 h-64 w-64 rounded-full bg-sky-200/30 blur-3xl"></div>
+        </div>
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Accreditation Detail</div>
+                <div class="flex items-center gap-3">
+                    <span class="h-2 w-2 rounded-full bg-primary/70"></span>
+                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Accreditation Detail</div>
+                </div>
                 <h1 class="text-2xl font-semibold text-ink">
                     {{ accreditation.title || 'Accreditation' }}
                 </h1>
             </div>
             <router-link
-                class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                class="rounded-xl border border-border bg-white/80 px-4 py-2 text-sm text-muted shadow-sm backdrop-blur"
                 to="/cblu/accreditations"
             >
                 Back
             </router-link>
         </header>
 
-        <section class="relative rounded-2xl border border-border bg-panel p-6">
+        <section class="relative rounded-2xl border border-border/70 bg-gradient-to-br from-white via-white to-amber-50/40 p-6 shadow-sm">
             <Loading :active="loading" :is-full-page="false" />
             <div
                 v-if="errorMessage"
@@ -45,14 +52,6 @@
                     >
                         Detail
                     </button>
-                </div>
-                <div v-if="accreditation.description" class="rounded-xl border border-border bg-white px-4 py-3">
-                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Description</div>
-                    <p class="mt-2 text-sm text-ink ">{{ accreditation.description }}</p>
-                </div>
-                <div v-if="accreditation.content" class="rounded-xl border border-border bg-white px-4 py-3">
-                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Content</div>
-                    <p class="mt-2 text-sm text-ink ">{{ accreditation.content }}</p>
                 </div>
                 <div class="grid gap-3">
                     <div class="text-xs uppercase tracking-[0.2em] text-muted">Accreditation Tree</div>
@@ -86,6 +85,14 @@
             @close="closeDetail"
         >
             <div class="grid gap-4 text-sm text-ink">
+                <div v-if="detailItem.description" class="rounded-xl border border-border bg-white p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Description</div>
+                    <p class="mt-2 text-sm text-ink">{{ detailItem.description }}</p>
+                </div>
+                <div v-if="detailItem.content" class="rounded-xl border border-border bg-white p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Content</div>
+                    <p class="mt-2 text-sm text-ink">{{ detailItem.content }}</p>
+                </div>
                 <div v-if="detailItem.main_element">
                     <div class="text-xs uppercase tracking-[0.2em] text-muted">Main Element</div>
                     <p class="mt-2 whitespace-pre-line">{{ detailItem.main_element }}</p>
@@ -345,16 +352,15 @@ const TreeItem = {
         },
     },
     template: `
-        <div class="rounded-xl border border-border bg-white">
+        <div class="rounded-2xl border border-border/70 bg-gradient-to-br from-white via-white to-amber-50/50 shadow-sm ring-1 ring-primary/5">
             <button
                 class="flex w-full items-start gap-3 px-4 py-3 text-left"
                 type="button"
                 @click="open = !open; $emit('toggle-open', item, open)"
             >
-                <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary/70"></span>
+                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary/70 ring-4 ring-primary/10"></span>
                 <span class="flex-1">
                     <div class="text-sm font-semibold text-ink">{{ item.title || item.idx || 'Accreditation' }}</div>
-                    <div v-if="item.description" class="mt-1 text-xs text-muted">{{ item.description }}</div>
                     <div class="mt-1 text-[11px] text-muted">
                         <span v-if="item.idx">Idx: {{ item.idx }}</span>
                         <span v-if="item.parent_idx"> · Parent: {{ item.parent_idx }}</span>
@@ -375,18 +381,23 @@ const TreeItem = {
                         Detail
                     </button>
                     <button
-                        class="rounded-lg bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary transition hover:bg-primary/15"
+                        class="rounded-lg bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary shadow-sm transition hover:bg-primary/15"
                         type="button"
                         @click.stop="$emit('add-evidence', item)"
                     >
                         Add Evidence
                     </button>
-                    <span v-if="hasChildren" class="text-xs text-muted">{{ open ? 'Hide' : 'Show' }}</span>
+                    <button
+                        v-if="hasChildren"
+                        class="rounded-lg border border-border bg-white px-2 py-1 text-[11px] font-semibold text-muted shadow-sm transition hover:bg-slate-50"
+                        type="button"
+                        @click.stop="open = !open; $emit('toggle-open', item, open)"
+                    >
+                        {{ open ? 'Hide' : 'Show' }}
+                    </button>
                 </div>
             </button>
             <div v-if="open" class="border-t border-border px-4 py-3">
-                <div v-if="item.content" class="mt-3 text-xs text-muted">Content</div>
-                <p v-if="item.content" class="mt-1 text-sm text-ink ">{{ item.content }}</p>
                 <div v-if="item.evidences && item.evidences.length" class="mt-4">
                     <div class="text-xs uppercase tracking-[0.2em] text-muted">Evidence</div>
                     <div class="mt-2 grid gap-2">

@@ -31,6 +31,33 @@ class AccreditationController extends Controller
         $dataContent = Accreditation::whereNull('parent_idx')->orderBy('idx');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate($request->per_page ?? 10);
+        $dataContent->getCollection()->transform(function ($item) {
+            $parentIdx = $item->idx;
+            if (!$parentIdx) {
+                $item->total_children = 0;
+                $item->completed_children = 0;
+                $item->completion_percentage = 0;
+                return $item;
+            }
+
+            $totalChildren = Accreditation::where('type', 'standard')
+                ->where('idx', 'like', $parentIdx . '%')
+                ->where('idx', '!=', $parentIdx)
+                ->count();
+            $completedChildren = Accreditation::where('type', 'standard')
+                ->where('idx', 'like', $parentIdx . '%')
+                ->where('idx', '!=', $parentIdx)
+                ->where('is_complete', 1)
+                ->count();
+
+            $item->total_children = $totalChildren;
+            $item->completed_children = $completedChildren;
+            $item->completion_percentage = $totalChildren > 0
+                ? (int) round(($completedChildren / $totalChildren) * 100)
+                : 0;
+
+            return $item;
+        });
 
         return response()->json([
             'success' => true,

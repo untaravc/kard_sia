@@ -115,6 +115,16 @@ class ActivityController extends Controller
             $today = Carbon::today();
         }
 
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
         $activities = Activity::whereDate('start_date', '=', $today)
             ->where(function ($query) use ($today) {
                 $query->whereNull('end_date')
@@ -122,6 +132,28 @@ class ActivityController extends Controller
             })
             ->orderBy('start_date')
             ->get();
+
+        if ($authType && $authId && $activities->count()) {
+            $activityIds = $activities->pluck('id')->all();
+            if ($authType === 'lecture') {
+                $absences = ActivityLecture::whereIn('activity_id', $activityIds)
+                    ->where('lecture_id', $authId)
+                    ->get()
+                    ->keyBy('activity_id');
+            } else if ($authType === 'student') {
+                $absences = ActivityStudent::whereIn('activity_id', $activityIds)
+                    ->where('student_id', $authId)
+                    ->get()
+                    ->keyBy('activity_id');
+            } else {
+                $absences = collect();
+            }
+
+            $activities->transform(function ($activity) use ($absences) {
+                $activity->setAttribute('absence', $absences->get($activity->id));
+                return $activity;
+            });
+        }
 
         return response()->json([
             'success' => true,

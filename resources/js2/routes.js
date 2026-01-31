@@ -46,8 +46,9 @@ const routes = [
         beforeEnter: requireAuth,
         children: [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default },
-            { path: 'dashboard-student', component: require('./pages/dashboard-student/Index.vue').default },
+            { path: 'dashboard-student', redirect: 'dashboard-student/profile' },
             { path: 'dashboard-student/scoring', component: require('./pages/dashboard-student/Scoring.vue').default },
+            { path: 'dashboard-student/scoring/:stase_log_id', component: require('./pages/dashboard-student/ScoringDetail.vue').default },
             { path: 'dashboard-student/agenda', component: require('./pages/dashboard-student/Agenda.vue').default },
             { path: 'dashboard-student/report', component: require('./pages/dashboard-student/Report.vue').default },
             { path: 'dashboard-student/document', component: require('./pages/dashboard-student/Document.vue').default },
@@ -58,6 +59,7 @@ const routes = [
             { path: 'dashboard-lecture/report', component: require('./pages/dashboard-lecture/Report.vue').default },
             { path: 'dashboard-lecture/document', component: require('./pages/dashboard-lecture/Document.vue').default },
             { path: 'dashboard-lecture/profile', component: require('./pages/dashboard-lecture/Profile.vue').default },
+            { path: 'release-note', component: require('./pages/markdown/ReleaseNote.vue').default },
             { path: 'users', component: require('./pages/users/Index.vue').default },
             { path: 'logbooks', component: require('./pages/logbooks/Index.vue').default },
             { path: 'logbooks/bulk', component: require('./pages/logbooks/AddBulk.vue').default },

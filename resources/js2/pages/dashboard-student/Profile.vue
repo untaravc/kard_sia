@@ -45,6 +45,12 @@
                 >
                     Edit Profile
                 </button>
+                <router-link
+                    class="mt-3 block w-full rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                    to="/cblu/release-note"
+                >
+                    Release Notes
+                </router-link>
             </div>
         </div>
         <Modal

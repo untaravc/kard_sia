@@ -26,8 +26,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('users', 'Api\UserController');
     Route::resource('stases', 'Api\StaseController');
     Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
+    Route::get('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'studentStase']);
+    Route::post('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'storeStudentStase']);
     Route::get('stase-option/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'staseOption']);
     Route::resource('stase-tasks', 'Api\StaseTaskController');
+    Route::get('student-stase-task/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask']);
     Route::resource('tasks', 'Api\TaskController');
     Route::resource('lectures', 'Api\LectureController');
     Route::get('lecture-list', [\App\Http\Controllers\Api\LectureController::class, 'list']);
@@ -37,7 +40,13 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'updateProfile']);
     Route::get('activities-today', [ActivityController::class, 'activitiesToday']);
     Route::post('activity-presence/{activity_id}', [ActivityController::class, 'presence']);
+    Route::get('release-note', [\App\Http\Controllers\Api\MarkdownController::class, 'releaseNote']);
     Route::get('open-stase-tasks', [OpenStaseTaskController::class, 'openStaseTask']);
+    Route::post('open-stase-task', [OpenStaseTaskController::class, 'create']);
+    Route::patch('open-stase-task/{id}', [OpenStaseTaskController::class, 'update']);
+    Route::delete('open-stase-task/{id}', [OpenStaseTaskController::class, 'destroy']);
+    Route::get('open-stase-task/{id}', [OpenStaseTaskController::class, 'show']);
+    Route::post('files', [\App\Http\Controllers\Api\FileController::class, 'create']);
     Route::get('generate-task-log-detail', [ScoreController::class, 'generateTaskLogDetail']);
     Route::get('scoring-stat', [ScoreController::class, 'stat']);
     Route::post('stase-task-logs-update-score/{id}', [ScoreController::class, 'staseTaskLogUpdate']);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\BaseTrait;
 use App\Models\OpenStaseTask;
 use App\Models\StaseTaskLog;
 use Illuminate\Http\Request;
@@ -10,6 +11,57 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class OpenStaseTaskController extends Controller
 {
+    use BaseTrait;
+    public function create(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'stase_task_id' => 'required|integer',
+            'title' => 'required|string',
+            'plan' => 'required|date',
+            'lecture_ids' => 'required|array',
+        ]);
+
+        $created = [];
+        foreach ($request->lecture_ids as $lectureId) {
+            if (!$lectureId) {
+                continue;
+            }
+            $created[] = OpenStaseTask::create([
+                'student_id' => $authId,
+                'stase_task_id' => $request->stase_task_id,
+                'lecture_id' => $lectureId,
+                'title' => $request->title,
+                'plan' => $request->plan,
+                'link_token' => $this->generateRandomString(17),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Open Stase Task Success',
+            'result' => $created,
+        ]);
+    }
+
     public function openStaseTask(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');
@@ -105,6 +157,129 @@ class OpenStaseTaskController extends Controller
             'success' => true,
             'text' => 'Retrieve Open Stase Tasks Success',
             'result' => $paginator,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $this->validate($request, [
+            'title' => 'required|string',
+            'plan' => 'required|date',
+        ]);
+
+        $task = OpenStaseTask::whereStudentId($authId)->find($id);
+        if (!$task) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Open stase task not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $task->update([
+            'title' => $request->title,
+            'plan' => $request->plan,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Open Stase Task Success',
+            'result' => $task->fresh(),
+        ]);
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $task = OpenStaseTask::whereStudentId($authId)->find($id);
+        if (!$task) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Open stase task not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $task->delete();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Delete Open Stase Task Success',
+            'result' => null,
+        ]);
+    }
+
+    public function show(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        $query = OpenStaseTask::with(['files', 'lecture', 'staseTask']);
+
+        if ($authType === 'student' && $authId) {
+            $query->whereStudentId($authId);
+        } elseif ($authType === 'lecture' && $authId) {
+            $query->whereLectureId($authId);
+        }
+
+        $task = $query->find($id);
+        if (!$task) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Open stase task not found',
+                'result' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Open Stase Task Success',
+            'result' => $task,
         ]);
     }
 }
