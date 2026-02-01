@@ -41,6 +41,16 @@ const routes = [
         beforeEnter: redirectIfAuth,
     },
     {
+        path: admin_prefix + '/login-email',
+        component: require('./pages/auth/LoginEmail.vue').default,
+        beforeEnter: redirectIfAuth,
+    },
+    {
+        path: admin_prefix + '/login-phone',
+        component: require('./pages/auth/LoginPhone.vue').default,
+        beforeEnter: redirectIfAuth,
+    },
+    {
         path: admin_prefix,
         component: require('./pages/Layout.vue').default,
         beforeEnter: requireAuth,

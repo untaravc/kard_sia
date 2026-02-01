@@ -14,9 +14,11 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $dataContent = Student::orderBy('name');
+        $dataContent = Student::leftJoin('student_profiles', 'student_profiles.student_id', '=', 'students.id')
+            ->select('students.*', 'student_profiles.phone as phone')
+            ->orderBy('students.name');
         $dataContent = $this->withFilter($dataContent, $request);
-        $dataContent = $dataContent->paginate(10);
+        $dataContent = $dataContent->paginate(15);
 
         return response()->json([
             'success' => true,
@@ -191,8 +193,8 @@ class StudentController extends Controller
 
         if ($request->keyword != null) {
             $dataContent = $dataContent->where(function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->keyword . '%');
-                $q->orWhere('email', 'LIKE', '%' . $request->keyword . '%');
+                $q->where('students.name', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('students.email', 'LIKE', '%' . $request->keyword . '%');
             });
         }
 

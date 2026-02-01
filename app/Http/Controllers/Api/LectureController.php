@@ -15,7 +15,9 @@ class LectureController extends Controller
 
     public function index(Request $request)
     {
-        $dataContent = Lecture::orderBy('name');
+        $dataContent = Lecture::leftJoin('lecture_profiles', 'lecture_profiles.lecture_id', '=', 'lectures.id')
+            ->select('lectures.*', 'lecture_profiles.phone as phone')
+            ->orderBy('lectures.name');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);
 
@@ -141,8 +143,8 @@ class LectureController extends Controller
     {
         if ($request->keyword != null) {
             $dataContent = $dataContent->where(function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->keyword . '%');
-                $q->orWhere('email', 'LIKE', '%' . $request->keyword . '%');
+                $q->where('lectures.name', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('lectures.email', 'LIKE', '%' . $request->keyword . '%');
             });
         }
 

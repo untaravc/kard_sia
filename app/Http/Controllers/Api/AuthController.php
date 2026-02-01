@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
 use App\Models\Lecture;
+use App\Models\LectureProfile;
+use App\Models\Student;
+use App\Models\StudentProfile;
 use App\User;
 use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
@@ -281,6 +283,197 @@ class AuthController extends Controller
         return $this->response;
     }
 
+    public function loginEmailRequest(Request $request)
+    {
+        $this->validate($request, [
+            'email' => 'required|email',
+        ]);
+
+        $authUser = null;
+        $authType = null;
+
+        $providers = [
+            'user' => User::class,
+            'lecture' => Lecture::class,
+            'student' => Student::class,
+        ];
+
+        foreach ($providers as $type => $model) {
+            $candidate = $model::whereEmail($request->email)->first();
+            if ($candidate) {
+                $authUser = $candidate;
+                $authType = $type;
+                break;
+            }
+        }
+
+        if (!$authUser) {
+            $this->response['success'] = false;
+            $this->response['text'] = 'No email registered';
+            $this->response['result'] = null;
+            return $this->response;
+        }
+
+        $token = Str::random(100);
+        $authUser->reset_password_token = $token;
+        $authUser->save();
+
+        $link = env('APP_URL') . "/blu/login-email?token={$token}";
+
+        Mail::send('mails.login_email', ['link' => $link], function ($message) use ($authUser) {
+            $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
+            $fromName = config('mail.from.name') ?: config('app.name');
+
+            if ($fromAddress) {
+                $message->from($fromAddress, $fromName);
+            }
+
+            $message->to($authUser->email)
+                ->subject('Login Link');
+        });
+
+        $this->response['success'] = true;
+        $this->response['text'] = 'Login link sent';
+        $this->response['result'] = [
+            'email' => $authUser->email,
+            'auth_type' => $authType,
+        ];
+
+        return $this->response;
+    }
+
+    public function loginPhoneRequest(Request $request)
+    {
+        $this->validate($request, [
+            'phone' => 'required|string',
+        ]);
+
+        $rawPhone = preg_replace('/\D+/', '', $request->phone);
+        if (!$rawPhone) {
+            $this->response['success'] = false;
+            $this->response['text'] = 'Invalid phone number';
+            $this->response['result'] = null;
+            return $this->response;
+        }
+
+        $normalizedPhones = [$rawPhone];
+        $sendPhone = $rawPhone;
+        if (str_starts_with($rawPhone, '0')) {
+            $sendPhone = '62' . substr($rawPhone, 1);
+            $normalizedPhones[] = $sendPhone;
+        } elseif (str_starts_with($rawPhone, '62')) {
+            $normalizedPhones[] = '0' . substr($rawPhone, 2);
+        }
+        $normalizedPhones = array_values(array_unique($normalizedPhones));
+
+        $authUser = null;
+        $authType = null;
+
+        $candidate = User::whereIn('phone', $normalizedPhones)->first();
+        if ($candidate) {
+            $authUser = $candidate;
+            $authType = 'user';
+        } else {
+            $lectureProfile = LectureProfile::whereIn('phone', $normalizedPhones)->first();
+            if ($lectureProfile) {
+                $lecture = Lecture::find($lectureProfile->lecture_id);
+                if ($lecture) {
+                    $authUser = $lecture;
+                    $authType = 'lecture';
+                }
+            }
+        }
+
+        if (!$authUser) {
+            $studentProfile = StudentProfile::whereIn('phone', $normalizedPhones)->first();
+            if ($studentProfile) {
+                $student = Student::find($studentProfile->student_id);
+                if ($student) {
+                    $authUser = $student;
+                    $authType = 'student';
+                }
+            }
+        }
+
+        if (!$authUser) {
+            $this->response['success'] = false;
+            $this->response['text'] = 'No phone registered';
+            $this->response['result'] = null;
+            return $this->response;
+        }
+
+        $token = Str::random(100);
+        $authUser->reset_password_token = $token;
+        $authUser->save();
+
+        $link = env('APP_URL') . "/blu/login-phone?token={$token}";
+        // $message = "Halo";
+        $message = "Login link: \n {$link} \nHarap simpan nomor ini, jika link tidak dapat di klik";
+
+        return app(WhatsAppController::class)->sendMessage($sendPhone, $message);
+
+        $this->response['success'] = true;
+        $this->response['text'] = 'Login link sent';
+        $this->response['result'] = [
+            'auth_type' => $authType,
+        ];
+
+        return $this->response;
+    }
+
+    public function checkLoginEmailToken(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required|string',
+        ]);
+
+        $token = $request->token;
+
+        $providers = [
+            'user' => User::class,
+            'lecture' => Lecture::class,
+            'student' => Student::class,
+        ];
+
+        foreach ($providers as $type => $model) {
+            $candidate = $model::where('reset_password_token', $token)->first();
+            if ($candidate) {
+                $name = data_get($candidate, 'name')
+                    ?? data_get($candidate, 'lectureProfile.name')
+                    ?? data_get($candidate, 'studentProfile.name')
+                    ?? $candidate->email;
+
+                $jwtToken = $this->buildToken([
+                    'email' => $candidate->email,
+                    'auth_type' => $type,
+                    'auth_id' => $candidate->id,
+                    'name' => $name,
+                ]);
+
+                $candidate->reset_password_token = null;
+                $candidate->save();
+
+                $this->response['success'] = true;
+                $this->response['text'] = 'Login Success';
+                $this->response['result'] = [
+                    'token' => $jwtToken,
+                    'auth_type' => $type,
+                    'auth_id' => $candidate->id,
+                    'name' => $name,
+                    'email' => $candidate->email,
+                ];
+
+                return $this->response;
+            }
+        }
+
+        $this->response['success'] = false;
+        $this->response['text'] = 'Token invalid';
+        $this->response['result'] = null;
+
+        return $this->response;
+    }
+
     public function checkResetPasswordToken(Request $request)
     {
         $this->validate($request, [
@@ -352,6 +545,59 @@ class AuthController extends Controller
         $this->response['status'] = false;
         $this->response['text'] = 'Token invalid';
         $this->response['data'] = null;
+
+        return $this->response;
+    }
+
+    public function checkLoginPhoneToken(Request $request)
+    {
+        $this->validate($request, [
+            'token' => 'required|string',
+        ]);
+
+        $token = $request->token;
+
+        $providers = [
+            'user' => User::class,
+            'lecture' => Lecture::class,
+            'student' => Student::class,
+        ];
+
+        foreach ($providers as $type => $model) {
+            $candidate = $model::where('reset_password_token', $token)->first();
+            if ($candidate) {
+                $name = data_get($candidate, 'name')
+                    ?? data_get($candidate, 'lectureProfile.name')
+                    ?? data_get($candidate, 'studentProfile.name')
+                    ?? $candidate->email;
+
+                $jwtToken = $this->buildToken([
+                    'email' => $candidate->email,
+                    'auth_type' => $type,
+                    'auth_id' => $candidate->id,
+                    'name' => $name,
+                ]);
+
+                $candidate->reset_password_token = null;
+                $candidate->save();
+
+                $this->response['success'] = true;
+                $this->response['text'] = 'Login Success';
+                $this->response['result'] = [
+                    'token' => $jwtToken,
+                    'auth_type' => $type,
+                    'auth_id' => $candidate->id,
+                    'name' => $name,
+                    'email' => $candidate->email,
+                ];
+
+                return $this->response;
+            }
+        }
+
+        $this->response['success'] = false;
+        $this->response['text'] = 'Token invalid';
+        $this->response['result'] = null;
 
         return $this->response;
     }

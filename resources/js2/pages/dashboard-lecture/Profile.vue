@@ -12,6 +12,7 @@
                     <div class="flex-1">
                         <div class="text-base font-semibold text-ink">{{ user.name }}</div>
                         <div class="text-xs text-muted">{{ user.email }}</div>
+                        <div class="text-xs text-muted" v-if="user.phone">{{ user.phone }}</div>
                     </div>
                 </div>
 

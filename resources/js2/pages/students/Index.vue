@@ -34,8 +34,8 @@
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     >
                         <option :value="null">All</option>
-                        <option :value="1">Active</option>
-                        <option :value="0">Nonactive</option>
+                        <option value="active">Active</option>
+                        <option value="nonactive">Nonactive</option>
                     </select>
                 </div>
                 <div class="flex-1 min-w-[180px]">
@@ -105,6 +105,7 @@
                         </div>
                         <div class="text-xs text-muted">
                             <span v-if="student.email">{{ student.email }}</span>
+                            <span v-if="student.phone">• {{ student.phone }}</span>
                             <span v-if="student.year">• Year: {{ student.year }}</span>
                         </div>
                     </div>

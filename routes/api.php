@@ -10,6 +10,10 @@ use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\CmdController;
 
 Route::post('login', [AuthController::class, 'login']);
+Route::post('login-email', [AuthController::class, 'loginEmailRequest']);
+Route::post('login-phone', [AuthController::class, 'loginPhoneRequest']);
+Route::post('check-login-email-token', [AuthController::class, 'checkLoginEmailToken']);
+Route::post('check-login-phone-token', [AuthController::class, 'checkLoginPhoneToken']);
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('check-reset-password-token', [AuthController::class, 'checkResetPasswordToken']);
 Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordWithToken']);

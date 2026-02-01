@@ -83,6 +83,7 @@
                         </div>
                         <div class="text-xs text-muted">
                             <span v-if="lecture.email">{{ lecture.email }}</span>
+                            <span v-if="lecture.phone">• {{ lecture.phone }}</span>
                             <span v-if="lecture.name_alt">• {{ lecture.name_alt }}</span>
                         </div>
                     </div>

@@ -1,7 +1,10 @@
 <template>
-    <header class="flex items-center justify-between border-b border-border bg-panel px-9 py-3">
+    <header
+        class="flex items-center border-b border-border bg-panel px-9 py-3"
+        :class="isNonUser ? 'justify-end' : 'justify-between'"
+    >
         <button
-            v-if="showToggle"
+            v-if="showToggle && !isNonUser"
             class="grid h-9 w-9 place-items-center rounded-xl border border-border text-ink transition hover:bg-surface/70"
             type="button"
             @click="$emit('toggle-sidebar')"
@@ -10,6 +13,15 @@
             <Icon :icon="collapsed ? 'mdi:menu-open' : 'mdi:menu'" class="h-5 w-5" />
         </button>
         <div class="flex items-center gap-2.5">
+            <button
+                v-if="showToggle && isNonUser"
+                class="grid h-9 w-9 place-items-center rounded-xl border border-border text-ink transition hover:bg-surface/70"
+                type="button"
+                @click="$emit('toggle-sidebar')"
+                title="Toggle sidebar"
+            >
+                <Icon :icon="collapsed ? 'mdi:menu-open' : 'mdi:menu'" class="h-5 w-5" />
+            </button>
             <button
                 v-if="user && user.log_as_auth_type"
                 class="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
@@ -63,6 +75,9 @@ export default {
                 return this.user.log_as_auth_type;
             }
             return this.user && this.user.auth_type ? this.user.auth_type : '';
+        },
+        isNonUser() {
+            return this.authType && this.authType !== 'user';
         },
         displaySubtitle() {
             if (this.user && this.user.email) {

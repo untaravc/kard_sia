@@ -14,28 +14,96 @@
                 </div>
                 <div class="rounded-3xl border border-border bg-panel p-8">
                     <div class="text-lg font-semibold">Sign in</div>
-                    <p class="mt-2 text-sm text-muted">Use your admin email and password.</p>
+                    <p class="mt-2 text-sm text-muted">Choose a sign-in method.</p>
+                    <div class="mt-5 border-b border-border">
+                        <div class="flex flex-wrap gap-2 text-xs font-medium">
+                            <button type="button"
+                                class="relative -mb-px px-3 py-2 transition"
+                                :class="loginMethod === 'password' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted hover:text-ink'"
+                                @click="setLoginMethod('password')">
+                                Email &amp; Password
+                            </button>
+                            <button type="button"
+                                class="relative -mb-px px-3 py-2 transition"
+                                :class="loginMethod === 'email' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted hover:text-ink'"
+                                @click="setLoginMethod('email')">
+                                Email Link
+                            </button>
+                            <button type="button"
+                                class="relative -mb-px px-3 py-2 transition"
+                                :class="loginMethod === 'phone' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted hover:text-ink'"
+                                @click="setLoginMethod('phone')">
+                                Phone
+                            </button>
+                            <button type="button"
+                                class="relative -mb-px px-3 py-2 transition"
+                                :class="loginMethod === 'sso' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted hover:text-ink'"
+                                @click="setLoginMethod('sso')">
+                                Single Sign On
+                            </button>
+                        </div>
+                    </div>
                     <form class="mt-6 grid gap-4">
-                        <label class="grid gap-2 text-sm">
-                            <span class="text-muted">Email</span>
-                            <input type="email" placeholder="admin@kardio.id" v-model.trim="form.email"
-                                class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                        </label>
-                        <label class="grid gap-2 text-sm">
-                            <span class="text-muted">Password</span>
-                            <input type="password" placeholder="Enter your password" v-model="form.password"
-                                class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                        </label>
+                        <template v-if="loginMethod === 'password'">
+                            <label class="grid gap-2 text-sm">
+                                <span class="text-muted">Email</span>
+                                <input type="email" placeholder="admin@kardio.id" v-model.trim="form.email"
+                                    class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                            </label>
+                            <label class="grid gap-2 text-sm">
+                                <span class="text-muted">Password</span>
+                                <input type="password" placeholder="Enter your password" v-model="form.password"
+                                    class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                            </label>
+                        </template>
+                        <template v-else-if="loginMethod === 'email'">
+                            <label class="grid gap-2 text-sm">
+                                <span class="text-muted">Email</span>
+                                <input type="email" placeholder="admin@kardio.id" v-model.trim="emailForm.email"
+                                    class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                            </label>
+                        </template>
+                        <template v-else-if="loginMethod === 'phone'">
+                            <label class="grid gap-2 text-sm">
+                                <span class="text-muted">Phone</span>
+                                <input type="tel" placeholder="+62 812 3456 7890" v-model.trim="phoneForm.phone"
+                                    class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                            </label>
+                        </template>
+                        <template v-else>
+                            <div class="rounded-xl border border-border bg-white px-4 py-3 text-sm text-muted">
+                                Single Sign On is not available yet.
+                            </div>
+                        </template>
                         <p v-if="errorMessage"
                             class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
                             {{ errorMessage }}
                         </p>
-                        <button type="button"
+                        <p v-if="successMessage"
+                            class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                            {{ successMessage }}
+                        </p>
+                        <button v-if="loginMethod === 'password'" type="button"
                             class="mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white"
                             :disabled="loading" @click="login">
                             {{ loading ? 'Signing in...' : 'Sign in' }}
                         </button>
-                        <div class="text-center text-xs text-muted">
+                        <button v-else-if="loginMethod === 'email'" type="button"
+                            class="mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white"
+                            :disabled="loading" @click="requestLoginEmail">
+                            {{ loading ? 'Sending...' : 'Send login link' }}
+                        </button>
+                        <button v-else-if="loginMethod === 'phone'" type="button"
+                            class="mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white"
+                            :disabled="loading" @click="requestLoginPhone">
+                            {{ loading ? 'Sending...' : 'Send login code' }}
+                        </button>
+                        <button v-else type="button"
+                            class="mt-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white"
+                            @click="requestLoginSso">
+                            Continue with SSO
+                        </button>
+                        <div class="text-center text-xs text-muted" v-if="loginMethod === 'password'">
                             <router-link class="text-primary" to="/blu/forgot-password">Forgot your
                                 password?</router-link>
                             Contact IT support if you need help.
@@ -54,18 +122,32 @@ export default {
     name: 'Login',
     data() {
         return {
+            loginMethod: 'password',
             form: {
                 email: '',
                 password: '',
             },
+            emailForm: {
+                email: '',
+            },
+            phoneForm: {
+                phone: '',
+            },
             loading: false,
             errorMessage: '',
+            successMessage: '',
         };
     },
     methods: {
+        setLoginMethod(method) {
+            this.loginMethod = method;
+            this.errorMessage = '';
+            this.successMessage = '';
+        },
         login() {
             this.loading = true;
             this.errorMessage = '';
+            this.successMessage = '';
 
             return Repository.post('/api/login', this.form)
                 .then((response) => {
@@ -93,6 +175,60 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        requestLoginEmail() {
+            this.loading = true;
+            this.errorMessage = '';
+            this.successMessage = '';
+
+            return Repository.post('/api/login-email', this.emailForm)
+                .then((response) => {
+                    const data = response && response.data ? response.data : {};
+                    if (!data.success) {
+                        this.errorMessage = data.text || 'Request failed';
+                        return;
+                    }
+
+                    this.successMessage = data.text || 'Login link sent';
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Request failed';
+                    this.errorMessage = message;
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+        requestLoginPhone() {
+            this.loading = true;
+            this.errorMessage = '';
+            this.successMessage = '';
+
+            return Repository.post('/api/login-phone', this.phoneForm)
+                .then((response) => {
+                    const data = response && response.data ? response.data : {};
+                    if (!data.success) {
+                        this.errorMessage = data.text || 'Request failed';
+                        return;
+                    }
+
+                    this.successMessage = data.text || 'Login link sent';
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Request failed';
+                    this.errorMessage = message;
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+        requestLoginSso() {
+            this.errorMessage = 'Single Sign On is not available yet.';
+            this.successMessage = '';
         },
     },
 };
