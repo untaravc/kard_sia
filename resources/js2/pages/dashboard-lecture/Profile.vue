@@ -26,7 +26,7 @@
                     </button>
                     <router-link
                         class="rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
-                        to="/cblu/release-note"
+                        to="/blu/release-note"
                     >
                         Release Notes
                     </router-link>

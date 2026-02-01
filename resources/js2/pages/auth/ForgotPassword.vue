@@ -24,7 +24,7 @@
                     </button>
                     <div class="text-xs text-muted">
                         Remembered your password?
-                        <router-link class="text-primary" to="/cblu/login">Back to login</router-link>
+                        <router-link class="text-primary" to="/blu/login">Back to login</router-link>
                     </div>
                 </form>
             </div>

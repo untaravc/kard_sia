@@ -10,13 +10,13 @@
                 <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
                     <router-link
                         class="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white"
-                        to="/cblu"
+                        to="/blu"
                     >
                         Back to dashboard
                     </router-link>
                     <router-link
                         class="rounded-xl border border-primary px-5 py-2.5 text-sm font-medium text-primary"
-                        to="/cblu-login"
+                        to="/blu-login"
                     >
                         Go to login
                     </router-link>

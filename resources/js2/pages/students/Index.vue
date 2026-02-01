@@ -344,11 +344,11 @@ export default {
         handleAction(action, student) {
             this.closeActionMenu();
             if (action === 'score') {
-                this.$router.push(`/cblu/students/${student.id}/score`);
+                this.$router.push(`/blu/students/${student.id}/score`);
                 return;
             }
             if (action === 'presence') {
-                this.$router.push(`/cblu/presences/student/${student.id}`);
+                this.$router.push(`/blu/presences/student/${student.id}`);
                 return;
             }
             if (action === 'logAs') {
@@ -503,7 +503,7 @@ export default {
                         return;
                     }
                     localStorage.setItem('token', token);
-                    window.open('/cblu/dashboard', '_blank');
+                    window.open('/blu/dashboard', '_blank');
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to log as student.';

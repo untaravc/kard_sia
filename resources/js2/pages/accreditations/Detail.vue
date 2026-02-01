@@ -16,7 +16,7 @@
             </div>
             <router-link
                 class="rounded-xl border border-border bg-white/80 px-4 py-2 text-sm text-muted shadow-sm backdrop-blur"
-                to="/cblu/accreditations"
+                to="/blu/accreditations"
             >
                 Back
             </router-link>

@@ -1,4 +1,4 @@
-const admin_prefix = '/cblu';
+const admin_prefix = '/blu';
 
 const requireAuth = (to, from, next) => {
     const token = localStorage.getItem('token');

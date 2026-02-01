@@ -8,7 +8,7 @@
                 </h1>
             </div>
             <div class="flex items-center gap-2">
-                <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/cblu/activities">
+                <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/blu/activities">
                     Back
                 </router-link>
                 <button class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white" type="button"
@@ -479,7 +479,7 @@ export default {
             request
                 .then(() => {
                     this.$showToast(this.isEdit ? 'Activity updated successfully.' : 'Activity created successfully.');
-                    this.$router.push('/cblu/activities');
+                    this.$router.push('/blu/activities');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data

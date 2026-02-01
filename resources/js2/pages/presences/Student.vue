@@ -7,7 +7,7 @@
             </div>
             <router-link
                 class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
-                to="/cblu/presences"
+                to="/blu/presences"
             >
                 Back
             </router-link>

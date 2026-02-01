@@ -12,7 +12,7 @@
             </div>
             <router-link
                 class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
-                to="/cblu/dashboard-student/scoring"
+                to="/blu/dashboard-student/scoring"
             >
                 Back
             </router-link>

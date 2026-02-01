@@ -451,7 +451,7 @@ export default {
                         return;
                     }
                     localStorage.setItem('token', token);
-                    window.open('/cblu/dashboard', '_blank');
+                    window.open('/blu/dashboard', '_blank');
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to log as lecture.';

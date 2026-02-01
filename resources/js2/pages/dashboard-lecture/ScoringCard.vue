@@ -11,7 +11,7 @@
                     class="w-full max-w-[220px] rounded-lg border border-border bg-white px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
                     @input="$emit('filter-change', $event.target.value)"
                 />
-                <router-link to="/cblu/scores" class="text-xs text-primary underline">Riwayat penilaian</router-link>
+                <router-link to="/blu/scores" class="text-xs text-primary underline">Riwayat penilaian</router-link>
             </div>
         </div>
         <div class="divide-y divide-border">
@@ -54,7 +54,7 @@
                     </div>
                     <router-link
                         v-if="showScoring(item) && !item.data"
-                        :to="`/cblu/task-scoring/${item.id}`"
+                        :to="`/blu/task-scoring/${item.id}`"
                         class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Nilai
@@ -69,7 +69,7 @@
                     </button>
                     <router-link
                         v-if="showScoring(item) && item.data && !item.data.admin"
-                        :to="`/cblu/task-scoring/${item.id}`"
+                        :to="`/blu/task-scoring/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui
@@ -85,14 +85,14 @@
 
                     <router-link
                         v-if="isTesis(item) && !item.data"
-                        :to="`/cblu/task-scoring-thesis/${item.id}`"
+                        :to="`/blu/task-scoring-thesis/${item.id}`"
                         class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Nilai Thesis
                     </router-link>
                     <router-link
                         v-if="isTesis(item) && item.data"
-                        :to="`/cblu/task-scoring-thesis/${item.id}`"
+                        :to="`/blu/task-scoring-thesis/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui Nilai Thesis
@@ -100,14 +100,14 @@
 
                     <router-link
                         v-if="isProposal(item) && !item.data"
-                        :to="`/cblu/task-scoring-proposal/${item.id}`"
+                        :to="`/blu/task-scoring-proposal/${item.id}`"
                         class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Nilai Proposal
                     </router-link>
                     <router-link
                         v-if="isProposal(item) && item.data"
-                        :to="`/cblu/task-scoring-proposal/${item.id}`"
+                        :to="`/blu/task-scoring-proposal/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui Nilai Proposal

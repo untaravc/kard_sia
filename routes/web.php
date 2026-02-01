@@ -8,7 +8,7 @@ use \App\Http\Controllers\Sadmin\DashboardController;
 use \App\Http\Controllers\Object\PublicController;
 
 Route::get('/', function () {
-    return redirect('/cblu');
+    return redirect('/blu');
 });
 
 Route::get('/usulan-kurikulum', function () {
@@ -98,5 +98,5 @@ Route::get('pass', function (){
    return \Illuminate\Support\Facades\Hash::make('password');
 });
 
-Route::get('/cblu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
-Route::get('/cblu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);
+Route::get('/blu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
+Route::get('/blu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);

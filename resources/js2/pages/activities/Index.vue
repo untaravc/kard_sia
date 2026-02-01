@@ -7,7 +7,7 @@
             </div>
             <router-link
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                to="/cblu/activities/create"
+                to="/blu/activities/create"
             >
                 Add Activity
             </router-link>
@@ -191,7 +191,7 @@ export default {
                 return;
             }
 
-            this.$router.push(`/cblu/activities/${activity.id}`);
+            this.$router.push(`/blu/activities/${activity.id}`);
         },
         deleteActivity(activity) {
             if (!window.confirm(`Delete activity ${activity.name}?`)) {

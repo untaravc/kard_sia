@@ -34,7 +34,7 @@ export default {
     },
     data() {
         return {
-            basePath: '/cblu',
+            basePath: '/blu',
             title: 'Dashboard',
             subtitle: 'Overview for this week',
             collapsed: false,

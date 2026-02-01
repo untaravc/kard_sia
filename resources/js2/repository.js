@@ -12,17 +12,17 @@ const handleError = (error) => {
     if (status === 401) {
         localStorage.removeItem('token');
         if (routerInstance) {
-            routerInstance.push('/cblu/login');
+            routerInstance.push('/blu/login');
         } else {
-            window.location.assign('/cblu/login');
+            window.location.assign('/blu/login');
         }
     }
 
     if (status === 404) {
         if (routerInstance) {
-            routerInstance.push('/cblu/not-found');
+            routerInstance.push('/blu/not-found');
         } else {
-            window.location.assign('/cblu/not-found');
+            window.location.assign('/blu/not-found');
         }
     }
 

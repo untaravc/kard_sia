@@ -5,7 +5,7 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Student Management</div>
                 <h1 class="text-2xl font-semibold text-ink">Student Score</h1>
             </div>
-            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/cblu/students">
+            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" to="/blu/students">
                 Back
             </router-link>
         </header>

@@ -101,7 +101,7 @@
                     <div class="flex items-center gap-2">
                         <router-link
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            :to="`/cblu/accreditations/${accreditation.id}`"
+                            :to="`/blu/accreditations/${accreditation.id}`"
                         >
                             Detail
                         </router-link>

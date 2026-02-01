@@ -36,7 +36,7 @@
                             {{ loading ? 'Signing in...' : 'Sign in' }}
                         </button>
                         <div class="text-center text-xs text-muted">
-                            <router-link class="text-primary" to="/cblu/forgot-password">Forgot your
+                            <router-link class="text-primary" to="/blu/forgot-password">Forgot your
                                 password?</router-link>
                             Contact IT support if you need help.
                         </div>
@@ -81,7 +81,7 @@ export default {
                         localStorage.setItem('token', token);
                     }
 
-                    this.$router.push('/cblu/dashboard');
+                    this.$router.push('/blu/dashboard');
                 })
                 .catch((error) => {
                     console.log("ERROR", error)

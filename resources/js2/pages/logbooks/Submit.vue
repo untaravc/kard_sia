@@ -7,7 +7,7 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
-                    :to="'/cblu/logbooks/bulk'">
+                    :to="'/blu/logbooks/bulk'">
                     Add Bulk
                 </router-link>
                 <button class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white" type="button"

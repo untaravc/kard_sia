@@ -48,7 +48,7 @@
                             </div>
                             <router-link
                                 class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
-                                :to="`/cblu/dashboard-student/scoring/${log.id}`"
+                                :to="`/blu/dashboard-student/scoring/${log.id}`"
                             >
                                 Detail
                             </router-link>

@@ -257,7 +257,7 @@ class AuthController extends Controller
         $authUser->reset_password_token = $token;
         $authUser->save();
 
-        $link = env('APP_URL') . "/cblu/reset-password?token={$token}";
+        $link = env('APP_URL') . "/blu/reset-password?token={$token}";
 
         Mail::send('mails.reset_password', ['token' => $link], function ($message) use ($authUser) {
             $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
@@ -358,7 +358,7 @@ class AuthController extends Controller
 
     public function menu(Request $request)
     {
-        $basePath = $request->get('basePath', '/cblu');
+        $basePath = $request->get('basePath', '/blu');
         $payload = $request->attributes->get('jwt_payload');
         $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
         if (!$authType) {

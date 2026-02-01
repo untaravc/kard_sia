@@ -133,7 +133,7 @@ export default {
                         return;
                     }
                     localStorage.setItem('token', token);
-                    window.location.href = '/cblu/dashboard';
+                    window.location.href = '/blu/dashboard';
                 })
                 .catch(() => {});
         },

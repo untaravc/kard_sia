@@ -84,7 +84,7 @@ export default {
     props: {
         basePath: {
             type: String,
-            default: '/cblu',
+            default: '/blu',
         },
         collapsed: {
             type: Boolean,

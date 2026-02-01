@@ -45,14 +45,14 @@
                 <div class="flex items-center gap-2">
                     <router-link
                         v-if="showScoring(item) && !item.data"
-                        :to="`/cblu/task-scoring/${item.id}`"
+                        :to="`/blu/task-scoring/${item.id}`"
                         class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
                     >
                         Nilai
                     </router-link>
                     <router-link
                         v-if="showScoring(item) && item.data"
-                        :to="`/cblu/task-scoring/${item.id}`"
+                        :to="`/blu/task-scoring/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui
@@ -60,14 +60,14 @@
 
                     <router-link
                         v-if="isTesis(item) && !item.data"
-                        :to="`/cblu/task-scoring-thesis/${item.id}`"
+                        :to="`/blu/task-scoring-thesis/${item.id}`"
                         class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
                     >
                         Nilai
                     </router-link>
                     <router-link
                         v-if="isTesis(item) && item.data"
-                        :to="`/cblu/task-scoring-thesis/${item.id}`"
+                        :to="`/blu/task-scoring-thesis/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui
@@ -75,14 +75,14 @@
 
                     <router-link
                         v-if="isProposal(item) && !item.data"
-                        :to="`/cblu/task-scoring-proposal/${item.id}`"
+                        :to="`/blu/task-scoring-proposal/${item.id}`"
                         class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
                     >
                         Nilai
                     </router-link>
                     <router-link
                         v-if="isProposal(item) && item.data"
-                        :to="`/cblu/task-scoring-proposal/${item.id}`"
+                        :to="`/blu/task-scoring-proposal/${item.id}`"
                         class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
                     >
                         Perbarui

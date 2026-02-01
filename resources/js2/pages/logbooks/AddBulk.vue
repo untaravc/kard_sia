@@ -5,7 +5,7 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Logbook</div>
                 <h1 class="text-2xl font-semibold text-ink">Create Bulk Logbook</h1>
             </div>
-            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" :to="'/cblu/logbooks'">
+            <router-link class="rounded-xl border border-border px-4 py-2 text-sm text-muted" :to="'/blu/logbooks'">
                 Back to Logbooks
             </router-link>
         </header>
