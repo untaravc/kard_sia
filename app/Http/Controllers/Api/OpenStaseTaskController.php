@@ -83,16 +83,20 @@ class OpenStaseTaskController extends Controller
             ], 403);
         }
 
-        $data = OpenStaseTask::with([
-            'student',
-            'lecture',
-            'files',
-            'staseTask' => function ($query) {
-                $query->with([
-                    'stase',
-                    'task',
-                ]);
-            },
+        $data = OpenStaseTask::select([
+            'id',
+            'student_id',
+            'lecture_id',
+            'stase_task_id',
+            'title',
+            'plan',
+            'created_at',
+        ])->with([
+            'student:id,name,email',
+            'files:id,open_stase_task_id,title,link',
+            'staseTask:id,name,stase_id,task_id',
+            'staseTask.stase:id,name',
+            'staseTask.task:id,desc',
         ])
             ->where(function ($query) use ($authId) {
                 $query->where('lecture_id', $authId)
@@ -117,11 +121,25 @@ class OpenStaseTaskController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $data->each->setAppends([]);
+
+        $studentIds = $data->pluck('student_id')->filter()->unique()->values();
+        $staseTaskIds = $data->pluck('stase_task_id')->filter()->unique()->values();
+
+        $logsByKey = collect();
+        if ($studentIds->isNotEmpty() && $staseTaskIds->isNotEmpty()) {
+            $logsByKey = StaseTaskLog::whereLectureId($authId)
+                ->whereIn('student_id', $studentIds)
+                ->whereIn('stase_task_id', $staseTaskIds)
+                ->get(['id', 'student_id', 'stase_task_id', 'point_average', 'admin'])
+                ->keyBy(function ($log) {
+                    return $log->student_id . '-' . $log->stase_task_id;
+                });
+        }
+
         foreach ($data as $item) {
-            $item->setAttribute('data', StaseTaskLog::whereLectureId($authId)
-                ->whereStudentId(data_get($item, 'student.id', 0))
-                ->whereStaseTaskId(data_get($item, 'staseTask.id'))
-                ->first());
+            $key = $item->student_id . '-' . $item->stase_task_id;
+            $item->setAttribute('data', $logsByKey->get($key));
         }
 
         $blank = [];

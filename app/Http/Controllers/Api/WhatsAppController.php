@@ -24,8 +24,6 @@ class WhatsAppController extends Controller
                     'message' => $message,
                 ],
             ]);
-
-            return "SUCCESS " . $number;
         } catch (Exception $e) {
            return $e->getMessage();
         }

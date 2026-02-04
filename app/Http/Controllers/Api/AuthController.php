@@ -410,7 +410,7 @@ class AuthController extends Controller
         // $message = "Halo";
         $message = "Login link: \n {$link} \nHarap simpan nomor ini, jika link tidak dapat di klik";
 
-        return app(WhatsAppController::class)->sendMessage($sendPhone, $message);
+        app(WhatsAppController::class)->sendMessage($sendPhone, $message);
 
         $this->response['success'] = true;
         $this->response['text'] = 'Login link sent';
