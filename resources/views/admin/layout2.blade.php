@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>SIA Kardio</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/assets/images/logo-blu-sm.png">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
 </head>
 <body>

@@ -116,6 +116,7 @@
 </template>
 
 <script>
+import { initWebFcm } from '../../firebase/messaging';
 import Repository from '../../repository';
 
 export default {
@@ -161,6 +162,9 @@ export default {
                     const token = data.result ? data.result.token : null;
                     if (token) {
                         localStorage.setItem('token', token);
+                        initWebFcm().catch(() => {
+                            // Ignore FCM init errors after login.
+                        });
                     }
 
                     this.$router.push('/blu/dashboard');

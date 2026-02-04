@@ -5,6 +5,7 @@ import Vue from 'vue';
 import VueCompositionApi from '@vue/composition-api';
 import { PiniaVuePlugin, createPinia } from 'pinia';
 import ToastPlugin from './toaster';
+import { initWebFcm } from './firebase/messaging';
 
 //VUE ROUTER
 import VueRouter from 'vue-router'
@@ -23,6 +24,11 @@ const router = new VueRouter({
     routes
 });
 
+router.afterEach((to) => {
+    const pageName = to && to.meta && to.meta.page_name ? to.meta.page_name : null;
+    document.title = pageName ? `BLU | ${pageName}` : 'BLU';
+});
+
 const pinia = createPinia();
 
 const app = new Vue({
@@ -30,4 +36,8 @@ const app = new Vue({
     router,
     pinia,
     template: '<router-view />',
+});
+
+initWebFcm().catch(() => {
+    // Optional: ignore FCM initialization errors.
 });

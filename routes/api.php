@@ -20,6 +20,7 @@ Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('check-reset-password-token', [AuthController::class, 'checkResetPasswordToken']);
 Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordWithToken']);
 Route::get('firebase-config', [AuthController::class, 'firebaseConfig']);
+Route::post('push-notifications', [\App\Http\Controllers\Api\NotificationController::class, 'pushNotif']);
 Route::get('cmd/clear-open-stase-task', [CmdController::class, 'celarOpenStaseTask']);
 Route::get('cmd/insert-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'insertInitData']);
 
@@ -77,4 +78,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('presences/monthly', [\App\Http\Controllers\Api\PresenceController::class, 'monthly']);
     Route::get('presences/student/{student_id}', [\App\Http\Controllers\Api\PresenceController::class, 'student']);
     Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
+    Route::resource('device-tokens', 'Api\DeviceTokenController');
+    Route::resource('notifications', 'Api\NotificationController');
 });

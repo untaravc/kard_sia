@@ -49,11 +49,7 @@ class AuthController extends Controller
 
     private function isAllowedSsoDomain(?string $email)
     {
-        if (!$email) {
-            return false;
-        }
-
-        return Str::endsWith(Str::lower($email), '@blu.kardiologi-fkkmk.com');
+        return !empty($email);
     }
 
     public function loginGoogleRedirect()
@@ -209,6 +205,7 @@ class AuthController extends Controller
             'messagingSenderId' => env('FB_MESSAGING_SENDER_ID'),
             'appId' => env('FB_APP_ID'),
             'measurementId' => env('FB_MEASUREMENT_ID'),
+            'vapidKey' => env('FB_VAPID_KEY'),
         ];
 
         return $this->response;

@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import { initWebFcm } from '../../firebase/messaging';
 import Repository from '../../repository';
 
 export default {
@@ -59,6 +60,9 @@ export default {
                 const jwtToken = data.result ? data.result.token : null;
                 if (jwtToken) {
                     localStorage.setItem('token', jwtToken);
+                    initWebFcm().catch(() => {
+                        // Ignore FCM init errors after login.
+                    });
                 }
 
                 this.statusMessage = 'Login success.';
