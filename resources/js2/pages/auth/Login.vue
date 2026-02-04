@@ -227,9 +227,23 @@ export default {
                 });
         },
         requestLoginSso() {
-            this.errorMessage = 'Single Sign On is not available yet.';
+            this.errorMessage = '';
             this.successMessage = '';
+            window.location.href = '/api/login-google/redirect';
         },
+    },
+    mounted() {
+        const token = this.$route && this.$route.query ? this.$route.query.token : null;
+        const error = this.$route && this.$route.query ? this.$route.query.error : null;
+
+        if (error) {
+            this.errorMessage = Array.isArray(error) ? error[0] : error;
+        }
+
+        if (token) {
+            localStorage.setItem('token', token);
+            this.$router.replace('/blu/dashboard');
+        }
     },
 };
 </script>

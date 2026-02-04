@@ -13,6 +13,7 @@ use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -32,6 +33,90 @@ class AuthController extends Controller
         ], $baseClaims, $overrides);
 
         return JWT::encode($claims, env('JWT_SECRET'), 'HS256');
+    }
+
+    private function buildLoginRedirectUrl(array $params = [])
+    {
+        $baseUrl = rtrim(env('APP_URL'), '/');
+        $url = $baseUrl . '/blu/login';
+
+        if ($params) {
+            $url .= '?' . http_build_query($params);
+        }
+
+        return $url;
+    }
+
+    private function isAllowedSsoDomain(?string $email)
+    {
+        if (!$email) {
+            return false;
+        }
+
+        return Str::endsWith(Str::lower($email), '@blu.kardiologi-fkkmk.com');
+    }
+
+    public function loginGoogleRedirect()
+    {
+        return Socialite::driver('google')->stateless()->redirect();
+    }
+
+    public function loginGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (\Throwable $e) {
+            return redirect($this->buildLoginRedirectUrl([
+                'error' => 'Google authentication failed',
+            ]));
+        }
+
+        $email = $googleUser ? $googleUser->getEmail() : null;
+        if (!$this->isAllowedSsoDomain($email)) {
+            return redirect($this->buildLoginRedirectUrl([
+                'error' => 'Email domain not allowed',
+            ]));
+        }
+
+        $authUser = null;
+        $authType = null;
+
+        $providers = [
+            'user' => User::class,
+            'lecture' => Lecture::class,
+            'student' => Student::class,
+        ];
+
+        foreach ($providers as $type => $model) {
+            $candidate = $model::whereEmail($email)->first();
+            if ($candidate) {
+                $authUser = $candidate;
+                $authType = $type;
+                break;
+            }
+        }
+
+        if (!$authUser) {
+            return redirect($this->buildLoginRedirectUrl([
+                'error' => 'No account registered for this email',
+            ]));
+        }
+
+        $name = data_get($authUser, 'name')
+            ?? data_get($authUser, 'lectureProfile.name')
+            ?? data_get($authUser, 'studentProfile.name')
+            ?? $authUser->email;
+
+        $token = $this->buildToken([
+            'email' => $authUser->email,
+            'auth_type' => $authType,
+            'auth_id' => $authUser->id,
+            'name' => $name,
+        ]);
+
+        return redirect($this->buildLoginRedirectUrl([
+            'token' => $token,
+        ]));
     }
 
     public function login(Request $request)

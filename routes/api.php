@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\CmdController;
 
 Route::post('login', [AuthController::class, 'login']);
+Route::get('login-google/redirect', [AuthController::class, 'loginGoogleRedirect']);
+Route::get('login-google/callback', [AuthController::class, 'loginGoogleCallback']);
 Route::post('login-email', [AuthController::class, 'loginEmailRequest']);
 Route::post('login-phone', [AuthController::class, 'loginPhoneRequest']);
 Route::post('check-login-email-token', [AuthController::class, 'checkLoginEmailToken']);
