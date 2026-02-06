@@ -29,6 +29,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('menu', [AuthController::class, 'menu']);
     Route::post('log-as', [AuthController::class, 'logAs']);
     Route::post('logout-as', [AuthController::class, 'logoutAs']);
+    Route::post('logout', [AuthController::class, 'logout']);
 
     Route::resource('users', 'Api\UserController');
     Route::resource('stases', 'Api\StaseController');
@@ -36,6 +37,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'studentStase']);
     Route::post('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'storeStudentStase']);
     Route::get('stase-option/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'staseOption']);
+    Route::get('student-logs/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'studentLog']);
     Route::resource('stase-tasks', 'Api\StaseTaskController');
     Route::get('student-stase-task/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask']);
     Route::resource('tasks', 'Api\TaskController');

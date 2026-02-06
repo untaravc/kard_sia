@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\FormOption;
+use App\Models\Stase;
+use App\Models\Student;
 use App\Models\StudentLog;
 use App\Models\StudentLogSkill;
 use Illuminate\Http\Request;
@@ -288,6 +290,52 @@ class LogbookController extends Controller
         ]);
     }
 
+    public function studentLog(Request $request, $stase_id)
+    {
+        $studentId = $this->resolveStudentId($request);
+
+        if (!$studentId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $data = $this->buildStudentLogData($studentId, $stase_id);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Logbook Success',
+            'result' => $data['result'],
+            'categories' => $data['categories'],
+        ]);
+    }
+
+    public function print($student_id, $stase_id)
+    {
+        $student = Student::find($student_id);
+        $stase = Stase::find($stase_id);
+
+        if (!$student || !$stase) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student or stase not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $data = $this->buildStudentLogData($student->id, $stase->id, false);
+        $name = 'Logbook - ' . $student->name . ' - ' . $stase->name;
+
+        return view('templates.pdf.logbook', [
+            'data' => $data['result'],
+            'student' => $student,
+            'stase' => $stase,
+            'name' => $name,
+        ]);
+    }
+
     private function resolveStudentId(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');
@@ -305,5 +353,57 @@ class LogbookController extends Controller
         }
 
         return $request->student_id;
+    }
+
+    private function buildStudentLogData($studentId, $staseId, $orderDesc = true)
+    {
+        $group = StudentLog::with(['lecture'])
+            ->whereStudentId($studentId)
+            ->whereStaseId($staseId)
+            ->when($orderDesc, function ($query) {
+                $query->orderByDesc('date');
+            }, function ($query) {
+                $query->orderBy('date');
+            })
+            ->get();
+
+        $formData = FormOption::whereRelationId($staseId)
+            ->whereType('stase-logbook')
+            ->get();
+
+        $categories = FormOption::whereRelationId($staseId)
+            ->whereType('logbook-cat')
+            ->get();
+
+        $studentLogSkills = StudentLogSkill::whereStudentId($studentId)
+            ->whereStaseId($staseId)
+            ->get();
+
+        foreach ($formData as $data) {
+            $data->setAttribute('logbook', $group->where('type', $data->value)->flatten());
+        }
+
+        $result = [];
+        foreach ($formData as $data) {
+            if (count($data['logbook']) > 0 || $data['status'] == 1) {
+                $result[] = $data;
+            }
+        }
+
+        foreach ($result as $item) {
+            foreach ($item['logbook'] as $logbook) {
+                $skillList = $studentLogSkills->where('student_log_id', $logbook['id'])->flatten();
+                $skills = [];
+                foreach ($skillList as $skill) {
+                    $skills[$skill->form_option_id] = true;
+                }
+                $logbook->setAttribute('skills', $skills);
+            }
+        }
+
+        return [
+            'result' => $result,
+            'categories' => $categories,
+        ];
     }
 }

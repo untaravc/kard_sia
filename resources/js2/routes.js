@@ -78,7 +78,7 @@ const routes = [
             { path: 'release-note', component: require('./pages/markdown/ReleaseNote.vue').default, meta: { page_name: 'Release Note' } },
             { path: 'users', component: require('./pages/users/Index.vue').default, meta: { page_name: 'Users' } },
             { path: 'logbooks', component: require('./pages/logbooks/Index.vue').default, meta: { page_name: 'Logbooks' } },
-            { path: 'logbooks/bulk', component: require('./pages/logbooks/AddBulk.vue').default, meta: { page_name: 'Logbooks Bulk' } },
+            { path: 'logbook-student', component: require('./pages/logbooks/Student.vue').default, meta: { page_name: 'Logbooks' } },
             { path: 'stases', component: require('./pages/stases/Index.vue').default, meta: { page_name: 'Stases' } },
             { path: 'tasks', component: require('./pages/tasks/Index.vue').default, meta: { page_name: 'Tasks' } },
             { path: 'accreditations', component: require('./pages/accreditations/Index.vue').default, meta: { page_name: 'Accreditations' } },

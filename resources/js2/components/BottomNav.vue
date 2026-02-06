@@ -9,8 +9,14 @@
                 active-class="text-primary"
                 exact-active-class="text-primary"
             >
-                <span class="grid h-8 w-8 place-items-center rounded-xl bg-slate-100 text-primary/80">
+                <span class="relative grid h-8 w-8 place-items-center rounded-xl bg-slate-100 text-primary/80">
                     <Icon :icon="resolveIcon(item.icon)" class="h-4 w-4" />
+                    <span
+                        v-if="badgeCount(item) > 0"
+                        class="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-rose-500 px-1 text-[9px] font-semibold text-white"
+                    >
+                        {{ badgeCount(item) }}
+                    </span>
                 </span>
                 <span class="truncate">{{ item.label }}</span>
             </router-link>
@@ -31,10 +37,6 @@ export default {
             type: String,
             default: '/blu',
         },
-        authType: {
-            type: String,
-            default: '',
-        },
     },
     data() {
         return {
@@ -42,35 +44,6 @@ export default {
         };
     },
     computed: {
-        studentItems() {
-            const base = `${this.basePath}/dashboard-student`;
-            return [
-                { label: 'Scoring', icon: 'mdi:clipboard-check-outline', to: `${base}/scoring` },
-                { label: 'Agenda', icon: 'mdi:calendar-month-outline', to: `${base}/agenda` },
-                { label: 'Logbooks', icon: 'mdi:notebook-outline', to: `${this.basePath}/logbooks` },
-                { label: 'Accreditations', icon: 'mdi:certificate-outline', to: `${this.basePath}/accreditations` },
-                { label: 'Profile', icon: 'mdi:account-outline', to: `${base}/profile` },
-            ];
-        },
-        lectureItems() {
-            const base = `${this.basePath}/dashboard-lecture`;
-            return [
-                { label: 'Scoring', icon: 'mdi:clipboard-check-outline', to: `${base}/scoring` },
-                { label: 'Agenda', icon: 'mdi:calendar-month-outline', to: `${base}/agenda` },
-                { label: 'Report', icon: 'mdi:file-chart-outline', to: `${base}/report` },
-                { label: 'Accreditations', icon: 'mdi:certificate-outline', to: `${this.basePath}/accreditations` },
-                { label: 'Profile', icon: 'mdi:account-outline', to: `${base}/profile` },
-            ];
-        },
-        roleItems() {
-            if (this.authType === 'student') {
-                return this.studentItems;
-            }
-            if (this.authType === 'lecture') {
-                return this.lectureItems;
-            }
-            return [];
-        },
         normalizedMenu() {
             const flattened = [];
             this.menuItems.forEach((item) => {
@@ -97,9 +70,6 @@ export default {
             ];
         },
         displayItems() {
-            if (this.roleItems.length) {
-                return this.roleItems;
-            }
             const merged = [...this.normalizedMenu];
             if (merged.length < 5) {
                 this.defaultItems.forEach((item) => {
@@ -117,6 +87,12 @@ export default {
     methods: {
         resolveIcon(iconKey) {
             return ICONS[iconKey] || iconKey || 'mdi:circle';
+        },
+        badgeCount(item) {
+            if (item && Number.isFinite(item.counter)) {
+                return item.counter;
+            }
+            return 0;
         },
         fetchMenu() {
             return Repository.get('/api/menu', {

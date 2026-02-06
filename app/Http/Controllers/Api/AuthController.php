@@ -7,7 +7,11 @@ use App\Models\Lecture;
 use App\Models\LectureProfile;
 use App\Models\Student;
 use App\Models\StudentProfile;
+use App\Models\Activity;
+use App\Models\ActivityLecture;
+use App\Models\ActivityStudent;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Hash;
@@ -692,6 +696,44 @@ class AuthController extends Controller
         if (!$authType) {
             $authType = $payload ? data_get($payload, 'auth_type') : null;
         }
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        $todayAgendaCount = 0;
+        if (in_array($authType, ['student', 'lecture'], true)) {
+            $today = Carbon::today();
+            $activities = Activity::whereDate('start_date', '=', $today)
+                ->where(function ($query) use ($today) {
+                    $query->whereNull('end_date')
+                        ->orWhereDate('end_date', '>=', $today);
+                })
+                ->orderBy('start_date')
+                ->get();
+
+            if ($authId && $activities->count()) {
+                $activityIds = $activities->pluck('id')->all();
+                if ($authType === 'lecture') {
+                    $absences = ActivityLecture::whereIn('activity_id', $activityIds)
+                        ->where('lecture_id', $authId)
+                        ->get()
+                        ->keyBy('activity_id');
+                } else {
+                    $absences = ActivityStudent::whereIn('activity_id', $activityIds)
+                        ->where('student_id', $authId)
+                        ->get()
+                        ->keyBy('activity_id');
+                }
+
+                $activities->transform(function ($activity) use ($absences) {
+                    $activity->setAttribute('absence', $absences->get($activity->id));
+                    return $activity;
+                });
+            }
+
+            $todayAgendaCount = $activities->count();
+        }
 
         $menuByType = [
             'user' => [
@@ -746,23 +788,18 @@ class AuthController extends Controller
                 ],
             ],
             'student' => [
-                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-student"],
-                ['label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities"],
-                ['label' => 'Presences', 'icon' => 'resident', 'to' => "{$basePath}/presences"],
-                ['label' => 'Logbooks', 'icon' => 'agenda', 'to' => "{$basePath}/logbooks"],
+                ['label' => 'Scoring', 'icon' => 'mdi:clipboard-check-outline', 'to' => "{$basePath}/dashboard-student/scoring"],
+                ['label' => 'Agenda', 'icon' => 'mdi:calendar-month-outline', 'to' => "{$basePath}/dashboard-student/agenda", 'counter' => $todayAgendaCount],
+                ['label' => 'Logbooks', 'icon' => 'mdi:notebook-outline', 'to' => "{$basePath}/logbook-student"],
+                ['label' => 'Accreditations', 'icon' => 'mdi:certificate-outline', 'to' => "{$basePath}/accreditations"],
+                ['label' => 'Profile', 'icon' => 'mdi:account-outline', 'to' => "{$basePath}/dashboard-student/profile"],
             ],
             'lecture' => [
-                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard-lecture"],
-                [
-                    'label' => 'Residen',
-                    'icon' => 'resident',
-                    'children' => [
-                        ['label' => 'Data', 'to' => "{$basePath}/students"],
-                        ['label' => 'Presensi', 'to' => "{$basePath}/presences"],
-                        ['label' => 'Presensi Harian', 'to' => "{$basePath}/presences/daily"],
-                        ['label' => 'Presensi Bulanan', 'to' => "{$basePath}/presences/monthly"],
-                    ],
-                ],
+                ['label' => 'Scoring', 'icon' => 'mdi:clipboard-check-outline', 'to' => "{$basePath}/dashboard-lecture/scoring"],
+                ['label' => 'Agenda', 'icon' => 'mdi:calendar-month-outline', 'to' => "{$basePath}/dashboard-lecture/agenda"],
+                ['label' => 'Report', 'icon' => 'mdi:file-chart-outline', 'to' => "{$basePath}/dashboard-lecture/report"],
+                ['label' => 'Accreditations', 'icon' => 'mdi:certificate-outline', 'to' => "{$basePath}/accreditations"],
+                ['label' => 'Profile', 'icon' => 'mdi:account-outline', 'to' => "{$basePath}/dashboard-lecture/profile"],
             ],
         ];
 

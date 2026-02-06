@@ -1,7 +1,7 @@
 <template>
     <header
         class="flex items-center border-b border-border bg-panel px-9 py-3"
-        :class="isNonUser ? 'justify-end' : 'justify-between'"
+        :class="isNonUser ? 'justify-center' : 'justify-between'"
     >
         <button
             v-if="showToggle && !isNonUser"
@@ -12,7 +12,10 @@
         >
             <Icon :icon="collapsed ? 'mdi:menu-open' : 'mdi:menu'" class="h-5 w-5" />
         </button>
-        <div class="flex items-center gap-2.5">
+        <div
+            class="flex w-full max-w-md items-center justify-between gap-2.5"
+            :class="isNonUser ? '' : 'max-w-none justify-end'"
+        >
             <button
                 v-if="showToggle && isNonUser"
                 class="grid h-9 w-9 place-items-center rounded-xl border border-border text-ink transition hover:bg-surface/70"
@@ -30,12 +33,36 @@
             >
                 Logout As
             </button>
-            <div class="grid h-8 w-8 place-items-center rounded-full bg-accent text-sm font-semibold text-ink">
-                {{ initials }}
+            <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                <div class="grid h-8 w-8 place-items-center rounded-full bg-accent text-sm font-semibold text-ink">
+                    {{ initials }}
+                </div>
+                <div class="min-w-0 leading-tight">
+                    <div class="truncate text-sm font-semibold">{{ displayName }}</div>
+                    <div class="truncate text-xs text-muted">{{ displaySubtitle }}</div>
+                </div>
             </div>
-            <div class="leading-tight">
-                <div class="text-sm font-semibold">{{ displayName }}</div>
-                <div class="text-xs text-muted">{{ displaySubtitle }}</div>
+            <div class="relative">
+                <button
+                    class="grid h-8 w-8 place-items-center rounded-full border border-border text-ink transition hover:bg-surface/70"
+                    type="button"
+                    @click.stop="toggleMenu"
+                    aria-label="User menu"
+                >
+                    <Icon icon="mdi:dots-vertical" class="h-4 w-4" />
+                </button>
+                <div
+                    v-if="menuOpen"
+                    class="absolute right-0 z-10 mt-2 w-40 rounded-xl border border-border bg-white shadow-md"
+                >
+                    <button
+                        type="button"
+                        class="block w-full px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                        @click="logout"
+                    >
+                        Logout
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -64,6 +91,7 @@ export default {
         return {
             user: null,
             firebaseConfigStore: null,
+            menuOpen: false,
         };
     },
     computed: {
@@ -104,6 +132,10 @@ export default {
         this.firebaseConfigStore = useFirebaseConfigStore();
         this.firebaseConfigStore.fetchConfig();
         this.fetchUser();
+        document.addEventListener('click', this.closeMenu);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.closeMenu);
     },
     methods: {
         fetchUser() {
@@ -151,6 +183,24 @@ export default {
                     window.location.href = '/blu/dashboard';
                 })
                 .catch(() => {});
+        },
+        toggleMenu() {
+            this.menuOpen = !this.menuOpen;
+        },
+        closeMenu() {
+            this.menuOpen = false;
+        },
+        logout() {
+            this.menuOpen = false;
+            return Repository.post('/api/logout')
+                .then(() => {
+                    localStorage.removeItem('token');
+                    window.location.href = '/blu/login';
+                })
+                .catch(() => {
+                    localStorage.removeItem('token');
+                    window.location.href = '/blu/login';
+                });
         },
     },
 };
