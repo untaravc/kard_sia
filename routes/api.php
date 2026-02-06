@@ -47,6 +47,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('lecture-profile', [LectureController::class, 'updateProfile']);
     Route::get('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'profile']);
     Route::patch('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'updateProfile']);
+    Route::get('student-presence-check', [\App\Http\Controllers\Api\PresenceController::class, 'studentPresenceCheck']);
     Route::get('activities-today', [ActivityController::class, 'activitiesToday']);
     Route::post('activity-presence/{activity_id}', [ActivityController::class, 'presence']);
     Route::get('release-note', [\App\Http\Controllers\Api\MarkdownController::class, 'releaseNote']);
@@ -79,6 +80,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('presences/daily', [\App\Http\Controllers\Api\PresenceController::class, 'daily']);
     Route::get('presences/monthly', [\App\Http\Controllers\Api\PresenceController::class, 'monthly']);
     Route::get('presences/student/{student_id}', [\App\Http\Controllers\Api\PresenceController::class, 'student']);
+    Route::get('student-daily-check', [\App\Http\Controllers\Api\PresenceController::class, 'studentDailyCheck']);
+    Route::post('student-daily', [\App\Http\Controllers\Api\PresenceController::class, 'studentDaily']);
     Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
     Route::resource('device-tokens', 'Api\DeviceTokenController');
     Route::resource('notifications', 'Api\NotificationController');

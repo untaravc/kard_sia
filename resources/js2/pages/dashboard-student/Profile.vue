@@ -45,13 +45,28 @@
                 >
                     Edit Profile
                 </button>
-                <router-link
-                    class="mt-3 block w-full rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
-                    to="/blu/release-note"
-                >
-                    Release Notes
-                </router-link>
             </div>
+        </div>
+        <div class="w-full rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Presensi Harian</div>
+            <router-link
+                class="mt-3 block w-full rounded-xl bg-primary px-3 py-2 text-center text-xs font-semibold text-white"
+                to="/blu/presences/student-daily"
+            >
+                {{ presenceButtonLabel }}
+            </router-link>
+            <div v-if="presenceCheckin" class="mt-2 text-center text-xs text-muted">
+                Checkin: {{ presenceCheckin }}
+            </div>
+        </div>
+        <div class="w-full rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Release Notes</div>
+            <router-link
+                class="mt-3 block w-full rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                to="/blu/release-note"
+            >
+                Open Release Notes
+            </router-link>
         </div>
         <Modal
             :open="profileModalOpen"
@@ -183,10 +198,21 @@ export default {
             dataRaw: {
                 image_url: '',
             },
+            presenceCheck: null,
+            loadingPresence: false,
         };
     },
     created() {
         this.loadUser();
+        this.loadPresenceCheck();
+    },
+    computed: {
+        presenceCheckin() {
+            return this.presenceCheck && this.presenceCheck.checkin ? this.presenceCheck.checkin : '';
+        },
+        presenceButtonLabel() {
+            return this.presenceCheck ? 'Check Out' : 'Check In';
+        },
     },
     methods: {
         loadUser() {
@@ -227,6 +253,20 @@ export default {
                 })
                 .finally(() => {
                     this.loadingProfile = false;
+                });
+        },
+        loadPresenceCheck() {
+            this.loadingPresence = true;
+            return Repository.get('/api/student-presence-check')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.presenceCheck = result || null;
+                })
+                .catch(() => {
+                    this.presenceCheck = null;
+                })
+                .finally(() => {
+                    this.loadingPresence = false;
                 });
         },
         openProfileModal() {

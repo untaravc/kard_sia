@@ -8,6 +8,8 @@ use App\Models\ActivityStudent;
 use App\Models\Presence;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Jenssegers\Agent\Facades\Agent;
 
 class PresenceController extends Controller
 {
@@ -54,6 +56,143 @@ class PresenceController extends Controller
             'text' => 'Retrieve Daily Presences Success',
             'result' => $data,
             'date' => $date,
+        ]);
+    }
+
+    public function studentDailyCheck(Request $request)
+    {
+        [$authType, $authId] = $this->resolveAuthIdentity($request);
+        if ($authType !== 'student' || !$authId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $student = Student::with('today_presence')->find($authId);
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $platform = strtolower(Agent::platform() ?? '');
+        $available = false;
+
+        if (strpos($platform, 'andro') > -1) {
+            $available = true;
+        }
+
+        if (strpos($platform, 'ios') > -1) {
+            $available = true;
+        }
+
+        if (strpos($platform, 'linux') > -1) {
+            $available = true;
+        }
+
+        $completed = false;
+        if ($student->today_presence && $student->today_presence->checkout !== null) {
+            $completed = true;
+            $available = false;
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Daily Check Success',
+            'result' => [
+                'available' => $available,
+                'completed' => $completed,
+                'platform' => $platform,
+                'bg' => $this->bgColor(),
+                'student' => $student,
+            ],
+        ]);
+    }
+
+    public function studentPresenceCheck(Request $request)
+    {
+        [$authType, $authId] = $this->resolveAuthIdentity($request);
+        if ($authType !== 'student' || !$authId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $presence = Presence::whereStudentId($authId)
+            ->where('checkin', '>', date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . '-15 hours')))
+            ->orderByDesc('id')
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Presence Check Success',
+            'result' => $presence,
+        ]);
+    }
+
+    public function studentDaily(Request $request)
+    {
+        [$authType, $authId] = $this->resolveAuthIdentity($request);
+        if ($authType !== 'student' || !$authId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $photoUrl = $request->photo_url ?: null;
+
+        $data = [
+            'lat' => $request->lat,
+            'lng' => $request->lng,
+            'accuracy' => $request->accuracy,
+            'distance' => $request->distance,
+        ];
+
+        $exist = Presence::orderByDesc('id')
+            ->where('checkin', '>', date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . '-15 hours')))
+            ->whereStudentId($authId)
+            ->first();
+
+        $mode = 'checkin';
+        if (!$exist) {
+            $presence = Presence::create([
+                'student_id' => $authId,
+                'checkin' => now(),
+                'checkin_photo' => $photoUrl,
+                'checkin_note' => $request->note,
+                'checkin_data' => $data,
+                'status' => $request->status ?? 'on',
+            ]);
+        } else {
+            $presence = $exist;
+            if (strtotime(now()) - strtotime($exist->checkin) > 600) {
+                $presence->update([
+                    'checkout' => now(),
+                    'checkout_photo' => $photoUrl,
+                    'checkout_note' => $request->note,
+                    'checkout_data' => $data,
+                ]);
+                $mode = 'checkout';
+            }
+        }
+
+        Log::channel('presences')->info($authId . ' | ' . json_encode($data) . ' | ' . $data['agent'] = $_SERVER['HTTP_USER_AGENT']);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Student daily presence saved',
+            'result' => [
+                'mode' => $mode,
+                'presence' => $presence,
+            ],
         ]);
     }
 
@@ -168,6 +307,33 @@ class PresenceController extends Controller
         }
 
         return $dataContent;
+    }
+
+    private function resolveAuthIdentity(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        return [$authType, $authId];
+    }
+
+    private function bgColor()
+    {
+        $array = [
+            'background: linear-gradient(90deg, rgb(217, 160, 0) 0%, rgb(206, 116, 0) 100%);',
+            'background: linear-gradient(90deg, #01b9c0 0%, #0044c2 100%);',
+            'background: linear-gradient(90deg, #ec7575 0%, #9b0000 100%);',
+            'background: linear-gradient(90deg, #54b700 0%, #1a7900 100%);',
+        ];
+
+        return $array[rand(0, 3)];
     }
 
     private function getStartToEndDate($week, $year)

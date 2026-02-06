@@ -15,7 +15,7 @@
         <div class="mt-5 grid gap-6 lg:grid-cols-2">
             <div>
                 <div class="text-sm font-semibold text-ink">Available Stase</div>
-                <div class="mt-3 grid gap-3">
+                <div class="mt-3 grid max-h-[60vh] gap-3 overflow-y-auto pr-1">
                     <div v-for="stase in availableStase" :key="stase.id"
                         class="rounded-xl border border-border/60 bg-white px-4 py-3">
                         <div class="flex items-center justify-between gap-2">
@@ -39,7 +39,7 @@
             </div>
             <div>
                 <div class="text-sm font-semibold text-ink">Taken Stase</div>
-                <div class="mt-3 grid gap-3">
+                <div class="mt-3 grid max-h-[60vh] gap-3 overflow-y-auto pr-1">
                     <div v-for="log in takenStase" :key="log.id"
                         class="rounded-xl border border-border/60 bg-white px-4 py-3">
                         <div class="flex items-center justify-between gap-2">
@@ -52,9 +52,6 @@
                             >
                                 Detail
                             </router-link>
-                        </div>
-                        <div v-if="log.stase && log.stase.alias" class="mt-1 text-xs text-muted">
-                            {{ log.stase.alias }}
                         </div>
                         <div v-if="log.start_date || log.end_date" class="mt-1 text-xs text-muted">
                             <span v-if="log.start_date">Start: {{ log.start_date }}</span>

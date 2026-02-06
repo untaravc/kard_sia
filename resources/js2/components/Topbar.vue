@@ -1,10 +1,10 @@
 <template>
     <header
-        class="flex items-center border-b border-border bg-panel px-9 py-3"
-        :class="isNonUser ? 'justify-center' : 'justify-between'"
+        class="flex items-center border-b border-border bg-panel px-6 py-3"
+        :class="isLayoutNonUser ? 'justify-center' : 'justify-between'"
     >
         <button
-            v-if="showToggle && !isNonUser"
+            v-if="showToggle && !isLayoutNonUser"
             class="grid h-9 w-9 place-items-center rounded-xl border border-border text-ink transition hover:bg-surface/70"
             type="button"
             @click="$emit('toggle-sidebar')"
@@ -14,10 +14,10 @@
         </button>
         <div
             class="flex w-full max-w-md items-center justify-between gap-2.5"
-            :class="isNonUser ? '' : 'max-w-none justify-end'"
+            :class="isLayoutNonUser ? '' : 'max-w-none justify-end'"
         >
             <button
-                v-if="showToggle && isNonUser"
+                v-if="showToggle && isLayoutNonUser"
                 class="grid h-9 w-9 place-items-center rounded-xl border border-border text-ink transition hover:bg-surface/70"
                 type="button"
                 @click="$emit('toggle-sidebar')"
@@ -26,7 +26,7 @@
                 <Icon :icon="collapsed ? 'mdi:menu-open' : 'mdi:menu'" class="h-5 w-5" />
             </button>
             <button
-                v-if="user && user.log_as_auth_type"
+                v-if="showLogoutAs"
                 class="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
                 type="button"
                 @click="logoutAs"
@@ -44,6 +44,7 @@
             </div>
             <div class="relative">
                 <button
+                    v-if="showMenuButton"
                     class="grid h-8 w-8 place-items-center rounded-full border border-border text-ink transition hover:bg-surface/70"
                     type="button"
                     @click.stop="toggleMenu"
@@ -106,6 +107,17 @@ export default {
         },
         isNonUser() {
             return this.authType && this.authType !== 'user';
+        },
+        isLayoutNonUser() {
+            const type = this.user && this.user.auth_type ? this.user.auth_type : '';
+            return type && type !== 'user';
+        },
+        showLogoutAs() {
+            return !!(this.user && this.user.log_as_auth_type && this.user.auth_type === 'user');
+        },
+        showMenuButton() {
+            const type = this.user && this.user.auth_type ? this.user.auth_type : '';
+            return type === 'student' || type === 'lecture';
         },
         displaySubtitle() {
             if (this.user && this.user.email) {

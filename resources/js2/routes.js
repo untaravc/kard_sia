@@ -93,6 +93,7 @@ const routes = [
             { path: 'activities/:id', component: require('./pages/activities/AddCreate.vue').default, meta: { page_name: 'Edit Activity' } },
             { path: 'presences', component: require('./pages/presences/Index.vue').default, meta: { page_name: 'Presences' } },
             { path: 'presences/daily', component: require('./pages/presences/Daily.vue').default, meta: { page_name: 'Daily Presences' } },
+            { path: 'presences/student-daily', component: require('./pages/presences/StudentDaily.vue').default, meta: { page_name: 'Student Daily Presence' } },
             { path: 'presences/monthly', component: require('./pages/presences/Monthly.vue').default, meta: { page_name: 'Monthly Presences' } },
             { path: 'presences/student/:student_id', component: require('./pages/presences/Student.vue').default, meta: { page_name: 'Student Presences' } },
             { path: 'task-scoring/:open_stase_task_id', component: require('./pages/scores/TaskScore.vue').default, meta: { page_name: 'Task Scoring' } },

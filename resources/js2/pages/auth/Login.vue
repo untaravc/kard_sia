@@ -43,7 +43,7 @@
                             </button>
                         </div>
                     </div>
-                    <form class="mt-6 grid gap-4">
+                    <form class="mt-6 grid min-h-[260px] content-start gap-4">
                         <template v-if="loginMethod === 'password'">
                             <label class="grid gap-2 text-sm">
                                 <span class="text-muted">Email</span>
@@ -71,9 +71,7 @@
                             </label>
                         </template>
                         <template v-else>
-                            <div class="rounded-xl border border-border bg-white px-4 py-3 text-sm text-muted">
-                                Single Sign On is not available yet.
-                            </div>
+                            
                         </template>
                         <p v-if="errorMessage"
                             class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">

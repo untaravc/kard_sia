@@ -79,18 +79,14 @@ const handleBackdropClick = () => {
     }
 };
 
-let previousOverflow = '';
-
 const setBodyScrollLock = (locked) => {
     if (typeof document === 'undefined') {
         return;
     }
     if (locked) {
-        previousOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
     } else {
-        document.body.style.overflow = previousOverflow || '';
-        previousOverflow = '';
+        document.body.style.overflow = '';
     }
 };
 
