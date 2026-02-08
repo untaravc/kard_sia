@@ -36,6 +36,9 @@
                         <span v-if="item.stase_task">{{ item.stase_task.name }}</span>
                         <span v-if="item.title">: {{ item.title }}</span>
                     </div>
+                    <div v-if="item.plan" class="mt-1 text-xs text-muted">
+                        Plan: {{ item.plan }}
+                    </div>
                     <div v-if="item.files && item.files.length" class="mt-2 flex flex-wrap gap-2">
                         <button
                             v-for="(file, fileIndex) in item.files"

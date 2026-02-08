@@ -73,6 +73,7 @@
 import { Icon } from '../icons';
 import Repository from '../repository';
 import { useFirebaseConfigStore } from '../stores/firebaseConfig';
+import { useAuthStore } from '../stores/auth';
 
 export default {
     components: {
@@ -92,6 +93,7 @@ export default {
         return {
             user: null,
             firebaseConfigStore: null,
+            authStore: null,
             menuOpen: false,
         };
     },
@@ -142,6 +144,7 @@ export default {
     },
     mounted() {
         this.firebaseConfigStore = useFirebaseConfigStore();
+        this.authStore = useAuthStore();
         this.firebaseConfigStore.fetchConfig();
         this.fetchUser();
         document.addEventListener('click', this.closeMenu);
@@ -155,10 +158,16 @@ export default {
                 .then((response) => {
                     const payload = response && response.data ? response.data.result : null;
                     this.user = payload || null;
+                    if (this.authStore) {
+                        this.authStore.setUser(this.user);
+                    }
                     this.handleAuthRedirect();
                 })
                 .catch(() => {
                     this.user = null;
+                    if (this.authStore) {
+                        this.authStore.clearUser();
+                    }
                 });
         },
         handleAuthRedirect() {
@@ -192,6 +201,9 @@ export default {
                         return;
                     }
                     localStorage.setItem('token', token);
+                    if (this.authStore) {
+                        this.authStore.clearUser();
+                    }
                     window.location.href = '/blu/dashboard';
                 })
                 .catch(() => {});
@@ -207,10 +219,16 @@ export default {
             return Repository.post('/api/logout')
                 .then(() => {
                     localStorage.removeItem('token');
+                    if (this.authStore) {
+                        this.authStore.clearUser();
+                    }
                     window.location.href = '/blu/login';
                 })
                 .catch(() => {
                     localStorage.removeItem('token');
+                    if (this.authStore) {
+                        this.authStore.clearUser();
+                    }
                     window.location.href = '/blu/login';
                 });
         },

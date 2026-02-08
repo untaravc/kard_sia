@@ -36,10 +36,12 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
     Route::get('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'studentStase']);
     Route::post('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'storeStudentStase']);
+    Route::patch('student-stase/{id}', [\App\Http\Controllers\Api\StaseController::class, 'updateStudentStase']);
     Route::get('stase-option/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'staseOption']);
     Route::get('student-logs/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'studentLog']);
     Route::resource('stase-tasks', 'Api\StaseTaskController');
-    Route::get('student-stase-task/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask']);
+    Route::get('student-stase-task/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask2']);
+    Route::get('student-stase-task2/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask2']);
     Route::resource('tasks', 'Api\TaskController');
     Route::resource('lectures', 'Api\LectureController');
     Route::get('lecture-list', [\App\Http\Controllers\Api\LectureController::class, 'list']);

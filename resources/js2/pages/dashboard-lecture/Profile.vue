@@ -16,6 +16,25 @@
                     </div>
                 </div>
 
+                <div class="mt-4 grid gap-2 text-xs text-ink">
+                    <div v-if="user.name_alt">
+                        <span class="font-semibold"></span>
+                        <span class="text-muted">{{ user.name_alt }}</span>
+                    </div>
+                    <div>
+                        <span class="font-semibold"></span>
+                        <span class="text-muted">{{ user.email }}</span>
+                    </div>
+                    <div v-if="user.phone">
+                        <span class="font-semibold"></span>
+                        <span class="text-muted">{{ user.phone }}</span>
+                    </div>
+                    <div v-if="user.address">
+                        <span class="font-semibold"></span>
+                        <span class="text-muted">{{ user.address }}</span>
+                    </div>
+                </div>
+
                 <div class="mt-4 grid gap-2">
                     <button
                         class="rounded-xl border border-border px-3 py-2 text-xs font-semibold text-ink"
@@ -25,15 +44,16 @@
                         <i class="fa fa-user-edit text-slate-500"></i>
                         Perbarui Profil
                     </button>
-                    <router-link
-                        class="rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
-                        to="/blu/release-note"
-                    >
-                        Release Notes
-                    </router-link>
                 </div>
-
             </div>
+        </div>
+        <div class="w-full rounded-2xl border border-border bg-panel px-5 py-4 shadow-sm">
+            <router-link
+                class="block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                to="/blu/release-note"
+            >
+                Release Notes
+            </router-link>
         </div>
         <ProfileModal
             :open="profileModalOpen"
@@ -77,6 +97,7 @@ export default {
             user: {
                 id: '',
                 name: '',
+                name_alt: '',
                 email: '',
                 password: '',
                 password_confirmation: '',
@@ -127,6 +148,7 @@ export default {
                     this.user = {
                         id: '',
                         name: '',
+                        name_alt: '',
                         email: '',
                         password: '',
                         password_confirmation: '',

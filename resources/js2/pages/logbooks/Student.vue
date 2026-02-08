@@ -48,6 +48,9 @@
                                     <div class="text-sm font-semibold text-ink truncate">
                                         {{ staseLabel(staseLog) }}
                                     </div>
+                                    <div class="mt-1 text-xs text-muted">
+                                        {{ formatDate(staseLog.start_date) }} - {{ formatDate(staseLog.end_date) }}
+                                    </div>
                                 </div>
                                 <button
                                     type="button"
@@ -65,7 +68,7 @@
                     <section class="relative rounded-2xl border border-sky-100 bg-white">
                         <div class="flex items-center justify-between border-b border-sky-100 bg-sky-50/60 px-4 py-3">
                             <div class="text-sm font-semibold text-sky-900">
-                                Logbook Detail
+                                Skill Achievements
                             </div>
                             <div class="text-xs text-muted">
                                 {{ selectedStaseName || '-' }}
@@ -94,12 +97,21 @@
                     </section>
 
                     <section class="relative rounded-2xl border border-emerald-100 bg-white">
-                        <div class="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/60 px-4 py-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 bg-emerald-50/60 px-4 py-3">
                             <div class="text-sm font-semibold text-emerald-900">
-                                Logbook Entries
+                                {{ selectedStaseName || '-' }}
                             </div>
                             <div class="text-xs text-muted">
-                                {{ selectedStaseName || '-' }}
+                                <a
+                                    v-if="printLogbookUrl"
+                                    :href="printLogbookUrl"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100"
+                                >
+                                    <Icon icon="mdi:printer" class="h-4 w-4" />
+                                    Print
+                                </a>
                             </div>
                         </div>
                         <div v-if="logbookError" class="border-b border-rose-100 bg-rose-50 px-4 py-3 text-xs text-rose-600">
@@ -426,11 +438,14 @@
 </template>
 
 <script>
+import { Icon } from '../../icons';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
+import { useAuthStore } from '../../stores/auth';
 
 export default {
     components: {
+        Icon,
         Modal,
     },
     data() {
@@ -475,11 +490,25 @@ export default {
                 skills: {},
             },
             editBook: null,
+            authStore: null,
         };
     },
     computed: {
         studentId() {
+            const storeUser = this.authStore ? this.authStore.user : null;
+            if (storeUser && storeUser.log_as_auth_id) {
+                return storeUser.log_as_auth_id;
+            }
+            if (storeUser && storeUser.auth_id) {
+                return storeUser.auth_id;
+            }
             return this.$route.params.student_id || null;
+        },
+        printLogbookUrl() {
+            if (!this.studentId || !this.selectedStaseId) {
+                return null;
+            }
+            return `/print/logbook/${this.studentId}/${this.selectedStaseId}`;
         },
         filteredStaseLogs() {
             if (!this.filterStase) {
@@ -506,6 +535,7 @@ export default {
         this.fetchLectures();
     },
     mounted() {
+        this.authStore = useAuthStore();
         document.addEventListener('click', this.closeMenu);
     },
     beforeDestroy() {

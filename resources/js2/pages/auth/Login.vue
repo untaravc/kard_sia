@@ -151,7 +151,6 @@ export default {
             return Repository.post('/api/login', this.form)
                 .then((response) => {
                     const data = response && response.data ? response.data : {};
-                    console.log(data)
                     if (!data.success) {
                         this.errorMessage = data.text || 'Login failed';
                         return;

@@ -46,12 +46,21 @@
                             <div class="text-sm font-semibold text-ink">
                                 {{ (log.stase && log.stase.name) || 'Stase' }}
                             </div>
-                            <router-link
-                                class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
-                                :to="`/blu/dashboard-student/scoring/${log.id}`"
-                            >
-                                Detail
-                            </router-link>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
+                                    type="button"
+                                    @click="openEditModal(log)"
+                                >
+                                    Edit
+                                </button>
+                                <router-link
+                                    class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
+                                    :to="`/blu/dashboard-student/scoring/${log.id}`"
+                                >
+                                    Detail
+                                </router-link>
+                            </div>
                         </div>
                         <div v-if="log.start_date || log.end_date" class="mt-1 text-xs text-muted">
                             <span v-if="log.start_date">Start: {{ log.start_date }}</span>
@@ -98,6 +107,41 @@
             </button>
         </template>
         </Modal>
+        <Modal :open="editModalOpen" title="Edit Stase" eyebrow="Update schedule" size="md" @close="closeEditModal">
+        <div class="grid gap-4 text-sm">
+            <div class="rounded-xl border border-border bg-white px-4 py-3">
+                <div class="text-sm font-semibold text-ink">
+                    {{ selectedStaseLog && selectedStaseLog.stase ? selectedStaseLog.stase.name : 'Stase' }}
+                </div>
+                <div v-if="selectedStaseLog && selectedStaseLog.stase && selectedStaseLog.stase.alias" class="text-xs text-muted">
+                    {{ selectedStaseLog.stase.alias }}
+                </div>
+            </div>
+            <label class="grid gap-2 text-sm">
+                <span class="text-muted">Start date</span>
+                <input v-model="editForm.start_date" type="date"
+                    class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </label>
+            <label class="grid gap-2 text-sm">
+                <span class="text-muted">End date</span>
+                <input v-model="editForm.end_date" type="date"
+                    class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </label>
+            <div v-if="editError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                {{ editError }}
+            </div>
+        </div>
+        <template #footer>
+            <button class="rounded-xl border border-border px-4 py-2 text-sm text-muted" type="button"
+                @click="closeEditModal">
+                Cancel
+            </button>
+            <button class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white" type="button"
+                :disabled="editSubmitting || !selectedStaseLog" @click="submitEditStase">
+                {{ editSubmitting ? 'Saving...' : 'Save' }}
+            </button>
+        </template>
+        </Modal>
     </div>
 </template>
 
@@ -123,6 +167,14 @@ export default {
             takeError: '',
             selectedStase: null,
             takeForm: {
+                start_date: '',
+                end_date: '',
+            },
+            editModalOpen: false,
+            editSubmitting: false,
+            editError: '',
+            selectedStaseLog: null,
+            editForm: {
                 start_date: '',
                 end_date: '',
             },
@@ -191,6 +243,47 @@ export default {
                 })
                 .finally(() => {
                     this.takeSubmitting = false;
+                });
+        },
+        openEditModal(log) {
+            this.selectedStaseLog = log || null;
+            this.editForm = {
+                start_date: log && log.start_date ? log.start_date : '',
+                end_date: log && log.end_date ? log.end_date : '',
+            };
+            this.editError = '';
+            this.editSubmitting = false;
+            this.editModalOpen = true;
+        },
+        closeEditModal() {
+            this.editModalOpen = false;
+            this.editSubmitting = false;
+            this.editError = '';
+            this.selectedStaseLog = null;
+        },
+        submitEditStase() {
+            if (!this.selectedStaseLog || this.editSubmitting) {
+                return;
+            }
+            this.editSubmitting = true;
+            this.editError = '';
+            return Repository.patch(`/api/student-stase/${this.selectedStaseLog.id}`, {
+                start_date: this.editForm.start_date,
+                end_date: this.editForm.end_date,
+            })
+                .then(() => {
+                    this.closeEditModal();
+                    this.fetchStudentStase();
+                    this.$showToast('Stase updated.');
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to update stase.';
+                    this.editError = message;
+                })
+                .finally(() => {
+                    this.editSubmitting = false;
                 });
         },
     },

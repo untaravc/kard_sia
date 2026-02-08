@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\OpenStaseTask;
 use App\Models\StaseLog;
+use App\Models\StaseTask;
 use App\Models\StaseTaskLog;
 use App\Models\Student;
 use App\Models\StudentProfile;
@@ -111,62 +113,67 @@ class StudentController extends Controller
         ]);
     }
 
+    // Have to be refactored
     public function score(Request $request, $student_id)
     {
         $staseLogId = $request->stase_log_id;
-        if (!$staseLogId) {
-            $ongoing = StaseLog::whereStudentId($student_id)
-                ->whereStatus('ongoing')
-                ->first();
-            $staseLogId = $ongoing ? $ongoing->id : null;
-        }
-
-        if (!$staseLogId) {
-            $latest = StaseLog::whereStudentId($student_id)
-                ->orderByDesc('created_at')
-                ->first();
-            $staseLogId = $latest ? $latest->id : null;
-        }
-
-        if (!$staseLogId) {
-            return response()->json([
-                'success' => true,
-                'text' => 'No stase log found for this student',
-                'result' => [],
-            ]);
-        }
-
-        $grouped = StaseTaskLog::whereStudentId($student_id)
-            ->whereStaseLogId($staseLogId)
-            ->groupBy('stase_task_id')
-            ->with([
-                'staseTask',
-                'stase',
-                'files',
-            ])
+        $stase_log = StaseLog::myOwn()->find($staseLogId);
+        $stase_id = $stase_log->stase_id;
+        $staseTasks = StaseTask::where('stase_id', $stase_id)
+            ->whereStatus(1)
             ->get();
 
-        $scores = StaseTaskLog::whereStudentId($student_id)
-            ->whereStaseLogId($staseLogId)
-            ->with([
-                'lecture',
-                'staseTaskLogPoint' => function ($query) {
-                    $query->with('taskDetail');
-                },
-            ])
+        $staseTaskLogs = StaseTaskLog::where('student_id', $student_id)
+            ->select('stase_task_logs.*', 'tasks.name as task_name', 'lectures.name as lecture_name')
+            ->leftJoin('tasks', 'tasks.id', '=', 'stase_task_logs.task_id')
+            ->leftJoin('lectures', 'lectures.id', '=', 'stase_task_logs.lecture_id')
+            ->where('stase_id', $stase_id)
             ->get();
 
-        foreach ($grouped as $item) {
-            $item->setAttribute('scores', $scores->where('stase_task_id', $item->stase_task_id)->values());
+        $openStaseTasks = OpenStaseTask::where('student_id', $student_id)
+            ->withTrashed()
+            ->with(['files'])
+            ->leftJoin('stase_tasks', 'stase_tasks.id', '=', 'open_stase_tasks.stase_task_id')
+            ->select('open_stase_tasks.*', 'stase_tasks.task_id as task_id')
+            ->whereIn('open_stase_tasks.stase_task_id', $staseTasks->pluck('id')->toArray())
+            ->get();
+
+        $openStaseTasksByTask = $openStaseTasks->groupBy('task_id');
+        $staseTaskLogsByTask = $staseTaskLogs->groupBy('task_id');
+
+        foreach ($staseTasks as $task) {
+            $taskId = $task->task_id;
+            $openTasks = $openStaseTasksByTask->get($taskId, collect())->values();
+            $logs = $staseTaskLogsByTask->get($taskId, collect())->values();
+
+            if ($openTasks->count() && $logs->count()) {
+                $usedOpenTaskIds = collect();
+                foreach ($logs as $log) {
+                    if (!$log->lecture_id) {
+                        $log->setAttribute('openStaseTasks', collect());
+                        continue;
+                    }
+                    $matchedOpenTasks = $openTasks->where('lecture_id', $log->lecture_id)->values();
+                    $log->setAttribute('openStaseTasks', $matchedOpenTasks);
+                    if ($matchedOpenTasks->count()) {
+                        $usedOpenTaskIds = $usedOpenTaskIds->merge($matchedOpenTasks->pluck('id'));
+                    }
+                }
+                if ($usedOpenTaskIds->count()) {
+                    $openTasks = $openTasks->reject(function ($item) use ($usedOpenTaskIds) {
+                        return $usedOpenTaskIds->contains($item->id);
+                    })->values();
+                }
+            }
+
+            $task->setAttribute('openStaseTasks', $openTasks);
+            $task->setAttribute('staseTaskLogs', $logs);
         }
 
         return response()->json([
             'success' => true,
-            'text' => 'Retrieve Student Score Success',
-            'result' => $grouped,
-            'meta' => [
-                'stase_log_id' => (int) $staseLogId,
-            ],
+            'text' => 'Retrieve Student Stase Task Success',
+            'result' => $staseTasks,
         ]);
     }
 

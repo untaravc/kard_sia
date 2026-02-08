@@ -51,11 +51,11 @@
                         Open Scoring
                     </button>
                 </div>
-                <div v-if="task.open_stase_tasks && task.open_stase_tasks.length" class="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
+                <div v-if="task.openStaseTasks && task.openStaseTasks.length" class="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
                     <div class="text-[11px] font-semibold text-emerald-700">Open scoring already created</div>
                     <div class="mt-2 grid gap-1 text-xs text-emerald-700">
                         <div
-                            v-for="(openTask, openIndex) in task.open_stase_tasks"
+                            v-for="(openTask, openIndex) in task.openStaseTasks"
                             :key="openTask.id"
                             class="flex flex-wrap items-start gap-3 border-b border-emerald-100 pb-2"
                             :class="openIndex ? 'mt-2' : ''"
@@ -63,21 +63,12 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                        {{ openTask.lecture ? openTask.lecture.name : 'Lecture' }}
+                                        {{ openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture' }}
                                     </span>
                                     <span v-if="openTask.plan">Plan: {{ openTask.plan }}</span>
                                     <span v-if="openTask.title">• {{ openTask.title }}</span>
                                     <span v-if="openTask.score" class="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                                         Avg: {{ openTask.score }}
-                                    </span>
-                                </div>
-                                <div v-if="openTask.stase_task_log" class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-emerald-700">
-                                    <span class="rounded-full bg-white px-2 py-0.5 font-semibold">
-                                        Score: {{ openTask.stase_task_log.point_average || 0 }}
-                                    </span>
-                                    <span v-if="openTask.stase_task_log.date">Date: {{ openTask.stase_task_log.date }}</span>
-                                    <span v-if="openTask.stase_task_log.lecture">
-                                        Scorer: {{ openTask.stase_task_log.lecture.name || openTask.stase_task_log.lecture.email }}
                                     </span>
                                 </div>
                                 <div v-if="openTask.files && openTask.files.length" class="mt-2 flex flex-wrap gap-2">
@@ -128,23 +119,89 @@
                     </div>
                 </div>
                 <div
-                    v-else-if="task.stase_task_logs && task.stase_task_logs.length"
+                    v-if="task.staseTaskLogs && task.staseTaskLogs.length"
                     class="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-700"
                 >
                     <div class="text-[11px] font-semibold text-emerald-700">Score available</div>
                     <div class="mt-2 grid gap-2">
                         <div
-                            v-for="log in task.stase_task_logs"
+                            v-for="log in task.staseTaskLogs"
                             :key="log.id"
-                            class="flex flex-wrap items-center gap-2 border-b border-emerald-100 pb-2 last:border-b-0 last:pb-0"
+                            class="border-b border-emerald-100 pb-2 last:border-b-0 last:pb-0"
                         >
-                            <span class="rounded-full bg-white px-2 py-0.5 font-semibold">
-                                Score: {{ log.point_average || 0 }}
-                            </span>
-                            <span v-if="log.date">Date: {{ log.date }}</span>
-                            <span v-if="log.lecture">
-                                Scorer: {{ log.lecture.name || log.lecture.email }}
-                            </span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
+                                    Score: {{ log.point_average || 0 }}
+                                </span>
+                                <span v-if="log.date">Date: {{ log.date }}</span>
+                                <span v-if="log.lecture_name">
+                                    Scorer: {{ log.lecture_name }}
+                                </span>
+                            </div>
+                            <div v-if="log.openStaseTasks && log.openStaseTasks.length" class="mt-2 grid gap-2 text-[11px] text-emerald-700">
+                                <div class="text-[11px] font-semibold text-emerald-700">Open scoring</div>
+                                <div
+                                    v-for="openTask in log.openStaseTasks"
+                                    :key="openTask.id"
+                                    class="flex flex-wrap items-start gap-3 rounded-md border border-emerald-100 bg-white px-2 py-2"
+                                >
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                                {{ openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture' }}
+                                            </span>
+                                            <span v-if="openTask.plan">Plan: {{ openTask.plan }}</span>
+                                            <span v-if="openTask.title">• {{ openTask.title }}</span>
+                                            <span v-if="openTask.score" class="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                                Avg: {{ openTask.score }}
+                                            </span>
+                                        </div>
+                                        <div v-if="openTask.files && openTask.files.length" class="mt-2 flex flex-wrap gap-2">
+                                            <button
+                                                v-for="file in openTask.files"
+                                                :key="file.id"
+                                                class="rounded-md border border-emerald-200 bg-white px-2 py-1 text-[10px] font-semibold text-emerald-700"
+                                                type="button"
+                                                @click="openPreview(file)"
+                                            >
+                                                {{ file.title || 'Document' }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="ml-auto flex shrink-0 items-center gap-2">
+                                        <button
+                                            class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                                            type="button"
+                                            @click="openUploadModal(openTask, 'score')"
+                                        >
+                                            Upload Score
+                                        </button>
+                                        <button
+                                            class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                                            type="button"
+                                            @click="openUploadModal(openTask, 'task')"
+                                        >
+                                            Upload Task
+                                        </button>
+                                        <button
+                                            class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                                            type="button"
+                                            :disabled="Boolean(openTask.score)"
+                                            @click="openUpdateModal(openTask, task)"
+                                        >
+                                            Update
+                                        </button>
+                                        <button
+                                            class="rounded-lg border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-rose-600"
+                                            type="button"
+                                            :disabled="Boolean(openTask.score)"
+                                            @click="deleteOpenTask(openTask)"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

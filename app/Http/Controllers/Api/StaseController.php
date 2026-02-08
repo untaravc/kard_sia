@@ -213,6 +213,56 @@ class StaseController extends Controller
         ]);
     }
 
+    public function updateStudentStase(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType === 'user' && $request->student_id) {
+            $studentId = (int) $request->student_id;
+        }
+
+        if (!$studentId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $this->validate($request, [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $log = StaseLog::where('id', $id)
+            ->where('student_id', $studentId)
+            ->first();
+
+        if (!$log) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Stase log not found.',
+                'result' => null,
+            ], 404);
+        }
+
+        $log->start_date = $request->start_date;
+        $log->end_date = $request->end_date;
+        $log->save();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Student Stase Success',
+            'result' => $log,
+        ]);
+    }
+
     public function validateData($request)
     {
         $this->validate($request, [

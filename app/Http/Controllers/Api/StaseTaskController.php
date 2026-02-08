@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\OpenStaseTask;
 use App\Models\StaseTask;
 use App\Models\StaseTaskLog;
+use App\Models\Task;
 use Illuminate\Http\Request;
 
 class StaseTaskController extends Controller
@@ -96,6 +98,7 @@ class StaseTaskController extends Controller
         ]);
     }
 
+    // Should mirored
     public function studentStaseTask(Request $request, $stase_id)
     {
         $payload = $request->attributes->get('jwt_payload');
@@ -121,7 +124,6 @@ class StaseTaskController extends Controller
             },
         ])
             ->where('stase_id', $stase_id)
-            ->orderBy('name')
             ->get();
 
         if ($authType === 'student' && $authId) {
@@ -152,6 +154,76 @@ class StaseTaskController extends Controller
             'success' => true,
             'text' => 'Retrieve Student Stase Task Success',
             'result' => $tasks,
+        ]);
+    }
+
+    public function studentStaseTask2(Request $request, $stase_id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+        $staseTasks = StaseTask::where('stase_id', $stase_id)
+            ->whereStatus(1)
+            ->get();
+
+        $staseTaskLogs = StaseTaskLog::where('student_id', $authId)
+            ->select('stase_task_logs.*', 'tasks.name as task_name', 'lectures.name as lecture_name')
+            ->leftJoin('tasks', 'tasks.id', '=', 'stase_task_logs.task_id')
+            ->leftJoin('lectures', 'lectures.id', '=', 'stase_task_logs.lecture_id')
+            ->where('stase_id', $stase_id)
+            ->get();
+
+        $openStaseTasks = OpenStaseTask::where('student_id', $authId)
+            ->withTrashed()
+            ->with(['files'])
+            ->leftJoin('stase_tasks', 'stase_tasks.id', '=', 'open_stase_tasks.stase_task_id')
+            ->select('open_stase_tasks.*', 'stase_tasks.task_id as task_id')
+            ->whereIn('open_stase_tasks.stase_task_id', $staseTasks->pluck('id')->toArray())
+            ->get();
+
+        $openStaseTasksByTask = $openStaseTasks->groupBy('task_id');
+        $staseTaskLogsByTask = $staseTaskLogs->groupBy('task_id');
+
+        foreach ($staseTasks as $task) {
+            $taskId = $task->task_id;
+            $openTasks = $openStaseTasksByTask->get($taskId, collect())->values();
+            $logs = $staseTaskLogsByTask->get($taskId, collect())->values();
+
+            if ($openTasks->count() && $logs->count()) {
+                $usedOpenTaskIds = collect();
+                foreach ($logs as $log) {
+                    if (!$log->lecture_id) {
+                        $log->setAttribute('openStaseTasks', collect());
+                        continue;
+                    }
+                    $matchedOpenTasks = $openTasks->where('lecture_id', $log->lecture_id)->values();
+                    $log->setAttribute('openStaseTasks', $matchedOpenTasks);
+                    if ($matchedOpenTasks->count()) {
+                        $usedOpenTaskIds = $usedOpenTaskIds->merge($matchedOpenTasks->pluck('id'));
+                    }
+                }
+                if ($usedOpenTaskIds->count()) {
+                    $openTasks = $openTasks->reject(function ($item) use ($usedOpenTaskIds) {
+                        return $usedOpenTaskIds->contains($item->id);
+                    })->values();
+                }
+            }
+
+            $task->setAttribute('openStaseTasks', $openTasks);
+            $task->setAttribute('staseTaskLogs', $logs);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Stase Task Success',
+            'result' => $staseTasks,
         ]);
     }
 
