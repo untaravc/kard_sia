@@ -191,12 +191,8 @@ class OpenStaseTaskController extends Controller
             $authId = $payload ? data_get($payload, 'auth_id') : null;
         }
 
-        if ($authType !== 'student') {
-            return response()->json([
-                'success' => false,
-                'text' => 'Unauthorized',
-                'result' => null,
-            ], 403);
+        if ($authType === 'user') {
+            $authId = null;
         }
 
         $this->validate($request, [
@@ -204,7 +200,10 @@ class OpenStaseTaskController extends Controller
             'plan' => 'required|date',
         ]);
 
-        $task = OpenStaseTask::whereStudentId($authId)->find($id);
+        $task = OpenStaseTask::when($authId, function ($query) use ($authId) {
+            $query->whereStudentId($authId);
+        })->find($id);
+
         if (!$task) {
             return response()->json([
                 'success' => false,

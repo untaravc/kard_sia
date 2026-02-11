@@ -134,7 +134,8 @@ class StudentController extends Controller
             ->withTrashed()
             ->with(['files'])
             ->leftJoin('stase_tasks', 'stase_tasks.id', '=', 'open_stase_tasks.stase_task_id')
-            ->select('open_stase_tasks.*', 'stase_tasks.task_id as task_id')
+            ->leftJoin('lectures', 'lectures.id', '=', 'open_stase_tasks.lecture_id')
+            ->select('open_stase_tasks.*', 'stase_tasks.task_id as task_id', 'lectures.name as lecture_name')
             ->whereIn('open_stase_tasks.stase_task_id', $staseTasks->pluck('id')->toArray())
             ->get();
 
@@ -162,7 +163,7 @@ class StudentController extends Controller
                 if ($usedOpenTaskIds->count()) {
                     $openTasks = $openTasks->reject(function ($item) use ($usedOpenTaskIds) {
                         return $usedOpenTaskIds->contains($item->id);
-                    })->values();
+                    })->where('deleted_at', null)->values();
                 }
             }
 

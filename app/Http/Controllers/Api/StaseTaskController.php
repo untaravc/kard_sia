@@ -184,7 +184,8 @@ class StaseTaskController extends Controller
             ->withTrashed()
             ->with(['files'])
             ->leftJoin('stase_tasks', 'stase_tasks.id', '=', 'open_stase_tasks.stase_task_id')
-            ->select('open_stase_tasks.*', 'stase_tasks.task_id as task_id')
+            ->leftJoin('lectures', 'lectures.id', '=', 'open_stase_tasks.lecture_id')
+            ->select('open_stase_tasks.*', 'stase_tasks.task_id as task_id', 'lectures.name as lecture_name')
             ->whereIn('open_stase_tasks.stase_task_id', $staseTasks->pluck('id')->toArray())
             ->get();
 
@@ -193,17 +194,20 @@ class StaseTaskController extends Controller
 
         foreach ($staseTasks as $task) {
             $taskId = $task->task_id;
-            $openTasks = $openStaseTasksByTask->get($taskId, collect())->values();
+            $openTasksAll = $openStaseTasksByTask->get($taskId, collect())->values();
+            $openTasks = $openTasksAll->filter(function ($item) {
+                return $item->deleted_at === null;
+            })->values();
             $logs = $staseTaskLogsByTask->get($taskId, collect())->values();
 
-            if ($openTasks->count() && $logs->count()) {
+            if ($openTasksAll->count() && $logs->count()) {
                 $usedOpenTaskIds = collect();
                 foreach ($logs as $log) {
                     if (!$log->lecture_id) {
                         $log->setAttribute('openStaseTasks', collect());
                         continue;
                     }
-                    $matchedOpenTasks = $openTasks->where('lecture_id', $log->lecture_id)->values();
+                    $matchedOpenTasks = $openTasksAll->where('lecture_id', $log->lecture_id)->values();
                     $log->setAttribute('openStaseTasks', $matchedOpenTasks);
                     if ($matchedOpenTasks->count()) {
                         $usedOpenTaskIds = $usedOpenTaskIds->merge($matchedOpenTasks->pluck('id'));

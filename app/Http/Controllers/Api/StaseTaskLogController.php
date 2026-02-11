@@ -8,6 +8,8 @@ use App\Models\StaseTaskLog;
 use App\Models\StaseTask;
 use Illuminate\Http\Request;
 
+use function PHPSTORM_META\map;
+
 class StaseTaskLogController extends Controller
 {
     public function index(Request $request)
@@ -112,6 +114,15 @@ class StaseTaskLogController extends Controller
             'point_average' => 'nullable|numeric',
         ]);
 
+        $stase_task = StaseTask::find($request->stase_task_id);
+        if (!$stase_task) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Stase task not found',
+                'result' => null,
+            ], 404);
+        }
+
         $log = StaseTaskLog::create([
             'stase_log_id' => $request->stase_log_id,
             'stase_task_id' => $request->stase_task_id,
@@ -121,6 +132,8 @@ class StaseTaskLogController extends Controller
             'point_average' => $request->point_average,
             'admin' => true,
             'status' => 'publish',
+            'stase_id'=> $stase_task->stase_id,
+            'task_id'=> $stase_task->task_id
         ]);
 
         return response()->json([

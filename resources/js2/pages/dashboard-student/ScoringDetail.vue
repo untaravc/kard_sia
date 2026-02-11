@@ -63,7 +63,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                        {{ openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture' }}
+                                        {{ openTask.lecture_name || (openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture') }}
                                     </span>
                                     <span v-if="openTask.plan">Plan: {{ openTask.plan }}</span>
                                     <span v-if="openTask.title">• {{ openTask.title }}</span>
@@ -147,14 +147,8 @@
                                 >
                                     <div class="flex-1 min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                                {{ openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture' }}
-                                            </span>
                                             <span v-if="openTask.plan">Plan: {{ openTask.plan }}</span>
                                             <span v-if="openTask.title">• {{ openTask.title }}</span>
-                                            <span v-if="openTask.score" class="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                                Avg: {{ openTask.score }}
-                                            </span>
                                         </div>
                                         <div v-if="openTask.files && openTask.files.length" class="mt-2 flex flex-wrap gap-2">
                                             <button
@@ -167,38 +161,6 @@
                                                 {{ file.title || 'Document' }}
                                             </button>
                                         </div>
-                                    </div>
-                                    <div class="ml-auto flex shrink-0 items-center gap-2">
-                                        <button
-                                            class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                            type="button"
-                                            @click="openUploadModal(openTask, 'score')"
-                                        >
-                                            Upload Score
-                                        </button>
-                                        <button
-                                            class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                            type="button"
-                                            @click="openUploadModal(openTask, 'task')"
-                                        >
-                                            Upload Task
-                                        </button>
-                                        <button
-                                            class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                            type="button"
-                                            :disabled="Boolean(openTask.score)"
-                                            @click="openUpdateModal(openTask, task)"
-                                        >
-                                            Update
-                                        </button>
-                                        <button
-                                            class="rounded-lg border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-rose-600"
-                                            type="button"
-                                            :disabled="Boolean(openTask.score)"
-                                            @click="deleteOpenTask(openTask)"
-                                        >
-                                            Delete
-                                        </button>
                                     </div>
                                 </div>
                             </div>

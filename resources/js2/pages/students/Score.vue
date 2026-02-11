@@ -102,7 +102,7 @@
                                             <div v-for="openTask in group.openStaseTasks" :key="openTask.id" class="rounded-lg border border-emerald-100 bg-emerald-50 px-2 py-2">
                                                 <div class="flex flex-wrap items-center gap-2">
                                                     <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                                        {{ openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture' }}
+                                                        {{ openTask.lecture_name || 'Lecture' }}
                                                     </span>
                                                     <span v-if="openTask.plan">Plan: {{ openTask.plan }}</span>
                                                     <span v-if="openTask.title">• {{ openTask.title }}</span>
@@ -114,7 +114,8 @@
                                                     <button
                                                         v-for="file in openTask.files"
                                                         :key="file.id"
-                                                        class="rounded-md border border-emerald-200 bg-white px-2 py-1 text-[10px] font-semibold text-emerald-700"
+                                                        class="rounded-md border px-2 py-1 text-[10px] font-semibold"
+                                                        :class="file.type === 'score' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-white text-emerald-700'"
                                                         type="button"
                                                         @click="openFileModal(file)"
                                                     >
@@ -122,6 +123,13 @@
                                                     </button>
                                                 </div>
                                                 <div class="mt-2 flex flex-wrap items-center gap-2">
+                                                    <button
+                                                        class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                                                        type="button"
+                                                        @click="openScoreModalFromOpenTask(group, openTask)"
+                                                    >
+                                                        Add Score
+                                                    </button>
                                                     <button
                                                         class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
                                                         type="button"
@@ -168,7 +176,7 @@
                                                         <div class="flex-1 min-w-0">
                                                             <div class="flex flex-wrap items-center gap-2">
                                                                 <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                                                                    {{ openTask.lecture_id ? `Lecture #${openTask.lecture_id}` : 'Lecture' }}
+                                                                    {{ openTask.lecture_name || 'Lecture' }}
                                                                 </span>
                                                                 <span v-if="openTask.plan">Plan: {{ openTask.plan }}</span>
                                                                 <span v-if="openTask.title">• {{ openTask.title }}</span>
@@ -180,31 +188,14 @@
                                                                 <button
                                                                     v-for="file in openTask.files"
                                                                     :key="file.id"
-                                                                    class="rounded-md border border-emerald-200 bg-white px-2 py-1 text-[10px] font-semibold text-emerald-700"
+                                                                    class="rounded-md border px-2 py-1 text-[10px] font-semibold"
+                                                                    :class="file.type === 'score' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-white text-emerald-700'"
                                                                     type="button"
                                                                     @click="openFileModal(file)"
                                                                 >
                                                                     {{ file.title || 'Document' }}
                                                                 </button>
                                                             </div>
-                                                        </div>
-                                                        <div class="ml-auto flex shrink-0 items-center gap-2">
-                                                            <button
-                                                                class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                                                type="button"
-                                                                :disabled="Boolean(openTask.score)"
-                                                                @click="openUpdateModal(openTask)"
-                                                            >
-                                                                Update
-                                                            </button>
-                                                            <button
-                                                                class="rounded-lg border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-rose-600"
-                                                                type="button"
-                                                                :disabled="Boolean(openTask.score)"
-                                                                @click="deleteOpenTask(openTask)"
-                                                            >
-                                                                Delete
-                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -249,8 +240,8 @@
                     <div class="text-sm font-semibold text-ink">
                         {{ updateForm.title || (selectedOpenTask && selectedOpenTask.title) || 'Open Scoring' }}
                     </div>
-                    <div v-if="selectedOpenTask && selectedOpenTask.lecture_id" class="mt-1 text-xs text-muted">
-                        Lecture: {{ `Lecture #${selectedOpenTask.lecture_id}` }}
+                    <div v-if="selectedOpenTask && selectedOpenTask.lecture_name" class="mt-1 text-xs text-muted">
+                        Lecture: {{ selectedOpenTask.lecture_name }}
                     </div>
                 </div>
                 <label class="grid gap-2 text-sm">
@@ -653,6 +644,12 @@ export default {
 
             this.scoreForm = baseForm;
             this.scoreModalOpen = true;
+        },
+        openScoreModalFromOpenTask(group, openTask) {
+            this.openScoreModal('add', group);
+            if (openTask && openTask.lecture_id) {
+                this.scoreForm.lecture_id = openTask.lecture_id;
+            }
         },
         openUpdateModal(openTask) {
             this.selectedOpenTask = openTask || null;
