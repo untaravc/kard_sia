@@ -128,6 +128,7 @@ class StudentController extends Controller
             ->leftJoin('tasks', 'tasks.id', '=', 'stase_task_logs.task_id')
             ->leftJoin('lectures', 'lectures.id', '=', 'stase_task_logs.lecture_id')
             ->where('stase_id', $stase_id)
+            ->where('point_average', '>', 0)
             ->get();
 
         $openStaseTasks = OpenStaseTask::where('student_id', $student_id)

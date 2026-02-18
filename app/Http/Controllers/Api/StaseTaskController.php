@@ -177,6 +177,7 @@ class StaseTaskController extends Controller
             ->select('stase_task_logs.*', 'tasks.name as task_name', 'lectures.name as lecture_name')
             ->leftJoin('tasks', 'tasks.id', '=', 'stase_task_logs.task_id')
             ->leftJoin('lectures', 'lectures.id', '=', 'stase_task_logs.lecture_id')
+            ->where('point_average', '>', 0)
             ->where('stase_id', $stase_id)
             ->get();
 
