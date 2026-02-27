@@ -19,3 +19,7 @@ mix.js('resources/js2/app.js', 'public/js').vue()
            require('autoprefixer'),
        ],
    });
+
+if (mix.inProduction()) {
+    mix.version();
+}
