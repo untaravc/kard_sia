@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Accreditation extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         "parent_id",
         "type",
@@ -23,6 +26,7 @@ class Accreditation extends Model
         "user_ids",
         "auth_type",
         "auth_id",
+        "auth_name",
         "created_at",
         "updated_at",
         "deleted_at",

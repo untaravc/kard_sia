@@ -61,7 +61,15 @@
                     <div class="flex-1">
                         <div class="font-semibold text-ink">{{ staseTask.name }}</div>
                         <div class="text-xs text-muted">
-                            <span v-if="staseTask.status">Status: {{ staseTask.status }}</span>
+                            <span>
+                                Status:
+                                <span
+                                    class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                                    :class="statusBadgeClass(staseTask.status)"
+                                >
+                                    {{ statusLabel(staseTask.status) }}
+                                </span>
+                            </span>
                             <span v-if="staseTask.task">• Task: {{ staseTask.task.name }}</span>
                             <span v-if="staseTask.lecture">• Lecture: {{ staseTask.lecture.name }}</span>
                         </div>
@@ -123,11 +131,13 @@
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Status</span>
-                    <input
-                        v-model.trim="form.status"
-                        type="text"
+                    <select
+                        v-model.number="form.status"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+                    >
+                        <option :value="1">active</option>
+                        <option :value="0">non-active</option>
+                    </select>
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Task ID</span>
@@ -285,7 +295,7 @@ export default {
                 task_id: staseTask.task_id ?? null,
                 lecture_id: staseTask.lecture_id ?? null,
                 name: staseTask.name || '',
-                status: staseTask.status || '',
+                status: this.normalizeStatus(staseTask.status),
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -304,7 +314,7 @@ export default {
                 task_id: null,
                 lecture_id: null,
                 name: '',
-                status: '',
+                status: 1,
             };
         },
         submitForm() {
@@ -317,8 +327,12 @@ export default {
         createStaseTask() {
             this.submitting = true;
             this.errorMessage = '';
+            const payload = {
+                ...this.form,
+                status: this.normalizeStatus(this.form.status),
+            };
 
-            return Repository.post(this.baseUrl, this.form)
+            return Repository.post(this.baseUrl, payload)
                 .then(() => {
                     this.closeModal();
                     this.fetchStaseTasks();
@@ -337,8 +351,12 @@ export default {
         updateStaseTask() {
             this.submitting = true;
             this.errorMessage = '';
+            const payload = {
+                ...this.form,
+                status: this.normalizeStatus(this.form.status),
+            };
 
-            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
+            return Repository.put(`${this.baseUrl}/${this.form.id}`, payload)
                 .then(() => {
                     this.fetchStaseTasks();
                     this.closeModal();
@@ -367,6 +385,17 @@ export default {
                 .catch(() => {
                     this.errorMessage = 'Failed to delete stase task.';
                 });
+        },
+        normalizeStatus(status) {
+            return Number(status) === 1 ? 1 : 0;
+        },
+        statusLabel(status) {
+            return this.normalizeStatus(status) === 1 ? 'active' : 'non-active';
+        },
+        statusBadgeClass(status) {
+            return this.normalizeStatus(status) === 1
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-slate-200 text-slate-600';
         },
     },
 };

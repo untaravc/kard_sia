@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Accreditation;
+use App\Models\Lecture;
+use App\Models\Student;
+use App\User;
 use Illuminate\Http\Request;
 
 class AccreditationController extends Controller
@@ -86,6 +89,7 @@ class AccreditationController extends Controller
         if (!$authId) {
             $authId = $payload ? data_get($payload, 'auth_id') : null;
         }
+        $authName = $this->resolveAuthName($authType, $authId);
 
         $attachmentUrls = $request->attachment_urls;
         if (is_array($attachmentUrls)) {
@@ -101,6 +105,7 @@ class AccreditationController extends Controller
             'attachment_urls' => $attachmentUrls,
             'auth_type' => $authType,
             'auth_id' => $authId,
+            'auth_name' => $this->cleanValue($authName),
             'is_complete' => 1,
         ]);
 
@@ -392,6 +397,8 @@ class AccreditationController extends Controller
 
     private function mapEvidenceNode($item)
     {
+        $authName = $item->auth_name ?: $this->resolveAuthName($item->auth_type, $item->auth_id);
+
         return [
             'id' => $item->id,
             'parent_id' => $item->parent_id,
@@ -402,7 +409,33 @@ class AccreditationController extends Controller
             'attachment_urls' => $item->attachment_urls,
             'auth_type' => $item->auth_type,
             'auth_id' => $item->auth_id,
+            'auth_name' => $authName,
             'created_at' => $item->created_at,
         ];
+    }
+
+    private function resolveAuthName($authType, $authId)
+    {
+        if (!$authType || !$authId) {
+            return null;
+        }
+
+        $type = strtolower(trim((string) $authType));
+        $id = (int) $authId;
+        if ($id <= 0) {
+            return null;
+        }
+
+        if ($type === 'student') {
+            return optional(Student::find($id))->name;
+        }
+        if ($type === 'lecture') {
+            return optional(Lecture::find($id))->name;
+        }
+        if ($type === 'user') {
+            return optional(User::find($id))->name;
+        }
+
+        return null;
     }
 }

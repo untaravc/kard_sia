@@ -15,7 +15,7 @@ class SiteAvailabilityByDate
      */
     public function handle($request, Closure $next)
     {
-        if (now()->toDateString() > '2026-02-19') {
+        if (now()->toDateString() > '2026-02-17') {
             return response('This site is temporarily unavailable', 503);
         }
 

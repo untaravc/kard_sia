@@ -358,13 +358,13 @@ const TreeItem = {
                 type="button"
                 @click="open = !open; $emit('toggle-open', item, open)"
             >
-                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-primary/70 ring-4 ring-primary/10"></span>
+                <span
+                    class="mt-0.5 inline-flex min-h-6 min-w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 px-1.5 text-[10px] font-semibold text-primary ring-1 ring-primary/20"
+                >
+                    {{ item.idx || '-' }}
+                </span>
                 <span class="flex-1">
                     <div class="text-sm font-semibold text-ink">{{ item.title || item.idx || 'Accreditation' }}</div>
-                    <div class="mt-1 text-[11px] text-muted">
-                        <span v-if="item.idx">Idx: {{ item.idx }}</span>
-                        <span v-if="item.parent_idx"> · Parent: {{ item.parent_idx }}</span>
-                    </div>
                 </span>
                 <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
                     <span
@@ -429,6 +429,9 @@ const TreeItem = {
                             </div>
                             <div v-if="evidence.description" class="mt-1 text-xs text-muted">
                                 {{ evidence.description }}
+                            </div>
+                            <div class="mt-1 text-[11px] text-muted">
+                                By: {{ evidence.auth_name || '-' }}
                             </div>
                             <div v-if="normalizeAttachments(evidence).length" class="mt-2 grid gap-1 text-xs">
                                 <div class="flex flex-wrap gap-2">
