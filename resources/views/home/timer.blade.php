@@ -131,6 +131,11 @@
                 beep_started: false,
                 beepFunction: null,
                 sound: false,
+                room: null,
+                syncInterval: null,
+                countdownInterval: null,
+                audioMap: {},
+                enterSoundPlayed: false,
                 timer: {
                     start_at: '',
                     text: '',
@@ -145,46 +150,88 @@
             }
         },
         methods: {
+            initAudio() {
+                this.audioMap = {
+                    start: new Audio('/assets/sound/aktif.mp3'),
+                    finish: new Audio('/assets/sound/end.mp3'),
+                    min2: new Audio('/assets/sound/two_min.mp3'),
+                    enter: new Audio('/assets/sound/enter.mp3'),
+                };
+            },
             loadTimer() {
-                let r = this.getParameterByName('r')
-                axios.get('/timer-data?r='+r)
+                axios.get('/timer-data', {
+                    params: {
+                        r: this.room,
+                    }
+                })
                     .then(({data}) => {
+                        const previousCountdown = Number(this.timer.countdown);
+                        const previousTransition = this.timer.transition_time;
                         this.timer = data.result;
-                        this.checkTransition()
-                    })
+                        this.checkTransition();
+                        this.handleTimerEvents(previousCountdown, previousTransition);
+                    });
             },
             checkTransition() {
-                let status = this.timer.transition_time;
-                if (status) {
+                if (this.timer.transition_time) {
                     if (!this.beep_started) {
                         this.beepFunction = setInterval(() => {
                             this.green_mode = !this.green_mode;
-                        }, 400)
+                        }, 400);
                         this.beep_started = true;
                     }
                 } else {
                     clearInterval(this.beepFunction);
+                    this.beepFunction = null;
                     this.beep_started = false;
-                    this.green_mode = false
+                    this.green_mode = false;
                 }
             },
             play(type = 'start') {
-                let audio = '';
-                switch (type) {
-                    case 'finish':
-                        audio = new Audio('/assets/sound/end.mp3');
-                        break;
-                    case 'min2':
-                        audio = new Audio('/assets/sound/two_min.mp3');
-                        break;
-                    case 'enter':
-                        audio = new Audio('/assets/sound/enter.mp3');
-                        break;
-                    default:
-                        audio = new Audio('/assets/sound/aktif.mp3');
+                let audio = this.audioMap[type] || this.audioMap.start;
+
+                if (!audio) {
+                    this.initAudio();
+                    audio = this.audioMap[type] || this.audioMap.start;
                 }
-                audio.play();
+
+                audio.currentTime = 0;
+                audio.play().catch((error) => {
+                    console.error('Failed to play sound:', type, error);
+                });
                 this.sound = true;
+            },
+            tick() {
+                if (Number(this.timer.countdown) > 0) {
+                    this.timer.countdown--;
+                    this.handleTimerEvents(this.timer.countdown + 1, this.timer.transition_time);
+                }
+            },
+            handleTimerEvents(previousCountdown, previousTransition) {
+                const countdown = Number(this.timer.countdown);
+                const enterElapsed = Number(this.timer.in_room_sec) - countdown;
+
+                if (countdown === 5 && !this.timer.transition_time) {
+                    this.play('finish');
+                }
+
+                if (countdown === Number(this.timer.reminder)) {
+                    this.play('min2');
+                }
+
+                if (this.timer.transition_time) {
+                    this.enterSoundPlayed = false;
+                    return;
+                }
+
+                const enteredRoom = previousTransition && !this.timer.transition_time;
+                const enteredRange = enterElapsed > 0 && enterElapsed <= 10;
+                const countdownChanged = previousCountdown !== countdown;
+
+                if (enteredRange && countdownChanged && (enteredRoom || !this.enterSoundPlayed)) {
+                    this.play('enter');
+                    this.enterSoundPlayed = true;
+                }
             },
             getParameterByName(name, url = window.location.href) {
                 name = name.replace(/[\[\]]/g, '\\$&');
@@ -196,28 +243,15 @@
             }
         },
         created() {
+            this.room = this.getParameterByName('r');
+            this.initAudio();
             this.loadTimer();
-            setInterval(() => {
-                this.timer.countdown--
-                this.checkTransition();
-
-                if (this.timer.countdown === 5 && !this.timer.transition_time) {
-                    this.play('finish')
-                }
-                if (this.timer.countdown === this.timer.reminder) {
-                    this.play('min2')
-                }
-
-            }, 1000)
-
-            setInterval(() => {
+            this.countdownInterval = setInterval(() => {
+                this.tick();
+            }, 1000);
+            this.syncInterval = setInterval(() => {
                 this.loadTimer();
-                let enter = this.timer.in_room_sec - this.timer.countdown;
-                console.log(enter)
-                // if (enter < 10 && enter > 0) {
-                //     this.play('enter')
-                // }
-            }, 5000)
+            }, 5000);
         },
         mounted() {
             setTimeout(() => {
@@ -226,17 +260,14 @@
                 }
             }, 3000)
         },
+        beforeUnmount() {
+            clearInterval(this.beepFunction);
+            clearInterval(this.countdownInterval);
+            clearInterval(this.syncInterval);
+        },
         computed: {
             time_countdown() {
-                let minutes = this.timer.countdown;
-
-                let status = this.timer.transition_time;
-                // if(status){
-                //     return {
-                //         minute: '00',
-                //         second: '00'
-                //     }
-                // }
+                let minutes = Number(this.timer.countdown);
                 let min = Math.floor(minutes / 60);
                 let sec = minutes % 60
                 return {

@@ -7,81 +7,85 @@ use Illuminate\Http\Request;
 
 class TimerController extends Controller
 {
-    public $start_at = '2022-10-21 09:50:00';
-    public $in_room = 6;
-    public $transition = 1;
-    public $reminder = 121;
-    public $status = 1;
+    private const DEFAULT_START_AT = '2022-10-21 09:50:00';
+    private const DEFAULT_IN_ROOM = 6;
+    private const DEFAULT_TRANSITION = 1;
+    private const DEFAULT_REMINDER = 121;
+    private const DEFAULT_STATUS = 1;
 
     public function index()
     {
         return view('home.timer');
     }
 
-    public function cal_setting($request)
+    private function roomName(string $room): string
     {
-        $settings = Setting::whereIn('label', [
-            'transition_minute',
-            'in_room_minute',
-            'start_time',
-            'status',
-        ])->whereName('room_' . $request->r)
-            ->get();
-
-        $this->start_at = $settings->where('label', 'start_time')->first() ?
-            $settings->where('label', 'start_time')->first()['value'] : $this->start_at;
-
-        $this->in_room = $settings->where('label', 'in_room_minute')->first() ?
-            $settings->where('label', 'in_room_minute')->first()['value'] : $this->in_room;
-
-        $this->transition = $settings->where('label', 'transition_minute')->first() ?
-            $settings->where('label', 'transition_minute')->first()['value'] : $this->transition;
-
-        $this->status = $settings->where('label', 'status')->first() ?
-            $settings->where('label', 'status')->first()['value'] : $this->status;
+        return 'room_' . $room;
     }
 
-    private function this_time($int = true)
+    private function roomSettings(string $room): array
     {
-        $time = date('Y-m-d H:i:s');
-        if ($int) {
-            return strtotime($time);
-        }
-        return $time;
+        $settings = Setting::query()
+            ->whereName($this->roomName($room))
+            ->whereIn('label', [
+                'transition_minute',
+                'in_room_minute',
+                'start_time',
+                'status',
+            ])
+            ->pluck('value', 'label');
+
+        return [
+            'start_time' => $settings->get('start_time', self::DEFAULT_START_AT),
+            'in_room_minute' => (int) $settings->get('in_room_minute', self::DEFAULT_IN_ROOM),
+            'transition_minute' => (int) $settings->get('transition_minute', self::DEFAULT_TRANSITION),
+            'status' => (int) $settings->get('status', self::DEFAULT_STATUS),
+        ];
+    }
+
+    private function now(): array
+    {
+        $time = now();
+
+        return [
+            'formatted' => $time->format('Y-m-d H:i:s'),
+            'timestamp' => $time->timestamp,
+        ];
     }
 
     public function timer(Request $request)
     {
-        $this->cal_setting($request);
-        $data['start_at'] = $this->start_at;
-        $data['this_time'] = $this->this_time(false);
-        $in_room = $this->in_room * 60;
-        $transition = $this->transition * 60;
-        $total_duration = ($this->in_room + $this->transition) * 60;
-        $diff_sec = $this->this_time() - strtotime($data['start_at']);
+        $settings = $this->roomSettings((string) $request->r);
+        $now = $this->now();
 
-        $sisa_bagi = $diff_sec % $total_duration;
-        $data['order'] = max(ceil($diff_sec / $total_duration), 0);
-        $data['reminder'] = $this->reminder;
+        $startAt = $settings['start_time'];
+        $inRoomSeconds = $settings['in_room_minute'] * 60;
+        $transitionSeconds = $settings['transition_minute'] * 60;
+        $totalDuration = $inRoomSeconds + $transitionSeconds;
+        $diffSeconds = $now['timestamp'] - strtotime($startAt);
+        $cycleOffset = $totalDuration > 0 ? $diffSeconds % $totalDuration : 0;
+        $isTransition = $cycleOffset >= $inRoomSeconds;
 
-        if ($sisa_bagi < $in_room) {
-            $data['text'] = 'Ujian sedang BERLANGSUNG';
-            $data['countdown'] = $in_room - $sisa_bagi;
-            $data['transition_time'] = false;
-        } else {
-            $data['text'] = 'PERPINDAHAN ruang peserta ujian';
+        $data = [
+            'start_at' => $startAt,
+            'this_time' => $now['formatted'],
+            'order' => max((int) ceil($diffSeconds / max($totalDuration, 1)), 0),
+            'reminder' => self::DEFAULT_REMINDER,
+            'text' => $isTransition ? 'PERPINDAHAN ruang peserta ujian' : 'Ujian sedang BERLANGSUNG',
+            'countdown' => $isTransition
+                ? $totalDuration - $cycleOffset
+                : $inRoomSeconds - $cycleOffset,
+            'transition_time' => $isTransition,
+            'diff_min' => (int) floor($diffSeconds / 60),
+            'in_room_sec' => $inRoomSeconds,
+        ];
+
+        if ($diffSeconds < 0) {
+            $data['countdown'] = abs($diffSeconds);
             $data['transition_time'] = true;
-            $data['countdown'] = $in_room + $transition - $sisa_bagi;
         }
 
-        if ($diff_sec < 0) {
-            $data['countdown'] = ($diff_sec * -1);
-        }
-
-        $data['diff_min'] = floor($diff_sec / 60);
-        $data['in_room_sec'] = $this->in_room * 60;
-
-        if ($this->status == 0) {
+        if ($settings['status'] === 0) {
             $data['countdown'] = 0;
             $data['transition_time'] = true;
         }
@@ -92,28 +96,15 @@ class TimerController extends Controller
 
     public function timer_setting(Request $request)
     {
-        $settings = Setting::whereIn('label', [
-            'transition_minute',
-            'in_room_minute',
-            'start_time',
-            'status',
-        ])->whereName('room_' . $request->r)->get();
-
-        $setting = [];
-        $setting['transition_minute'] = $settings->where('label', 'transition_minute')->first()
-            ? $settings->where('label', 'transition_minute')->first()['value'] : 1;
-
-        $setting['in_room_minute'] = $settings->where('label', 'in_room_minute')->first()
-            ? $settings->where('label', 'in_room_minute')->first()['value'] : 6;
-
-        $setting['start_time'] = $settings->where('label', 'start_time')->first()
-            ? $settings->where('label', 'start_time')->first()['value'] : now();
-
-        $setting['status'] = $settings->where('label', 'status')->first()
-            ? $settings->where('label', 'status')->first()['value'] : 1;
+        $settings = $this->roomSettings((string) $request->r);
 
         return view('home.timer_setting', [
-            'setting' => $setting
+            'setting' => [
+                'transition_minute' => $settings['transition_minute'],
+                'in_room_minute' => $settings['in_room_minute'],
+                'start_time' => $settings['start_time'],
+                'status' => $settings['status'],
+            ]
         ]);
     }
 
@@ -123,7 +114,7 @@ class TimerController extends Controller
 
         foreach ($data as $key => $datum) {
             $has_setting = Setting::whereLabel($key)
-                ->whereName('room_' . $request->name)
+                ->whereName($this->roomName($request->name))
                 ->first();
 
             if ($has_setting) {
@@ -132,7 +123,7 @@ class TimerController extends Controller
                 ]);
             } else {
                 Setting::create([
-                    'name' => 'room_' . $request->name,
+                    'name' => $this->roomName($request->name),
                     'label' => $key,
                     'value' => $datum,
                 ]);
@@ -145,23 +136,22 @@ class TimerController extends Controller
     public function timer_start(Request $request)
     {
         $start_time = Setting::whereLabel('start_time')
-            ->whereName('room_' . $request->name)
+            ->whereName($this->roomName($request->name))
             ->first();
 
         if ($start_time) {
             $start_time->update([
-                'value' => date('Y-m-d H:i:s'),
+                'value' => now()->format('Y-m-d H:i:s'),
             ]);
         }
 
-        $start_time = Setting::whereLabel('status')
-            ->whereName('room_' . $request->name)
+        $status = Setting::whereLabel('status')
+            ->whereName($this->roomName($request->name))
             ->first();
 
-        if ($start_time) {
-            $start_time->update([
-                'value' => date('Y-m-d H:i:s'),
-                'status' => 1,
+        if ($status) {
+            $status->update([
+                'value' => 1,
             ]);
         }
 
