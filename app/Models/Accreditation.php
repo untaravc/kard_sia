@@ -18,6 +18,7 @@ class Accreditation extends Model
         "description",
         "main_element",
         "main_element_fulfilment",
+        "sample",
         "content",
         "is_complete",
         "attachment_urls",

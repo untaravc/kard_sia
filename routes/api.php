@@ -24,6 +24,7 @@ Route::get('firebase-config', [AuthController::class, 'firebaseConfig']);
 Route::post('push-notifications', [\App\Http\Controllers\Api\NotificationController::class, 'pushNotif']);
 Route::get('cmd/clear-open-stase-task', [CmdController::class, 'celarOpenStaseTask']);
 Route::get('cmd/insert-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'insertInitData']);
+Route::get('cmd-action-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'cmdAction']);
 
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);

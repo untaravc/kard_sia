@@ -8,6 +8,7 @@ use App\Models\Lecture;
 use App\Models\Student;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class AccreditationController extends Controller
 {
@@ -162,6 +163,82 @@ class AccreditationController extends Controller
         ]);
     }
 
+    public function cmdAction()
+    {
+        $directory = storage_path('accreditations');
+        if (!File::exists($directory)) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Accreditation sample directory not found.',
+                'result' => null,
+            ], 404);
+        }
+
+        $files = collect(File::files($directory))
+            ->filter(function ($file) {
+                return strtolower($file->getExtension()) === 'json';
+            })
+            ->sortBy(function ($file) {
+                return $file->getFilename();
+            })
+            ->values();
+
+        if ($files->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'text' => 'No accreditation sample JSON files found.',
+                'result' => null,
+            ], 404);
+        }
+
+        $updated = 0;
+        $notFound = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($files as $file) {
+            $content = File::get($file->getPathname());
+            $payload = json_decode($content, true);
+
+            if (!is_array($payload)) {
+                $errors[] = 'Invalid JSON: ' . $file->getFilename();
+                continue;
+            }
+
+            foreach ($payload as $item) {
+                $idx = $this->cleanValue(data_get($item, 'idx'));
+                $sample = $this->cleanValue(data_get($item, 'sample'));
+
+                if (!$idx || $sample === null) {
+                    $skipped++;
+                    continue;
+                }
+
+                $accreditation = Accreditation::where('idx', $idx)->first();
+                if (!$accreditation) {
+                    $notFound++;
+                    continue;
+                }
+
+                $accreditation->update([
+                    'sample' => $sample,
+                ]);
+                $updated++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Accreditation sample sync success',
+            'result' => [
+                'updated' => $updated,
+                'not_found' => $notFound,
+                'skipped' => $skipped,
+                'errors' => $errors,
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
         $dataContent = Accreditation::orderBy('id', 'desc');
@@ -259,6 +336,7 @@ class AccreditationController extends Controller
             'description' => 'nullable',
             'main_element' => 'nullable',
             'main_element_fulfilment' => 'nullable',
+            'sample' => 'nullable',
             'content' => 'nullable',
             'is_complete' => 'nullable|boolean',
             'attachment_urls' => 'nullable',
@@ -320,6 +398,7 @@ class AccreditationController extends Controller
             'description' => $this->cleanValue(data_get($item, 'description')),
             'main_element' => $this->cleanValue(data_get($item, 'main_element')),
             'main_element_fulfilment' => $this->cleanValue(data_get($item, 'main_element_fulfilment')),
+            'sample' => $this->cleanValue(data_get($item, 'sample')),
             'content' => $this->cleanValue(data_get($item, 'content')),
             'is_complete' => data_get($item, 'is_complete') ? 1 : 0,
             'attachment_urls' => $this->normalizeJsonField(data_get($item, 'attachment_urls')),
@@ -382,6 +461,7 @@ class AccreditationController extends Controller
             'description' => $item->description,
             'main_element' => $item->main_element,
             'main_element_fulfilment' => $item->main_element_fulfilment,
+            'sample' => $item->sample,
             'content' => $item->content,
             'is_complete' => $item->is_complete,
             'attachment_urls' => $item->attachment_urls,

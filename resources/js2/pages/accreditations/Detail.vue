@@ -66,6 +66,7 @@
                             :item="item"
                             :is-open="item.__open"
                             @show-detail="openDetail"
+                            @show-sample="openSampleModal"
                             @add-evidence="openEvidenceModal"
                             @edit-evidence="openEditEvidenceModal"
                             @delete-evidence="deleteEvidence"
@@ -132,6 +133,24 @@
                     >
                         Save Note
                     </button>
+                </div>
+            </div>
+        </Modal>
+
+        <Modal
+            :open="sampleModalOpen"
+            :title="sampleItem.title || sampleItem.idx || 'Sample'"
+            eyebrow="Sample"
+            size="full"
+            @close="closeSampleModal"
+        >
+            <div class="grid gap-4 text-sm text-ink">
+                <div v-if="sampleItem.sample" class="rounded-xl border border-border bg-white p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Sample Content</div>
+                    <div class="mt-2 whitespace-pre-line text-sm text-ink">{{ sampleItem.sample }}</div>
+                </div>
+                <div v-else class="rounded-xl border border-border bg-white p-4 text-sm text-muted">
+                    No sample available.
                 </div>
             </div>
         </Modal>
@@ -422,6 +441,13 @@ const TreeItem = {
                         Detail
                     </button>
                     <button
+                        class="rounded-lg border border-border bg-white px-3 py-1.5 text-[11px] font-semibold text-muted transition hover:bg-slate-50"
+                        type="button"
+                        @click.stop="$emit('show-sample', item)"
+                    >
+                        Sample
+                    </button>
+                    <button
                         class="rounded-lg bg-primary/10 px-3 py-1.5 text-[11px] font-semibold text-primary shadow-sm transition hover:bg-primary/15"
                         type="button"
                         @click.stop="$emit('add-evidence', item)"
@@ -517,6 +543,7 @@ const TreeItem = {
                         :item="child"
                         :is-open="child.__open"
                         @show-detail="$emit('show-detail', $event)"
+                        @show-sample="$emit('show-sample', $event)"
                         @add-evidence="$emit('add-evidence', $event)"
                         @edit-evidence="$emit('edit-evidence', $event)"
                         @delete-evidence="$emit('delete-evidence', $event)"
@@ -556,6 +583,8 @@ export default {
             detailNote: '',
             detailIsComplete: false,
             detailSaving: false,
+            sampleModalOpen: false,
+            sampleItem: {},
             previewModalOpen: false,
             previewType: '',
             previewSrc: '',
@@ -662,6 +691,14 @@ export default {
             this.detailItem = {};
             this.detailNote = '';
             this.detailIsComplete = false;
+        },
+        openSampleModal(item) {
+            this.sampleItem = item || {};
+            this.sampleModalOpen = true;
+        },
+        closeSampleModal() {
+            this.sampleModalOpen = false;
+            this.sampleItem = {};
         },
         openEvidenceModal(item) {
             this.evidenceTarget = item || null;
