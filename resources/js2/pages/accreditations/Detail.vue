@@ -155,11 +155,13 @@
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Description</span>
-                    <textarea
-                        v-model.trim="evidenceForm.description"
-                        rows="3"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
+                    <div class="rounded-2xl border border-border bg-white p-2">
+                        <vue-editor
+                            v-model="evidenceForm.description"
+                            :editor-toolbar="editorToolbar"
+                            placeholder="Add evidence description with links..."
+                        />
+                    </div>
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Attachment URLs</span>
@@ -190,6 +192,22 @@
                                 <span class="text-xs text-muted">{{ attachment.name }}</span>
                             </div>
                             <div class="mt-2 text-xs text-muted break-all">{{ attachment.url }}</div>
+                            <div class="mt-3 flex items-center gap-2">
+                                <button
+                                    class="rounded-lg border border-border bg-white px-3 py-1.5 text-xs text-muted"
+                                    type="button"
+                                    @click="copyAttachmentLink(attachment.url)"
+                                >
+                                    Copy Link
+                                </button>
+                                <button
+                                    class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
+                                    type="button"
+                                    @click="removeEvidenceAttachment(index)"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -222,11 +240,13 @@
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Description</span>
-                    <textarea
-                        v-model.trim="editEvidenceForm.description"
-                        rows="3"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
+                    <div class="rounded-2xl border border-border bg-white p-2">
+                        <vue-editor
+                            v-model="editEvidenceForm.description"
+                            :editor-toolbar="editorToolbar"
+                            placeholder="Update evidence description with links..."
+                        />
+                    </div>
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Add Attachments</span>
@@ -241,16 +261,36 @@
                 <div v-if="editEvidenceForm.attachment_urls.length" class="grid gap-2">
                     <div class="text-xs uppercase tracking-[0.2em] text-muted">Attachments</div>
                     <div class="grid gap-1 text-xs">
-                        <a
+                        <div
                             v-for="(url, index) in editEvidenceForm.attachment_urls"
                             :key="`edit-evidence-${index}`"
-                            :href="url"
-                            target="_blank"
-                            rel="noopener"
-                            class="break-all text-primary underline"
+                            class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-white px-3 py-2"
                         >
-                            {{ url }}
-                        </a>
+                            <a
+                                :href="url"
+                                target="_blank"
+                                rel="noopener"
+                                class="break-all text-primary underline"
+                            >
+                                {{ url }}
+                            </a>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    class="rounded-lg border border-border bg-white px-3 py-1.5 text-xs text-muted"
+                                    type="button"
+                                    @click="copyAttachmentLink(url)"
+                                >
+                                    Copy Link
+                                </button>
+                                <button
+                                    class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
+                                    type="button"
+                                    @click="removeEditEvidenceAttachment(index)"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <button
@@ -294,6 +334,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
 import { uploadFirebaseFile } from '../../upload';
+import { VueEditor } from 'vue2-editor';
 
 const TreeItem = {
     name: 'TreeItem',
@@ -427,8 +468,11 @@ const TreeItem = {
                                     </button>
                                 </div>
                             </div>
-                            <div v-if="evidence.description" class="mt-1 text-xs text-muted">
-                                {{ evidence.description }}
+                            <div
+                                v-if="evidence.description"
+                                class="mt-1 text-xs text-muted prose prose-sm max-w-none"
+                                v-html="evidence.description"
+                            >
                             </div>
                             <div class="mt-1 text-[11px] text-muted">
                                 By: {{ evidence.auth_name || '-' }}
@@ -489,6 +533,7 @@ export default {
     components: {
         Loading,
         Modal,
+        VueEditor,
         TreeItem,
     },
     data() {
@@ -496,10 +541,17 @@ export default {
             accreditation: {},
             loading: false,
             errorMessage: '',
-        treeItems: [],
-        treeLoading: false,
-        openStates: {},
-        detailModalOpen: false,
+            editorToolbar: [
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ header: 1 }, { header: 2 }],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link'],
+                ['clean'],
+            ],
+            treeItems: [],
+            treeLoading: false,
+            openStates: {},
+            detailModalOpen: false,
             detailItem: {},
             detailNote: '',
             detailIsComplete: false,
@@ -674,6 +726,12 @@ export default {
                 this.editEvidenceUploading = false;
             }
         },
+        removeEditEvidenceAttachment(index) {
+            this.editEvidenceForm.attachment_urls = this.editEvidenceForm.attachment_urls.filter((_, itemIndex) => itemIndex !== index);
+            if (Array.isArray(this.editEvidenceForm.attachments) && this.editEvidenceForm.attachments.length) {
+                this.editEvidenceForm.attachments = this.editEvidenceForm.attachments.filter((_, itemIndex) => itemIndex !== index);
+            }
+        },
         async handleEvidenceFiles(event) {
             const files = event && event.target ? Array.from(event.target.files || []) : [];
             if (!files.length) {
@@ -698,6 +756,31 @@ export default {
                 }
             } finally {
                 this.evidenceUploading = false;
+            }
+        },
+        removeEvidenceAttachment(index) {
+            this.evidenceForm.attachments = this.evidenceForm.attachments.filter((_, itemIndex) => itemIndex !== index);
+            this.evidenceForm.attachment_urls = this.evidenceForm.attachment_urls.filter((_, itemIndex) => itemIndex !== index);
+        },
+        async copyAttachmentLink(url) {
+            if (!url) {
+                return;
+            }
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(url);
+                } else {
+                    const input = document.createElement('input');
+                    input.value = url;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(input);
+                }
+                this.$showToast('Attachment link copied.');
+            } catch (error) {
+                this.$showToast('Failed to copy attachment link.', 'error');
             }
         },
         submitEvidence() {

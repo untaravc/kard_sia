@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\LectureController;
+use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\OpenStaseTaskController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\CmdController;
@@ -26,12 +27,13 @@ Route::get('cmd/insert-accreditation', [\App\Http\Controllers\Api\AccreditationC
 
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);
-    Route::get('menu', [AuthController::class, 'menu']);
+    Route::get('menu', [MenuController::class, 'menu']);
     Route::post('log-as', [AuthController::class, 'logAs']);
     Route::post('logout-as', [AuthController::class, 'logoutAs']);
     Route::post('logout', [AuthController::class, 'logout']);
 
     Route::resource('users', 'Api\UserController');
+    Route::resource('form-options', 'Api\FormOptionController');
     Route::resource('stases', 'Api\StaseController');
     Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
     Route::get('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'studentStase']);
@@ -53,6 +55,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('activities-today', [ActivityController::class, 'activitiesToday']);
     Route::post('activity-presence/{activity_id}', [ActivityController::class, 'presence']);
     Route::get('release-note', [\App\Http\Controllers\Api\MarkdownController::class, 'releaseNote']);
+    Route::resource('posts', 'Api\PostController');
     Route::get('open-stase-tasks', [OpenStaseTaskController::class, 'openStaseTask']);
     Route::post('open-stase-task', [OpenStaseTaskController::class, 'create']);
     Route::patch('open-stase-task/{id}', [OpenStaseTaskController::class, 'update']);

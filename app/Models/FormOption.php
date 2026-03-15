@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class FormOption extends Model
 {
+    protected $fillable = [
+        'type',
+        'relation_id',
+        'value',
+        'name',
+        'desc',
+        'status',
+    ];
+    
     protected $appends = ['parse_desc'];
     public function getParseDescAttribute(){
         if(isset($this->attributes['desc'])){
