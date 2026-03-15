@@ -140,6 +140,20 @@ class StaseController extends Controller
         ]);
     }
 
+    public function listAll()
+    {
+        $stases = Stase::whereIn('desc', ['tahap_1', 'tahap_2', 'tahap_3'])
+            ->orderBy('desc')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve All Stase List Success',
+            'result' => $stases,
+        ]);
+    }
+
     public function studentStase(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');

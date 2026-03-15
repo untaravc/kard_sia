@@ -449,7 +449,7 @@ export default {
         fetchStases() {
             this.loadingStases = true;
 
-            return Repository.get('/api/stase-list')
+            return Repository.get('/api/stase-list-all')
                 .then((response) => {
                     const result = response && response.data ? response.data.result : null;
                     this.stases = Array.isArray(result) ? result : [];
