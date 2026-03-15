@@ -74,6 +74,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('students', 'Api\StudentController');
     Route::get('student-list', [\App\Http\Controllers\Api\StudentController::class, 'studentList']);
     Route::get('stase-logs', [\App\Http\Controllers\Api\StaseLogController::class, 'index']);
+    Route::get('stase-log-check', [\App\Http\Controllers\Api\StaseLogController::class, 'staseLogCheck']);
     Route::resource('accreditations', 'Api\AccreditationController');
     Route::get('accreditation-parent', [\App\Http\Controllers\Api\AccreditationController::class, 'getParent']);
     Route::get('accreditation-tree/{parent_idx}', [\App\Http\Controllers\Api\AccreditationController::class, 'dataTree'])

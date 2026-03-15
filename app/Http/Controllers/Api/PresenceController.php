@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\ActivityStudent;
 use App\Models\Presence;
 use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Jenssegers\Agent\Facades\Agent;
@@ -244,29 +245,30 @@ class PresenceController extends Controller
 
     public function student(Request $request, $student_id)
     {
-        $period = $request->period;
-        $week = $period ? date('W', strtotime($period)) : date('W', strtotime(date('Y-m')));
-        if ((int) $week === 52) {
-            $week = 1;
-        }
-
-        $month = $period ? substr($period, 5, 2) : date('m');
-        $year = $period ? substr($period, 0, 4) : date('Y');
+        [$startDate, $endDate, $resolvedPeriod] = $this->resolveStudentPresenceRange($request);
 
         $presences = Presence::whereStudentId($student_id)
-            ->whereYear('checkin', $year)
-            ->whereMonth('checkin', $month)
+            ->whereBetween('checkin', [
+                $startDate->copy()->startOfDay()->toDateTimeString(),
+                $endDate->copy()->endOfDay()->toDateTimeString(),
+            ])
             ->get();
 
         $activities = ActivityStudent::with('activity')
             ->whereStudentId($student_id)
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
+            ->whereBetween('created_at', [
+                $startDate->copy()->startOfDay()->toDateTimeString(),
+                $endDate->copy()->endOfDay()->toDateTimeString(),
+            ])
             ->get();
 
         $weeks = [];
-        for ($i = 0; $i < 5; $i += 1) {
-            $currentWeek = $this->getStartToEndDate((int) $week + $i, (int) $year);
+        $currentWeekStart = $startDate->copy()->startOfWeek(Carbon::MONDAY);
+        $lastWeekStart = $endDate->copy()->startOfWeek(Carbon::MONDAY);
+
+        while ($currentWeekStart->lte($lastWeekStart)) {
+            $currentWeek = $this->buildWeekFromStartDate($currentWeekStart);
+
             for ($d = 0; $d < 7; $d += 1) {
                 foreach ($presences as $presence) {
                     if (substr($presence->checkin, 0, 10) === $currentWeek[$d]['date']) {
@@ -280,7 +282,9 @@ class PresenceController extends Controller
                     }
                 }
             }
+
             $weeks[] = $currentWeek;
+            $currentWeekStart->addWeek();
         }
 
         return response()->json([
@@ -289,7 +293,9 @@ class PresenceController extends Controller
             'result' => [
                 'data' => $weeks,
                 'resident' => Student::find($student_id),
-                'period' => sprintf('%04d-%02d', (int) $year, (int) $month),
+                'period' => $resolvedPeriod,
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
             ],
         ]);
     }
@@ -351,5 +357,59 @@ class PresenceController extends Controller
         }
 
         return $ret;
+    }
+
+    private function buildWeekFromStartDate(Carbon $startDate)
+    {
+        $ret = [];
+        $currentDate = $startDate->copy();
+
+        for ($i = 0; $i < 7; $i += 1) {
+            $ret[] = [
+                'date' => $currentDate->toDateString(),
+            ];
+
+            $currentDate->addDay();
+        }
+
+        return $ret;
+    }
+
+    private function resolveStudentPresenceRange(Request $request)
+    {
+        $period = $request->period;
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        if ($startDate || $endDate) {
+            $resolvedStartDate = $startDate
+                ? Carbon::parse($startDate)->startOfDay()
+                : Carbon::parse($endDate)->startOfMonth()->startOfDay();
+            $resolvedEndDate = $endDate
+                ? Carbon::parse($endDate)->endOfDay()
+                : Carbon::parse($startDate)->endOfMonth()->endOfDay();
+
+            if ($resolvedStartDate->gt($resolvedEndDate)) {
+                [$resolvedStartDate, $resolvedEndDate] = [$resolvedEndDate, $resolvedStartDate];
+            }
+
+            return [
+                $resolvedStartDate,
+                $resolvedEndDate,
+                $resolvedStartDate->format('Y-m'),
+            ];
+        }
+
+        $resolvedPeriod = preg_match('/^\d{4}-\d{2}$/', (string) $period)
+            ? $period
+            : now()->format('Y-m');
+
+        $periodDate = Carbon::createFromFormat('Y-m', $resolvedPeriod);
+
+        return [
+            $periodDate->copy()->startOfMonth()->startOfDay(),
+            $periodDate->copy()->endOfMonth()->endOfDay(),
+            $resolvedPeriod,
+        ];
     }
 }

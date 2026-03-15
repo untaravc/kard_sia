@@ -128,8 +128,7 @@ class StaseController extends Controller
 
     public function staseList()
     {
-        $stases = Stase::select('id', 'name', 'desc')
-            ->whereIn('desc', ['tahap_1', 'tahap_2', 'tahap_3'])
+        $stases = Stase::whereIn('desc', ['tahap_1', 'tahap_2', 'tahap_3'])
             ->orderBy('desc')
             ->orderBy('name')
             ->get();

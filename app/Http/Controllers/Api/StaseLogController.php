@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\StaseLog;
+use App\Models\Student;
 use Illuminate\Http\Request;
 
 class StaseLogController extends Controller
@@ -29,6 +30,27 @@ class StaseLogController extends Controller
             'success' => true,
             'text' => 'Retrieve Stase Logs Success',
             'result' => $dataContent,
+        ]);
+    }
+
+    public function staseLogCheck()
+    {
+        $today = now()->toDateString();
+
+        $students = Student::where('status', 'active')
+            ->whereDoesntHave('staseLogs', function ($query) use ($today) {
+                $query->whereDate('start_date', '<=', $today)
+                    ->whereDate('end_date', '>=', $today);
+            })
+            ->select('id', 'name', 'email', 'year', 'status')
+            ->orderBy('year')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Students Without Active Stase Logs Success',
+            'result' => $students,
         ]);
     }
 
