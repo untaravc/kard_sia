@@ -113,6 +113,21 @@ class StudentController extends Controller
         ]);
     }
 
+    public function studentList()
+    {
+        $students = Student::where('status', 'active')
+            ->select('id', 'name', 'year')
+            ->orderBy('year')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student List Success',
+            'result' => $students,
+        ]);
+    }
+
     // Have to be refactored
     public function score(Request $request, $student_id)
     {

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ActivityController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LectureController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\OpenStaseTaskController;
@@ -29,6 +30,7 @@ Route::get('cmd-action-accreditation', [\App\Http\Controllers\Api\AccreditationC
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);
     Route::get('menu', [MenuController::class, 'menu']);
+    Route::get('dashboard-stats', [DashboardController::class, 'stat']);
     Route::post('log-as', [AuthController::class, 'logAs']);
     Route::post('logout-as', [AuthController::class, 'logoutAs']);
     Route::post('logout', [AuthController::class, 'logout']);
@@ -36,7 +38,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('users', 'Api\UserController');
     Route::resource('form-options', 'Api\FormOptionController');
     Route::resource('stases', 'Api\StaseController');
-    Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
+    Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'staseList']);
     Route::get('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'studentStase']);
     Route::post('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'storeStudentStase']);
     Route::patch('student-stase/{id}', [\App\Http\Controllers\Api\StaseController::class, 'updateStudentStase']);
@@ -70,6 +72,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('stase-task-logs-update-score-proposal/{id}', [ScoreController::class, 'staseTaskLogUpdateProposal']);
     Route::resource('activities', 'Api\ActivityController');
     Route::resource('students', 'Api\StudentController');
+    Route::get('student-list', [\App\Http\Controllers\Api\StudentController::class, 'studentList']);
+    Route::get('stase-logs', [\App\Http\Controllers\Api\StaseLogController::class, 'index']);
     Route::resource('accreditations', 'Api\AccreditationController');
     Route::get('accreditation-parent', [\App\Http\Controllers\Api\AccreditationController::class, 'getParent']);
     Route::get('accreditation-tree/{parent_idx}', [\App\Http\Controllers\Api\AccreditationController::class, 'dataTree'])

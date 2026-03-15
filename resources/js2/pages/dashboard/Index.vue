@@ -17,15 +17,15 @@
                 <div class="mt-4 grid gap-3.5">
                     <div class="flex items-center justify-between rounded-2xl bg-ext px-3 py-2.5">
                         <div class="text-muted">Open exams</div>
-                        <div class="font-semibold">6</div>
+                        <div class="font-semibold">{{ stats.open_exam_active }}</div>
                     </div>
                     <div class="flex items-center justify-between rounded-2xl bg-ext px-3 py-2.5">
-                        <div class="text-muted">Active rotations</div>
-                        <div class="font-semibold">24</div>
+                        <div class="text-muted">Open exams today</div>
+                        <div class="font-semibold">{{ stats.open_exam_today }}</div>
                     </div>
                     <div class="flex items-center justify-between rounded-2xl bg-ext px-3 py-2.5">
-                        <div class="text-muted">Overdue logs</div>
-                        <div class="font-semibold">4</div>
+                        <div class="text-muted">Guest students</div>
+                        <div class="font-semibold">{{ stats.student_guest }}</div>
                     </div>
                 </div>
             </div>
@@ -34,7 +34,7 @@
         <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div v-for="card in cards" :key="card.label" class="rounded-2xl border border-border bg-panel px-5 py-4">
                 <div class="text-xs text-muted">{{ card.label }}</div>
-                <div class="mt-2 text-2xl font-semibold">{{ card.value }}</div>
+                <div class="mt-2 text-2xl font-semibold">{{ stats[card.key] }}</div>
                 <div class="mt-1.5 text-xs text-muted">{{ card.meta }}</div>
             </div>
         </section>
@@ -78,14 +78,24 @@
 </template>
 
 <script>
+import Repository from '../../repository';
+
 export default {
     data() {
         return {
+            stats: {
+                student_active: 0,
+                student_guest: 0,
+                lecture_active: 0,
+                lecture_guest: 0,
+                open_exam_active: 0,
+                open_exam_today: 0,
+            },
             cards: [
-                { label: 'Active residents', value: '128', meta: '12 on rotation' },
-                { label: 'Lecturers', value: '42', meta: '3 new profiles' },
-                { label: 'Open exams', value: '9', meta: '2 scheduled today' },
-                { label: 'Daily activities', value: '214', meta: '14 pending review' },
+                { label: 'Active students', key: 'student_active', meta: 'Students with active status' },
+                { label: 'Guest students', key: 'student_guest', meta: 'Students with guest status' },
+                { label: 'In-house lecturers', key: 'lecture_active', meta: 'Active lecturers in house' },
+                { label: 'Guest lecturers', key: 'lecture_guest', meta: 'Active lecturers from outside' },
             ],
             staseProgress: [
                 { name: 'Tahap 1', percent: 78 },
@@ -100,6 +110,31 @@ export default {
                 { title: 'Exam request approved', time: '1 hour ago', tone: 'bg-emerald-500' },
             ],
         };
+    },
+    created() {
+        this.fetchStats();
+    },
+    methods: {
+        fetchStats() {
+            return Repository.get('/api/dashboard-stats')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.stats = {
+                        ...this.stats,
+                        ...(result || {}),
+                    };
+                })
+                .catch(() => {
+                    this.stats = {
+                        student_active: 0,
+                        student_guest: 0,
+                        lecture_active: 0,
+                        lecture_guest: 0,
+                        open_exam_active: 0,
+                        open_exam_today: 0,
+                    };
+                });
+        },
     },
 };
 </script>

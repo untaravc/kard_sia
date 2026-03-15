@@ -81,6 +81,7 @@ class MenuController extends Controller
                 ],
                 ['label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities"],
                 ['label' => 'Accreditations', 'icon' => 'agenda', 'to' => "{$basePath}/accreditations"],
+                ['label' => 'Stase Log Report', 'icon' => 'agenda', 'to' => "{$basePath}/report/stase-log"],
                 [
                     'label' => 'Data Master',
                     'icon' => 'data-master',

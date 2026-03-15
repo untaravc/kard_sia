@@ -81,6 +81,7 @@ const routes = [
             { path: 'posts', component: require('./pages/posts/Index.vue').default, meta: { page_name: 'Posts' } },
             { path: 'posts/create', component: require('./pages/posts/AddEdit.vue').default, meta: { page_name: 'Create Post' } },
             { path: 'posts/:id', component: require('./pages/posts/AddEdit.vue').default, meta: { page_name: 'Edit Post' } },
+            { path: 'report/stase-log', component: require('./pages/report/StaseLog.vue').default, meta: { page_name: 'Stase Log Report' } },
             { path: 'logbooks', component: require('./pages/logbooks/Index.vue').default, meta: { page_name: 'Logbooks' } },
             { path: 'logbook-student', component: require('./pages/logbooks/Student.vue').default, meta: { page_name: 'Logbooks' } },
             { path: 'stases', component: require('./pages/stases/Index.vue').default, meta: { page_name: 'Stases' } },

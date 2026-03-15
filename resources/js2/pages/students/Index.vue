@@ -264,7 +264,7 @@ export default {
             pagination: {},
             filters: {
                 keyword: '',
-                status: null,
+                status: 'active',
                 year: '',
                 page: 1,
             },
@@ -380,7 +380,7 @@ export default {
         },
         resetFilter() {
             this.filters.keyword = '';
-            this.filters.status = null;
+            this.filters.status = 'active';
             this.filters.year = '';
             this.filters.page = 1;
             this.fetchStudents();
