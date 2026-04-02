@@ -67,6 +67,12 @@
             >
                 Open Release Notes
             </router-link>
+            <router-link
+                class="mt-2 block w-full rounded-xl bg-primary px-3 py-2 text-center text-xs font-semibold text-white"
+                to="/blu/tutorial"
+            >
+                Tutorial
+            </router-link>
         </div>
         <Modal
             :open="profileModalOpen"

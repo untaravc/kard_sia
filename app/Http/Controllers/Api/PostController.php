@@ -111,7 +111,7 @@ class PostController extends Controller
 
     protected function withFilter($dataContent, Request $request)
     {
-        if ($request->keyword != null) {
+        if ($request->filled('keyword')) {
             $dataContent = $dataContent->where(function ($query) use ($request) {
                 $query->where('title', 'LIKE', '%' . $request->keyword . '%')
                     ->orWhere('content', 'LIKE', '%' . $request->keyword . '%')
@@ -120,20 +120,36 @@ class PostController extends Controller
             });
         }
 
-        if ($request->category_id != null) {
+        if ($request->filled('category_id')) {
             $dataContent = $dataContent->where('category_id', $request->category_id);
         }
 
-        if ($request->section != null) {
+        if ($request->filled('section')) {
             $dataContent = $dataContent->where('section', $request->section);
         }
 
-        if ($request->auth_id != null) {
+        if ($request->filled('auth_id')) {
             $dataContent = $dataContent->where('auth_id', $request->auth_id);
         }
 
-        if ($request->auth_type != null) {
+        if ($request->filled('auth_type')) {
             $dataContent = $dataContent->where('auth_type', $request->auth_type);
+        }
+
+        if ($request->filled('release_at_gt')) {
+            $dataContent = $dataContent->whereDate('release_at', '>', $request->release_at_gt);
+        }
+
+        if ($request->filled('release_at_gte')) {
+            $dataContent = $dataContent->whereDate('release_at', '>=', $request->release_at_gte);
+        }
+
+        if ($request->filled('release_at_lt')) {
+            $dataContent = $dataContent->whereDate('release_at', '<', $request->release_at_lt);
+        }
+
+        if ($request->filled('release_at_lte')) {
+            $dataContent = $dataContent->whereDate('release_at', '<=', $request->release_at_lte);
         }
 
         return $dataContent;

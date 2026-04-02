@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Lecture;
 use App\Models\LectureProfile;
+use App\Models\Registration;
 use App\Models\Student;
 use App\Models\StudentProfile;
 use App\User;
@@ -81,6 +82,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -129,6 +131,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -319,6 +322,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -378,6 +382,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -515,6 +520,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -568,6 +574,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -604,6 +611,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {
@@ -643,6 +651,7 @@ class AuthController extends Controller
             'user' => User::class,
             'lecture' => Lecture::class,
             'student' => Student::class,
+            'registration' => Registration::class,
         ];
 
         foreach ($providers as $type => $model) {

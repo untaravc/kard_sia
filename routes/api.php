@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LectureController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\OpenStaseTaskController;
+use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\CmdController;
 
@@ -97,4 +98,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
     Route::resource('device-tokens', 'Api\DeviceTokenController');
     Route::resource('notifications', 'Api\NotificationController');
+    Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);
+    Route::resource('registrations', 'Api\RegistrationController');
 });
