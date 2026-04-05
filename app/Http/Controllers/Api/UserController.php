@@ -9,6 +9,17 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function list()
+    {
+        $users = User::orderBy('name')->get();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve User List Success',
+            'result' => $users,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $dataContent = User::orderBy('name');

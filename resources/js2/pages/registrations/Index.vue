@@ -41,13 +41,16 @@
                 </div>
                 <div class="flex-1 min-w-[180px]">
                     <label class="text-xs text-muted">Period</label>
-                    <input
-                        v-model.trim="filters.registration_period"
-                        type="text"
-                        placeholder="e.g. 2026-01"
-                        @keyup.enter="applyFilter"
+                    <select
+                        v-model="filters.registration_period"
+                        @change="applyFilter"
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+                    >
+                        <option value="">All</option>
+                        <option v-for="period in periodOptions" :key="period" :value="period">
+                            {{ period }}
+                        </option>
+                    </select>
                 </div>
                 <div class="flex items-end gap-2">
                     <button
@@ -265,6 +268,27 @@ export default {
     components: {
         Loading,
         Modal,
+    },
+    computed: {
+        periodOptions() {
+            const start = new Date(Date.UTC(2025, 0, 1));
+
+            const now = new Date();
+            const nowYear = now.getUTCFullYear();
+            const nowMonth = now.getUTCMonth(); // 0-11
+            const end = nowMonth < 6
+                ? new Date(Date.UTC(nowYear, 6, 1)) // July 1 (next upcoming boundary)
+                : new Date(Date.UTC(nowYear + 1, 0, 1)); // Jan 1 next year
+
+            const periods = [];
+            const cursor = new Date(start.getTime());
+            while (cursor.getTime() <= end.getTime()) {
+                periods.push(cursor.toISOString().slice(0, 10));
+                cursor.setUTCMonth(cursor.getUTCMonth() + 6);
+            }
+
+            return periods.reverse();
+        },
     },
     data() {
         return {

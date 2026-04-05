@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\OpenStaseTaskController;
 use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\CmdController;
+use App\Http\Controllers\Api\LetterController;
+use App\Http\Controllers\Api\UserController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::get('login-google/redirect', [AuthController::class, 'loginGoogleRedirect']);
@@ -52,6 +54,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('tasks', 'Api\TaskController');
     Route::resource('lectures', 'Api\LectureController');
     Route::get('lecture-list', [\App\Http\Controllers\Api\LectureController::class, 'list']);
+    Route::get('user-list', [UserController::class, 'list']);
     Route::get('lecture-profile', [LectureController::class, 'profile']);
     Route::patch('lecture-profile', [LectureController::class, 'updateProfile']);
     Route::get('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'profile']);
@@ -100,4 +103,5 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('notifications', 'Api\NotificationController');
     Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);
     Route::resource('registrations', 'Api\RegistrationController');
+    Route::resource('letters', 'Api\LetterController');
 });

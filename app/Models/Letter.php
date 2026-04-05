@@ -2,21 +2,27 @@
 
 namespace App\Models;
 
-use App\User;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\LetterParticipant;
 
 class Letter extends Model
 {
-    protected $guarded = [];
-    public function students(){
-        return $this->belongsToMany(Student::class, 'letter_students');
-    }
+    protected $fillable = [
+        'number',
+        'auth_type',
+        'auth_id',
+        'date',
+        'title',
+        'subtitle',
+        'intro',
+        'body',
+        'outro',
+        'status',
+        'token',
+    ];
 
-    public function lectures(){
-        return $this->belongsToMany(Lecture::class, 'letter_lectures');
-    }
-
-    public function user(){
-        return $this->belongsTo(User::class);
+    public function participants()
+    {
+        return $this->hasMany(LetterParticipant::class);
     }
 }

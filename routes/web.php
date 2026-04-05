@@ -53,6 +53,7 @@ Route::get('get-categories', [GlobalFunctionController::class, 'getCategories'])
 Route::get('document-categories', [GlobalFunctionController::class, 'documentCategories']);
 Route::get('stase-option/{id}', [GlobalFunctionController::class, 'staseOption']);
 Route::get('print/logbook/{student_id}/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'print']);
+Route::get('letters/{id}/preview', [\App\Http\Controllers\Api\LetterController::class, 'preview']);
 Route::get('upload', function (){ return view('upload-excel');});
 Route::get('get-activity-cats', [GlobalFunctionController::class, 'getActCats']);
 Route::post('upload', 'Sadmin\GlobalFunctionController@uploadExcel');

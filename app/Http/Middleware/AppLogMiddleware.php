@@ -18,7 +18,7 @@ class AppLogMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $this->createAppLog('access_point', str_replace('https://sia.kardiologi-fkkmk.com', '', Request::url()));
+//        $this->createAppLog('access_point', str_replace('https://sia.kardiologi-fkkmk.com', '', Request::url()));
         return $next($request);
     }
 }
