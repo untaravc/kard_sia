@@ -437,6 +437,7 @@ export default {
                 ['bold', 'italic', 'underline', 'strike'],
                 [{ header: 1 }, { header: 2 }],
                 [{ list: 'ordered' }, { list: 'bullet' }],
+                [{ indent: '-1' }, { indent: '+1' }],
                 [{ align: [] }],
                 ['blockquote', 'code-block'],
                 ['link'],

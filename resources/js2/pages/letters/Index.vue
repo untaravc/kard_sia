@@ -94,34 +94,55 @@
                             >
                                 {{ statusLabel(letter.status) }}
                             </span>
-                        </div>
-                        <div class="text-xs text-muted">
-                            <span v-if="letter.number">No: {{ letter.number }}</span>
-                            <span v-if="letter.date">• Date: {{ letter.date }}</span>
-                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <a
-                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            :href="`/letters/${letter.id}/preview`"
-                            target="_blank"
-                            rel="noopener"
-                        >
-                            Preview
-                        </a>
-                        <router-link
-                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            :to="`/blu/letters/${letter.id}`"
-                        >
-                            Edit
-                        </router-link>
+                    <div class="text-xs text-muted">
+                        <span v-if="letter.number">No: {{ letter.number }}</span>
+                        <span v-if="letter.date">• Date: {{ letter.date }}</span>
+                    </div>
+                </div>
+                    <div class="relative action-dropdown">
                         <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
+                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="deleteLetter(letter)"
+                            @click.stop="toggleActionMenu(letter.id)"
                         >
-                            Delete
+                            Actions
                         </button>
+                        <div
+                            v-if="actionMenuOpenId === letter.id"
+                            class="absolute right-0 z-10 mt-2 w-44 rounded-xl border border-border bg-white p-1 shadow-lg"
+                        >
+                            <a
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                :href="`/letters/${letter.id}/preview`"
+                                target="_blank"
+                                rel="noopener"
+                                @click="closeActionMenu"
+                            >
+                                Preview
+                            </a>
+                            <router-link
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                :to="`/blu/letters/${letter.id}`"
+                                @click.native="closeActionMenu"
+                            >
+                                Edit
+                            </router-link>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('propose', letter)"
+                            >
+                                Propose
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', letter)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -145,6 +166,39 @@
                 </button>
             </div>
         </section>
+
+        <Modal
+            :open="proposeModalOpen"
+            title="Kirim Pengajuan"
+            eyebrow="WhatsApp"
+            size="sm"
+            @close="closeProposeApproval"
+        >
+            <div class="text-sm text-ink">
+                Kirim pengajuan tandatangan melalui link whatsapp?
+            </div>
+            <div v-if="proposeError" class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                {{ proposeError }}
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    :disabled="proposeSubmitting"
+                    @click="closeProposeApproval"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="proposeSubmitting"
+                    @click="submitProposeApproval"
+                >
+                    {{ proposeSubmitting ? 'Sending...' : 'Send' }}
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -152,10 +206,12 @@
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Repository from '../../repository';
+import Modal from '../../components/Modal.vue';
 
 export default {
     components: {
         Loading,
+        Modal,
     },
     data() {
         return {
@@ -173,10 +229,21 @@ export default {
             ],
             loading: false,
             errorMessage: '',
+            proposeModalOpen: false,
+            proposeSubmitting: false,
+            proposeLetter: null,
+            proposeError: '',
+            actionMenuOpenId: null,
         };
     },
     created() {
         this.fetchLetters();
+    },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
         statusLabel(status) {
@@ -227,6 +294,73 @@ export default {
         changePage(page) {
             this.filters.page = page;
             this.fetchLetters();
+        },
+        toggleActionMenu(letterId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === letterId ? null : letterId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
+        },
+        handleAction(action, letter) {
+            this.closeActionMenu();
+
+            if (action === 'propose') {
+                this.openProposeApproval(letter);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteLetter(letter);
+            }
+        },
+        openProposeApproval(letter) {
+            this.proposeLetter = letter || null;
+            this.proposeError = '';
+            this.proposeModalOpen = true;
+        },
+        closeProposeApproval() {
+            if (this.proposeSubmitting) {
+                return;
+            }
+            this.proposeModalOpen = false;
+            this.proposeLetter = null;
+            this.proposeError = '';
+        },
+        submitProposeApproval() {
+            if (this.proposeSubmitting) {
+                return;
+            }
+            if (!this.proposeLetter || !this.proposeLetter.id) {
+                this.proposeError = 'Letter is invalid.';
+                return;
+            }
+
+            this.proposeSubmitting = true;
+            this.proposeError = '';
+
+            return Repository.post(`${this.baseUrl}/${this.proposeLetter.id}/propose-approval`)
+                .then(() => {
+                    this.$showToast('Pengajuan tandatangan berhasil dikirim.');
+                    this.closeProposeApproval();
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to send propose approval.';
+                    this.proposeError = message;
+                })
+                .finally(() => {
+                    this.proposeSubmitting = false;
+                });
         },
         deleteLetter(letter) {
             const title = letter && letter.title ? letter.title : 'this letter';

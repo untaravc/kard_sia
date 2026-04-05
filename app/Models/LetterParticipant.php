@@ -14,6 +14,7 @@ class LetterParticipant extends Model
         'auth_type',
         'auth_id',
         'auth_name',
+        'auth_number',
         'type',
         'label',
         'status',

@@ -72,7 +72,8 @@
             font-size: 13px;
             line-height: 1.7;
         }
-        .content p { margin: 0 0 10px; }
+        .content p { margin: 0; }
+        .content-section + .content-section { margin-top: 10px; }
         .section {
             margin-top: 18px;
             padding-top: 12px;
@@ -206,15 +207,21 @@
 
         <div class="content">
             @if(!empty($letter->intro))
-                {!! $letter->intro !!}
+                <div class="content-section">
+                    {!! $letter->intro !!}
+                </div>
             @endif
 
             @if(!empty($letter->body))
-                {!! $letter->body !!}
+                <div class="content-section">
+                    {!! $letter->body !!}
+                </div>
             @endif
 
             @if(!empty($letter->outro))
-                {!! $letter->outro !!}
+                <div class="content-section">
+                    {!! $letter->outro !!}
+                </div>
             @endif
         </div>
 

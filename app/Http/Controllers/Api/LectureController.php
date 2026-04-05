@@ -130,6 +130,7 @@ class LectureController extends Controller
     {
         $this->validate($request, [
             'name' => 'required',
+            'number' => 'nullable|string|max:50',
             'email' => 'required|email',
             'password' => 'required_without:id',
             'name_alt' => 'nullable',
@@ -145,6 +146,7 @@ class LectureController extends Controller
             $dataContent = $dataContent->where(function ($q) use ($request) {
                 $q->where('lectures.name', 'LIKE', '%' . $request->keyword . '%');
                 $q->orWhere('lectures.email', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('lectures.number', 'LIKE', '%' . $request->keyword . '%');
             });
         }
 

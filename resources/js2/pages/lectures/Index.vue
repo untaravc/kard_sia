@@ -71,22 +71,24 @@
                     <div class="w-8 text-sm font-semibold text-muted">
                         {{ (pagination.from ? pagination.from - 1 : 0) + index + 1 }}
                     </div>
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <div class="font-semibold text-ink">{{ lecture.name }}</div>
-                            <span v-if="lecture.status !== null && lecture.status !== undefined" class="text-xs text-muted">
-                                Status: {{ lecture.status }}
-                            </span>
-                            <span v-if="lecture.is_in_house" class="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                                In House
-                            </span>
-                        </div>
-                        <div class="text-xs text-muted">
-                            <span v-if="lecture.email">{{ lecture.email }}</span>
-                            <span v-if="lecture.phone">• {{ lecture.phone }}</span>
-                            <span v-if="lecture.name_alt">• {{ lecture.name_alt }}</span>
-                        </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2">
+                        <div class="font-semibold text-ink">{{ lecture.name }}</div>
+                        <span v-if="lecture.status !== null && lecture.status !== undefined" class="text-xs text-muted">
+                            Status: {{ lecture.status }}
+                        </span>
+                        <span v-if="lecture.is_in_house" class="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            In House
+                        </span>
                     </div>
+                    <div class="text-xs text-muted">
+                        <span v-if="lecture.number">No: {{ lecture.number }}</span>
+                        <span v-if="lecture.email && lecture.number">•</span>
+                        <span v-if="lecture.email">{{ lecture.email }}</span>
+                        <span v-if="lecture.phone">• {{ lecture.phone }}</span>
+                        <span v-if="lecture.name_alt">• {{ lecture.name_alt }}</span>
+                    </div>
+                </div>
                     <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
@@ -153,6 +155,15 @@
             @close="closeModal"
         >
             <form class="grid gap-4" @submit.prevent="submitForm">
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Number</span>
+                    <input
+                        v-model.trim="form.number"
+                        type="text"
+                        placeholder="Lecture number"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Name</span>
                     <input
@@ -242,6 +253,7 @@ export default {
             },
             form: {
                 id: null,
+                number: '',
                 name: '',
                 email: '',
                 password: '',
@@ -343,6 +355,7 @@ export default {
             this.editMode = true;
             this.form = {
                 id: lecture.id,
+                number: lecture.number || '',
                 name: lecture.name || '',
                 email: lecture.email || '',
                 password: '',
@@ -364,6 +377,7 @@ export default {
         resetForm() {
             this.form = {
                 id: null,
+                number: '',
                 name: '',
                 email: '',
                 password: '',

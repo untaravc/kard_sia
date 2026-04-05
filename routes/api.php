@@ -29,6 +29,7 @@ Route::post('push-notifications', [\App\Http\Controllers\Api\NotificationControl
 Route::get('cmd/clear-open-stase-task', [CmdController::class, 'celarOpenStaseTask']);
 Route::get('cmd/insert-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'insertInitData']);
 Route::get('cmd-action-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'cmdAction']);
+Route::post('letters/{letter_token}/process-approval/{letter_participant_token}', [LetterController::class, 'processApproval']);
 
 Route::middleware('jwt.auth')->group(function () {
     Route::get('auth', [AuthController::class, 'auth']);
@@ -104,4 +105,5 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);
     Route::resource('registrations', 'Api\RegistrationController');
     Route::resource('letters', 'Api\LetterController');
+    Route::post('letters/{id}/propose-approval', [LetterController::class, 'proposeApproval']);
 });
