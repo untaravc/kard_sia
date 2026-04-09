@@ -71,18 +71,26 @@
         .meta-row { display: flex; gap: 10px; }
         .meta-row .key { width: 78px; flex: 0 0 auto; }
         .meta-row .val { flex: 1 1 auto; }
-        .content {
-            font-size: 13px;
-            line-height: 1.7;
-        }
-        .content p { margin: 0; }
-        .content table { margin-left: 40px; }
-        .content table td,
-        .content table th { vertical-align: top; }
-        .content .ql-indent-1 { padding-left: 3em; }
-        .content .ql-indent-2 { padding-left: 6em; }
-        .content .ql-indent-3 { padding-left: 9em; }
-        .content .ql-indent-4 { padding-left: 12em; }
+	        .content {
+	            font-size: 13px;
+	            line-height: 1.7;
+	        }
+	        .content p { margin: 0; }
+	        .content table { margin-left: 40px; }
+	        .content table td,
+	        .content table th { vertical-align: top; }
+	        .attachment-content table {
+	            width: 100%;
+	            margin-left: 0;
+	            border-collapse: collapse;
+	            table-layout: fixed;
+	        }
+	        .attachment-content table td,
+	        .attachment-content table th { border: 1px solid #e5e7eb; }
+	        .content .ql-indent-1 { padding-left: 3em; }
+	        .content .ql-indent-2 { padding-left: 6em; }
+	        .content .ql-indent-3 { padding-left: 9em; }
+	        .content .ql-indent-4 { padding-left: 12em; }
         .content .ql-indent-5 { padding-left: 15em; }
         .content .ql-indent-6 { padding-left: 18em; }
         .content .ql-indent-7 { padding-left: 21em; }
@@ -142,9 +150,10 @@
         }
         @media print {
             body { background: #fff; }
-            .page { border: none; margin: 0; }
+            .page { border: none; margin: 0 auto; }
             .page { page-break-after: always; }
             .page:last-child { page-break-after: auto; }
+            .header { border-bottom-width: 1px; padding-bottom: 10px; margin-bottom: 14px; }
         }
     </style>
 </head>
@@ -173,7 +182,7 @@
 
         @php
             $hasAttachment = !empty(data_get($letter, 'attachment'))
-                || !empty(data_get($letter, 'attachement'))
+                || !empty(data_get($letter, 'attachment'))
                 || !empty(data_get($letter, 'attachment_url'))
                 || !empty(data_get($letter, 'attachment_urls'))
                 || !empty(data_get($letter, 'file'))
@@ -189,7 +198,7 @@
                 </div>
                 <div class="meta-row">
                     <div class="key">Lampiran</div>
-                    <div class="val">: {{ $lampiran }}</div>
+                    <div class="val">: {{ $letter->attachment_label ?? $lampiran }}</div>
                 </div>
                 <div class="meta-row">
                     <div class="key">Perihal</div>
@@ -203,7 +212,10 @@
                     <div style="margin-bottom: 6px;">Kepada Yth.</div>
                     @php
                         $inviteItems = $invites && $invites->count() ? $invites : collect();
-                        $customInvitationLines = collect(preg_split("/\r\n|\r|\n/", (string) ($letter->custom_invitation ?? '')))
+                        $customInvitationRaw = (string) ($letter->custom_invitation ?? '');
+                        $customInvitationTrim = ltrim($customInvitationRaw);
+                        $customInvitationIsText = $customInvitationTrim !== '' && substr($customInvitationTrim, 0, 1) === '(';
+                        $customInvitationLines = collect(preg_split("/\r\n|\r|\n/", $customInvitationRaw))
                             ->map(fn ($line) => trim($line))
                             ->filter(fn ($line) => $line !== '')
                             ->values();
@@ -211,16 +223,24 @@
                     @endphp
 
                     @if($hasInvitationList)
-                        <ol style="margin: 0; padding-left: 18px;">
+                        @if($inviteItems->count() || (!$customInvitationIsText && $customInvitationLines->count()))
+                            <ol style="margin: 0; padding-left: 18px;">
                             @foreach($inviteItems as $invite)
                                 <li style="margin: 2px 0;">
                                     {{ $invite->auth_name ?: ($invite->auth_type . ' #' . $invite->auth_id) }}
                                 </li>
                             @endforeach
-                            @foreach($customInvitationLines as $line)
-                                <li style="margin: 2px 0;">{{ $line }}</li>
-                            @endforeach
-                        </ol>
+                                @if(!$customInvitationIsText)
+                                    @foreach($customInvitationLines as $line)
+                                        <li style="margin: 2px 0;">{{ $line }}</li>
+                                    @endforeach
+                                @endif
+                            </ol>
+                        @endif
+
+                        @if($customInvitationIsText)
+                            <div style="margin: 2px 0 0 18px; white-space: pre-line;">{{ trim($customInvitationRaw) }}</div>
+                        @endif
                     @else
                         <div>-</div>
                     @endif
@@ -280,7 +300,7 @@
         @endif
     </div>
 
-    @if(!empty($letter->attachement_content))
+    @if(!empty($letter->attachment_content))
         <div class="page">
             <div class="header">
                 <img
@@ -307,12 +327,13 @@
                 <div style="font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 13px;">
                     Lampiran
                 </div>
+                <div class="content">Nomor Surat: {{ $letter->number }}</div>
             </div>
 
-            <div class="content">
-                {!! $letter->attachement_content !!}
-            </div>
-        </div>
-    @endif
+	            <div class="content attachment-content">
+	                {!! $letter->attachment_content !!}
+	            </div>
+	        </div>
+	    @endif
 </body>
 </html>

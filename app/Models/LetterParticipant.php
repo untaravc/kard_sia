@@ -20,6 +20,7 @@ class LetterParticipant extends Model
         'status',
         'token',
         'validated_at',
+        'notify_at',
         'phone',
         'email',
     ];

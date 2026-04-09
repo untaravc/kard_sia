@@ -8,6 +8,7 @@ use App\Models\Lecture;
 use App\Models\LectureProfile;
 use App\Models\Letter;
 use App\Models\LetterParticipant;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -115,9 +116,49 @@ class LetterController extends Controller
         return rtrim((string) $base, '/');
     }
 
+    private function createPublishNotifications(Letter $letter)
+    {
+        $letter->loadMissing(['participants' => function ($query) {
+            $query->orderBy('type')->orderBy('auth_type')->orderBy('auth_name');
+        }]);
+
+        $participants = $letter->participants ?: collect();
+        if ($participants->isEmpty()) {
+            return;
+        }
+
+        $baseUrl = $this->approvalBaseUrl();
+        $letterName = $letter->title ?: ($letter->number ?: 'Surat');
+        $letterDate = $letter->date ?: '-';
+        $link = $baseUrl . '/letters/' . $letter->id . '/preview';
+
+        foreach ($participants as $participant) {
+            $authType = data_get($participant, 'auth_type');
+            $authId = data_get($participant, 'auth_id');
+            if (!$authType || !$authId) {
+                continue;
+            }
+
+            Notification::create([
+                'auth_type' => (string) $authType,
+                'auth_id' => (int) $authId,
+                'title' => 'Surat telah terbit',
+                'content' => "Nama: {$letterName}\nTanggal: {$letterDate}",
+                'link' => $link,
+                'is_read' => 0,
+            ]);
+        }
+    }
+
     public function index(Request $request)
     {
-        $query = Letter::query()->orderByDesc('created_at');
+        $query = Letter::query()
+            ->with(['participants' => function ($query) {
+                $query->where('type', 'approval')
+                    ->orderBy('auth_type')
+                    ->orderBy('auth_name');
+            }])
+            ->orderByDesc('created_at');
         $query = $this->scopeQueryByViewer($request, $query);
 
         if ($request->filled('keyword')) {
@@ -162,13 +203,14 @@ class LetterController extends Controller
         }
 
         $this->validate($request, [
+            'number' => 'nullable|string|max:255',
             'date' => 'nullable|date',
             'title' => 'required|string|max:255',
             'subtitle' => 'nullable|string|max:255',
             'intro' => 'nullable|string',
             'body' => 'nullable|string',
             'outro' => 'nullable|string',
-            'attachement_content' => 'nullable|string',
+            'attachment_content' => 'nullable|string',
             'attachment_label' => 'nullable|string|max:255',
             'custom_invitation' => 'nullable|string',
             'status' => 'nullable|integer',
@@ -189,7 +231,7 @@ class LetterController extends Controller
 
         $now = now();
         $letter = Letter::create([
-            'number' => $this->generateLetterNumber($now),
+            'number' => $request->filled('number') ? trim((string) $request->number) : $this->generateLetterNumber($now),
             'auth_type' => $authType,
             'auth_id' => $authId,
             'date' => $request->date ?: $now->toDateString(),
@@ -198,7 +240,7 @@ class LetterController extends Controller
             'intro' => $this->sanitizeEditorHtml($request->intro),
             'body' => $this->sanitizeEditorHtml($request->body),
             'outro' => $this->sanitizeEditorHtml($request->outro),
-            'attachement_content' => $this->sanitizeEditorHtml($request->attachement_content),
+            'attachment_content' => $this->sanitizeEditorHtml($request->attachment_content),
             'attachment_label' => $request->attachment_label,
             'custom_invitation' => $this->sanitizeEditorHtml($request->custom_invitation),
             'status' => $request->status ?? 0,
@@ -207,6 +249,9 @@ class LetterController extends Controller
 
         $this->syncInviteParticipants($letter, $request->input('participants', []));
         $this->syncApprovalParticipant($letter, $request->input('approval'));
+        if ((int) $letter->status === 1) {
+            $this->createPublishNotifications($letter);
+        }
 
         return response()->json([
             'success' => true,
@@ -292,8 +337,7 @@ class LetterController extends Controller
             }
 
             $link = $baseUrl . '/letters/' . $letter->token . '/approval/' . $approval->token;
-            $message = "jangan bagikan pesan ini\n\n"
-                . "Yth. {$name}\n"
+            $message = "Yth. {$name}\n"
                 . "Surat menunggu persetujuan anda.\n"
                 . "Nama: {$letterName}\n"
                 . "Tanggal: {$letterDate}\n"
@@ -321,6 +365,202 @@ class LetterController extends Controller
             'success' => true,
             'text' => 'Propose approval sent',
             'result' => $results,
+        ]);
+    }
+
+    public function notifyApprover(Request $request, $id)
+    {
+        $letter = Letter::with(['participants' => function ($query) {
+            $query->where('type', 'approval');
+        }])->find($id);
+
+        if (!$letter) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Letter not found',
+                'result' => null,
+            ], 404);
+        }
+
+        if (!$this->canAccessLetter($request, $letter)) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Forbidden',
+                'result' => null,
+            ], 403);
+        }
+
+        if ((int) $letter->status !== 1) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Letter is not published',
+                'result' => null,
+            ], 422);
+        }
+
+        $approval = ($letter->participants ?: collect())->first();
+        if (!$approval) {
+            return response()->json([
+                'success' => false,
+                'text' => 'No approval participant found',
+                'result' => null,
+            ], 422);
+        }
+
+        if (!env('FONNTE_TOKEN')) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Missing FONNTE_TOKEN',
+                'result' => null,
+            ], 500);
+        }
+
+        $phone = $approval->phone;
+        if (!$phone && (string) $approval->auth_type === 'lecture') {
+            $phone = LectureProfile::where('lecture_id', (int) $approval->auth_id)->value('phone');
+        }
+
+        if (!$phone) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Missing phone',
+                'result' => [
+                    'participant_id' => $approval->id,
+                    'status' => 'skipped',
+                    'notify_at' => null,
+                ],
+            ], 422);
+        }
+
+        $baseUrl = $this->approvalBaseUrl();
+        $letterName = $letter->title ?: ($letter->number ?: 'Surat');
+        $letterDate = $letter->date ?: '-';
+        $name = $approval->auth_name ?: ($approval->auth_type . ' #' . $approval->auth_id);
+        $link = $baseUrl . '/letters/' . $letter->token;
+
+        $message = "Yth. {$name}\n"
+            . "Surat telah terbit.\n"
+            . "Nama: {$letterName}\n"
+            . "Tanggal: {$letterDate}\n"
+            . "Klik link berikut untuk melihat surat.\n\n"
+            . $link;
+
+        $error = app(WhatsAppController::class)->sendMessage($phone, $message);
+        if ($error) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Failed to send notification',
+                'result' => [
+                    'participant_id' => $approval->id,
+                    'status' => 'failed',
+                    'error' => $error,
+                    'notify_at' => null,
+                ],
+            ], 500);
+        }
+
+        $approval->notify_at = now();
+        $approval->save();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Notify approver sent',
+            'result' => [
+                'participant_id' => $approval->id,
+                'status' => 'sent',
+                'phone' => $phone,
+                'notify_at' => $approval->notify_at,
+            ],
+        ]);
+    }
+
+    public function cloneLetter(Request $request, $id)
+    {
+        $this->validate($request, [
+            'title' => 'required|string|max:255',
+            'date' => 'nullable|date',
+        ]);
+
+        [$authType, $authId] = $this->resolveAuthIdentity($request);
+        if (!$authType || !$authId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Missing auth identity',
+                'result' => null,
+            ], 401);
+        }
+
+        $source = Letter::with(['participants' => function ($query) {
+            $query->orderBy('type')->orderBy('auth_type')->orderBy('auth_name');
+        }])->find($id);
+
+        if (!$source) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Letter not found',
+                'result' => null,
+            ], 404);
+        }
+
+        if (!$this->canAccessLetter($request, $source)) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Forbidden',
+                'result' => null,
+            ], 403);
+        }
+
+        $now = now();
+        $newLetter = null;
+
+        DB::transaction(function () use ($request, $source, $authType, $authId, $now, &$newLetter) {
+            $newLetter = Letter::create([
+                'number' => $this->generateLetterNumber($now),
+                'auth_type' => $authType,
+                'auth_id' => $authId,
+                'date' => $request->date ?: ($source->date ?: $now->toDateString()),
+                'title' => $request->title,
+                'subtitle' => $source->subtitle,
+                'intro' => $source->intro,
+                'body' => $source->body,
+                'outro' => $source->outro,
+                'attachment_content' => $source->attachment_content,
+                'attachment_label' => $source->attachment_label,
+                'custom_invitation' => $source->custom_invitation,
+                'status' => 0,
+                'token' => (string) Str::uuid(),
+            ]);
+
+            $participants = $source->participants ?: collect();
+            foreach ($participants as $participant) {
+                if (!$participant || !$participant->type) {
+                    continue;
+                }
+
+                LetterParticipant::create([
+                    'letter_id' => $newLetter->id,
+                    'auth_type' => $participant->auth_type,
+                    'auth_id' => $participant->auth_id,
+                    'auth_name' => $participant->auth_name,
+                    'auth_number' => $participant->auth_number,
+                    'type' => $participant->type,
+                    'label' => $participant->label,
+                    'status' => 1,
+                    'token' => (string) Str::uuid(),
+                    'validated_at' => null,
+                    'notify_at' => null,
+                    'phone' => $participant->phone,
+                    'email' => $participant->email,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Clone letter success',
+            'result' => [
+                'id' => $newLetter ? $newLetter->id : null,
+            ],
         ]);
     }
 
@@ -428,14 +668,17 @@ class LetterController extends Controller
             }
         }
 
+        $wasPublished = (int) $letter->status === 1;
+
         $this->validate($request, [
+            'number' => 'nullable|string|max:255',
             'date' => 'nullable|date',
             'title' => 'required|string|max:255',
             'subtitle' => 'nullable|string|max:255',
             'intro' => 'nullable|string',
             'body' => 'nullable|string',
             'outro' => 'nullable|string',
-            'attachement_content' => 'nullable|string',
+            'attachment_content' => 'nullable|string',
             'attachment_label' => 'nullable|string|max:255',
             'custom_invitation' => 'nullable|string',
             'status' => 'nullable|integer',
@@ -455,13 +698,14 @@ class LetterController extends Controller
         ]);
 
         $letter->update([
+            'number' => $request->filled('number') ? trim((string) $request->number) : $letter->number,
             'date' => $request->date,
             'title' => $request->title,
             'subtitle' => $request->subtitle,
             'intro' => $this->sanitizeEditorHtml($request->intro),
             'body' => $this->sanitizeEditorHtml($request->body),
             'outro' => $this->sanitizeEditorHtml($request->outro),
-            'attachement_content' => $this->sanitizeEditorHtml($request->attachement_content),
+            'attachment_content' => $this->sanitizeEditorHtml($request->attachment_content),
             'attachment_label' => $request->attachment_label,
             'custom_invitation' => $this->sanitizeEditorHtml($request->custom_invitation),
             'status' => $request->status ?? $letter->status,
@@ -474,6 +718,11 @@ class LetterController extends Controller
         }
         if ($request->has('approval')) {
             $this->syncApprovalParticipant($letter, $request->input('approval'));
+        }
+
+        $isPublished = (int) $letter->status === 1;
+        if ($isPublished && (!$wasPublished || $request->has('participants') || $request->has('approval'))) {
+            $this->createPublishNotifications($letter);
         }
 
         return response()->json([
@@ -519,6 +768,29 @@ class LetterController extends Controller
         $letter = Letter::with(['participants' => function ($query) {
             $query->orderBy('type')->orderBy('auth_type')->orderBy('auth_name');
         }])->find($id);
+
+        if (!$letter) {
+            abort(404);
+        }
+
+        $approval = $letter->participants->firstWhere('type', 'approval');
+        $invites = $letter->participants->where('type', 'invite')->values();
+
+        return view('letters.standard', [
+            'letter' => $letter,
+            'approval' => $approval,
+            'invites' => $invites,
+        ]);
+    }
+
+    public function viesPublised($token)
+    {
+        $letter = Letter::with(['participants' => function ($query) {
+            $query->orderBy('type')->orderBy('auth_type')->orderBy('auth_name');
+        }])
+            ->where('token', (string) $token)
+            ->where('status', 1)
+            ->first();
 
         if (!$letter) {
             abort(404);
@@ -585,10 +857,6 @@ class LetterController extends Controller
             $unique[$key] = $participant;
         }
 
-        LetterParticipant::where('letter_id', $letter->id)
-            ->where('type', 'invite')
-            ->delete();
-
         $lectureIds = [];
         foreach ($unique as $participant) {
             if ((string) data_get($participant, 'auth_type') === 'lecture' && data_get($participant, 'auth_id')) {
@@ -603,6 +871,14 @@ class LetterController extends Controller
                 ->all();
         }
 
+        $existing = LetterParticipant::withTrashed()
+            ->where('letter_id', $letter->id)
+            ->where('type', 'invite')
+            ->get()
+            ->keyBy(function ($participant) {
+                return (string) $participant->auth_type . ':' . (string) $participant->auth_id;
+            });
+
         foreach ($unique as $participant) {
             $authType = (string) data_get($participant, 'auth_type');
             $authId = data_get($participant, 'auth_id');
@@ -615,6 +891,22 @@ class LetterController extends Controller
                     $authName = $lecture->name_alt ?: ($lecture->name ?: $authName);
                     $authNumber = $lecture->number ?: null;
                 }
+            }
+
+            $key = $authType . ':' . (string) $authId;
+            $existingParticipant = $existing->get($key);
+            if ($existingParticipant) {
+                if (method_exists($existingParticipant, 'trashed') && $existingParticipant->trashed()) {
+                    $existingParticipant->restore();
+                }
+                $existingParticipant->update([
+                    'auth_name' => $authName,
+                    'auth_number' => $authNumber,
+                    'label' => 'invite',
+                    'phone' => data_get($participant, 'phone'),
+                    'email' => data_get($participant, 'email'),
+                ]);
+                continue;
             }
 
             LetterParticipant::create([
@@ -631,14 +923,21 @@ class LetterController extends Controller
                 'email' => data_get($participant, 'email'),
             ]);
         }
+
+        $keepKeys = array_flip(array_keys($unique));
+        LetterParticipant::where('letter_id', $letter->id)
+            ->where('type', 'invite')
+            ->get()
+            ->each(function ($existingParticipant) use ($keepKeys) {
+                $key = (string) $existingParticipant->auth_type . ':' . (string) $existingParticipant->auth_id;
+                if (!isset($keepKeys[$key])) {
+                    $existingParticipant->delete();
+                }
+            });
     }
 
     private function syncApprovalParticipant(Letter $letter, $approval)
     {
-        LetterParticipant::where('letter_id', $letter->id)
-            ->where('type', 'approval')
-            ->delete();
-
         if (!is_array($approval)) {
             return;
         }
@@ -658,6 +957,27 @@ class LetterController extends Controller
                 $authNumber = $lecture->number ?: null;
             }
         }
+
+        $existing = LetterParticipant::where('letter_id', $letter->id)
+            ->where('type', 'approval')
+            ->where('auth_type', $authType)
+            ->where('auth_id', $authId)
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'auth_name' => $authName,
+                'auth_number' => $authNumber,
+                'label' => data_get($approval, 'label') ?: ($existing->label ?: 'Kepala Departemen'),
+                'phone' => data_get($approval, 'phone'),
+                'email' => data_get($approval, 'email'),
+            ]);
+            return;
+        }
+
+        LetterParticipant::where('letter_id', $letter->id)
+            ->where('type', 'approval')
+            ->delete();
 
         LetterParticipant::create([
             'letter_id' => $letter->id,

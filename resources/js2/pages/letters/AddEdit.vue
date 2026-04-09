@@ -32,9 +32,8 @@
                         <input
                             v-model.trim="form.number"
                             type="text"
-                            disabled
-                            placeholder="Auto generated on save"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-muted focus:outline-none"
+                            placeholder="Leave blank to auto-generate"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:text-muted disabled:focus:ring-0"
                         />
                     </label>
                     <label class="grid gap-2 text-sm">
@@ -47,16 +46,17 @@
                     </label>
                 </div>
 
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Title</span>
+                    <input
+                        v-model.trim="form.title"
+                        type="text"
+                        placeholder="Letter title"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+
                 <div class="grid gap-6 md:grid-cols-2">
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Title</span>
-                        <input
-                            v-model.trim="form.title"
-                            type="text"
-                            placeholder="Letter title"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                    </label>
                     <label class="grid gap-2 text-sm">
                         <span class="text-muted">Subtitle</span>
                         <input
@@ -65,6 +65,18 @@
                             placeholder="Optional subtitle"
                             class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />
+                    </label>
+
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Status</span>
+                        <select
+                            v-model.number="form.status"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        >
+                            <option v-for="option in statusOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </option>
+                        </select>
                     </label>
                 </div>
 
@@ -95,7 +107,7 @@
 
                 <div class="grid gap-2 text-sm">
                     <span class="text-muted">Attachment Content</span>
-                    <RichTextEditor v-model="form.attachement_content" placeholder="Attachment content..." />
+                    <RichTextEditor v-model="form.attachment_content" placeholder="Attachment content..." />
                 </div>
 
                 <div class="grid gap-2 text-sm">
@@ -107,18 +119,6 @@
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     ></textarea>
                 </div>
-
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Status</span>
-                    <select
-                        v-model.number="form.status"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option v-for="option in statusOptions" :key="option.value" :value="option.value">
-                            {{ option.label }}
-                        </option>
-                    </select>
-                </label>
 
                 <div class="grid gap-3 rounded-2xl border border-border bg-white p-4">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -453,10 +453,10 @@ export default {
                 intro: '',
                 body: '',
                 outro: '',
-                attachement_content: '',
+                attachment_content: '',
                 attachment_label: '',
                 custom_invitation: '',
-                status: 0,
+                status: 1,
                 participants: [],
                 approval: null,
             },
@@ -664,7 +664,7 @@ export default {
                         intro: letter && letter.intro ? letter.intro : '',
                         body: letter && letter.body ? letter.body : '',
                         outro: letter && letter.outro ? letter.outro : '',
-                        attachement_content: letter && letter.attachement_content ? letter.attachement_content : '',
+                        attachment_content: letter && letter.attachment_content ? letter.attachment_content : '',
                         attachment_label: letter && letter.attachment_label ? letter.attachment_label : '',
                         custom_invitation: letter && letter.custom_invitation ? letter.custom_invitation : '',
                         status: typeof (letter && letter.status) !== 'undefined' && letter && letter.status !== null
@@ -702,7 +702,9 @@ export default {
         payloadFromForm() {
             const payload = { ...this.form };
             delete payload.id;
-            delete payload.number;
+            if (!payload.number) {
+                delete payload.number;
+            }
             if (payload.approval) {
                 payload.approval = {
                     ...payload.approval,

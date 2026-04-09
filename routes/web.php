@@ -55,6 +55,7 @@ Route::get('stase-option/{id}', [GlobalFunctionController::class, 'staseOption']
 Route::get('print/logbook/{student_id}/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'print']);
 Route::get('letters/{id}/preview', [\App\Http\Controllers\Api\LetterController::class, 'preview']);
 Route::get('letters/{letter_token}/approval/{approval_token}', [\App\Http\Controllers\Api\LetterController::class, 'approvalPage']);
+Route::get('letters/{token}', [\App\Http\Controllers\Api\LetterController::class, 'viesPublised']);
 Route::get('upload', function (){ return view('upload-excel');});
 Route::get('get-activity-cats', [GlobalFunctionController::class, 'getActCats']);
 Route::post('upload', 'Sadmin\GlobalFunctionController@uploadExcel');

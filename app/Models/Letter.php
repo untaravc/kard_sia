@@ -19,7 +19,7 @@ class Letter extends Model
         'outro',
         'status',
         'token',
-        'attachement_content',
+        'attachment_content',
         'attachment_label',
         'custom_invitation',
     ];

@@ -143,6 +143,14 @@
         .content table { margin-left: 40px; }
         .content table td,
         .content table th { vertical-align: top; }
+        .attachment-content table {
+            width: 100%;
+            margin-left: 0;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .attachment-content table td,
+        .attachment-content table th { border: 1px solid #e5e7eb; }
         .content .ql-indent-1 { padding-left: 3em; }
         .content .ql-indent-2 { padding-left: 6em; }
         .content .ql-indent-3 { padding-left: 9em; }
@@ -349,7 +357,7 @@
                 @endif
             </div>
 
-            <div class="content">
+            <div class="content attachment-content">
                 {!! $letter->attachement_content !!}
             </div>
         </div>

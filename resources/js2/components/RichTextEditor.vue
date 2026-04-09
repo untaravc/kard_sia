@@ -68,6 +68,42 @@
                 class="rounded-lg border border-border px-2 py-1 text-xs"
                 type="button"
                 :disabled="!editor"
+                aria-label="Align left"
+                @click="setTextAlign('left')"
+            >
+                <Icon icon="mdi:format-align-left" class="h-4 w-4" />
+            </button>
+            <button
+                class="rounded-lg border border-border px-2 py-1 text-xs"
+                type="button"
+                :disabled="!editor"
+                aria-label="Align center"
+                @click="setTextAlign('center')"
+            >
+                <Icon icon="mdi:format-align-center" class="h-4 w-4" />
+            </button>
+            <button
+                class="rounded-lg border border-border px-2 py-1 text-xs"
+                type="button"
+                :disabled="!editor"
+                aria-label="Align right"
+                @click="setTextAlign('right')"
+            >
+                <Icon icon="mdi:format-align-right" class="h-4 w-4" />
+            </button>
+            <button
+                class="rounded-lg border border-border px-2 py-1 text-xs"
+                type="button"
+                :disabled="!editor"
+                aria-label="Justify"
+                @click="setTextAlign('justify')"
+            >
+                <Icon icon="mdi:format-align-justify" class="h-4 w-4" />
+            </button>
+            <button
+                class="rounded-lg border border-border px-2 py-1 text-xs"
+                type="button"
+                :disabled="!editor"
                 aria-label="Indent"
                 @click="indent"
             >
@@ -209,6 +245,70 @@ const IndentExtension = Extension.create({
     },
 });
 
+const TextAlignExtension = Extension.create({
+    name: 'textAlign',
+    addGlobalAttributes() {
+        return [
+            {
+                types: ['paragraph', 'heading'],
+                attributes: {
+                    textAlign: {
+                        default: null,
+                        parseHTML: (element) => {
+                            const align = element && element.style ? element.style.textAlign : '';
+                            return align ? String(align) : null;
+                        },
+                        renderHTML: (attributes) => {
+                            const align = attributes && attributes.textAlign ? String(attributes.textAlign) : '';
+                            if (!align) {
+                                return {};
+                            }
+                            return mergeAttributes({ style: `text-align: ${align}` });
+                        },
+                    },
+                },
+            },
+        ];
+    },
+    addCommands() {
+        const updateAlign = (nextAlign) => ({ tr, state, dispatch }) => {
+            const { from, to } = state.selection;
+            let changed = false;
+            const normalized = nextAlign && nextAlign !== 'left' ? String(nextAlign) : null;
+
+            state.doc.nodesBetween(from, to, (node, pos) => {
+                if (!node || !node.type) {
+                    return;
+                }
+                const typeName = node.type.name;
+                if (typeName !== 'paragraph' && typeName !== 'heading') {
+                    return;
+                }
+
+                const current = node.attrs && node.attrs.textAlign ? String(node.attrs.textAlign) : null;
+                if (current === normalized) {
+                    return;
+                }
+
+                tr.setNodeMarkup(pos, undefined, {
+                    ...node.attrs,
+                    textAlign: normalized,
+                });
+                changed = true;
+            });
+
+            if (changed && dispatch) {
+                dispatch(tr);
+            }
+            return changed;
+        };
+
+        return {
+            setTextAlign: (alignment) => updateAlign(alignment),
+        };
+    },
+});
+
 export default {
     name: 'RichTextEditor',
     components: {
@@ -256,6 +356,7 @@ export default {
                     placeholder: this.placeholder || '',
                 }),
                 IndentExtension,
+                TextAlignExtension,
                 Table.configure({
                     resizable: true,
                 }),
@@ -324,6 +425,9 @@ export default {
         },
         outdent() {
             this.editor?.chain().focus().outdent().run();
+        },
+        setTextAlign(alignment) {
+            this.editor?.chain().focus().setTextAlign(alignment).run();
         },
     },
 };

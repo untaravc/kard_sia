@@ -106,4 +106,6 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('registrations', 'Api\RegistrationController');
     Route::resource('letters', 'Api\LetterController');
     Route::post('letters/{id}/propose-approval', [LetterController::class, 'proposeApproval']);
+    Route::post('letters/{id}/notify-approver', [LetterController::class, 'notifyApprover']);
+    Route::post('letter-clone/{id}', [LetterController::class, 'cloneLetter']);
 });

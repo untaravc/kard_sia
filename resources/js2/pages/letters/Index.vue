@@ -114,7 +114,7 @@
                         >
                             <a
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
-                                :href="`/letters/${letter.id}/preview`"
+                                :href="letter && Number(letter.status) === 1 && letter.token ? `/letters/${letter.token}` : `/letters/${letter.id}/preview`"
                                 target="_blank"
                                 rel="noopener"
                                 @click="closeActionMenu"
@@ -131,9 +131,16 @@
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
-                                @click="handleAction('propose', letter)"
+                                @click="handleAction(letter && Number(letter.status) === 1 ? 'notify' : 'propose', letter)"
                             >
-                                Propose
+                                {{ letter && Number(letter.status) === 1 ? 'Notify' : 'Propose' }}
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('clone', letter)"
+                            >
+                                Clone
                             </button>
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
@@ -199,6 +206,88 @@
                 </button>
             </template>
         </Modal>
+
+        <Modal
+            :open="notifyModalOpen"
+            title="Send Notification"
+            eyebrow="WhatsApp"
+            size="sm"
+            @close="closeNotifyApprover"
+        >
+            <div class="text-sm text-ink">
+                Send notification to {{ notifyApproverName }}?
+            </div>
+            <div v-if="notifyError" class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                {{ notifyError }}
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    :disabled="notifySubmitting"
+                    @click="closeNotifyApprover"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="notifySubmitting"
+                    @click="submitNotifyApprover"
+                >
+                    {{ notifySubmitting ? 'Sending...' : 'Send' }}
+                </button>
+            </template>
+        </Modal>
+
+        <Modal
+            :open="cloneModalOpen"
+            title="Clone Letter"
+            eyebrow="Duplicate"
+            size="sm"
+            @close="closeCloneLetter"
+        >
+            <div class="grid gap-4">
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Title</span>
+                    <input
+                        v-model.trim="cloneForm.title"
+                        type="text"
+                        placeholder="New title"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Date</span>
+                    <input
+                        v-model="cloneForm.date"
+                        type="date"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+            </div>
+            <div v-if="cloneError" class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                {{ cloneError }}
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    :disabled="cloneSubmitting"
+                    @click="closeCloneLetter"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="cloneSubmitting"
+                    @click="submitCloneLetter"
+                >
+                    {{ cloneSubmitting ? 'Cloning...' : 'Clone' }}
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -233,8 +322,29 @@ export default {
             proposeSubmitting: false,
             proposeLetter: null,
             proposeError: '',
+            notifyModalOpen: false,
+            notifySubmitting: false,
+            notifyLetter: null,
+            notifyError: '',
+            cloneModalOpen: false,
+            cloneSubmitting: false,
+            cloneLetter: null,
+            cloneError: '',
+            cloneForm: {
+                title: '',
+                date: '',
+            },
             actionMenuOpenId: null,
         };
+    },
+    computed: {
+        notifyApproverName() {
+            const participants = this.notifyLetter && Array.isArray(this.notifyLetter.participants)
+                ? this.notifyLetter.participants
+                : [];
+            const approver = participants.length ? participants[0] : null;
+            return (approver && approver.auth_name) ? approver.auth_name : 'approver';
+        },
     },
     created() {
         this.fetchLetters();
@@ -318,6 +428,14 @@ export default {
                 this.openProposeApproval(letter);
                 return;
             }
+            if (action === 'notify') {
+                this.openNotifyApprover(letter);
+                return;
+            }
+            if (action === 'clone') {
+                this.openCloneLetter(letter);
+                return;
+            }
             if (action === 'delete') {
                 this.deleteLetter(letter);
             }
@@ -327,8 +445,8 @@ export default {
             this.proposeError = '';
             this.proposeModalOpen = true;
         },
-        closeProposeApproval() {
-            if (this.proposeSubmitting) {
+        closeProposeApproval(force = false) {
+            if (this.proposeSubmitting && !force) {
                 return;
             }
             this.proposeModalOpen = false;
@@ -349,8 +467,8 @@ export default {
 
             return Repository.post(`${this.baseUrl}/${this.proposeLetter.id}/propose-approval`)
                 .then(() => {
+                    this.closeProposeApproval(true);
                     this.$showToast('Pengajuan tandatangan berhasil dikirim.');
-                    this.closeProposeApproval();
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
@@ -360,6 +478,110 @@ export default {
                 })
                 .finally(() => {
                     this.proposeSubmitting = false;
+                });
+        },
+        openNotifyApprover(letter) {
+            this.notifyLetter = letter || null;
+            this.notifyError = '';
+            this.notifyModalOpen = true;
+        },
+        closeNotifyApprover(force = false) {
+            if (this.notifySubmitting && !force) {
+                return;
+            }
+            this.notifyModalOpen = false;
+            this.notifyLetter = null;
+            this.notifyError = '';
+        },
+        submitNotifyApprover() {
+            if (this.notifySubmitting) {
+                return;
+            }
+            if (!this.notifyLetter || !this.notifyLetter.id) {
+                this.notifyError = 'Letter is invalid.';
+                return;
+            }
+
+            this.notifySubmitting = true;
+            this.notifyError = '';
+
+            return Repository.post(`${this.baseUrl}/${this.notifyLetter.id}/notify-approver`)
+                .then(() => {
+                    this.closeNotifyApprover(true);
+                    this.$showToast('Notification sent successfully.');
+                    this.fetchLetters();
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to send notification.';
+                    this.notifyError = message;
+                })
+                .finally(() => {
+                    this.notifySubmitting = false;
+                });
+        },
+        openCloneLetter(letter) {
+            const title = letter && letter.title ? `Copy of ${letter.title}` : '';
+            const date = letter && letter.date ? letter.date : '';
+            this.cloneLetter = letter || null;
+            this.cloneError = '';
+            this.cloneForm = {
+                title,
+                date,
+            };
+            this.cloneModalOpen = true;
+        },
+        closeCloneLetter(force = false) {
+            if (this.cloneSubmitting && !force) {
+                return;
+            }
+            this.cloneModalOpen = false;
+            this.cloneLetter = null;
+            this.cloneError = '';
+            this.cloneForm = {
+                title: '',
+                date: '',
+            };
+        },
+        submitCloneLetter() {
+            if (this.cloneSubmitting) {
+                return;
+            }
+            if (!this.cloneLetter || !this.cloneLetter.id) {
+                this.cloneError = 'Letter is invalid.';
+                return;
+            }
+            if (!this.cloneForm.title) {
+                this.cloneError = 'Title is required.';
+                return;
+            }
+
+            this.cloneSubmitting = true;
+            this.cloneError = '';
+
+            return Repository.post(`/api/letter-clone/${this.cloneLetter.id}`, {
+                title: this.cloneForm.title,
+                date: this.cloneForm.date || null,
+            })
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    const newId = result && result.id ? result.id : null;
+                    if (!newId) {
+                        throw new Error('Invalid response.');
+                    }
+                    this.closeCloneLetter(true);
+                    this.$showToast('Letter cloned successfully.');
+                    this.$router.push(`/blu/letters/${newId}`);
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : (error && error.message ? error.message : 'Failed to clone letter.');
+                    this.cloneError = message;
+                })
+                .finally(() => {
+                    this.cloneSubmitting = false;
                 });
         },
         deleteLetter(letter) {
