@@ -291,7 +291,13 @@
                     @endphp
                     <div class="signature">
                         <div class="sig-label">{{ $sigLabel }}</div>
-                        <div class="sig-space"></div>
+                        <div class="sig-space">
+                            @if((int) data_get($letter, 'status') === 1 && !empty(data_get($letter, 'token')))
+                                <div style="display:flex; justify-content:center;">
+                                    {!! QrCode::size(70)->generate(rtrim((string) config('app.url'), '/') . '/letters/' . $letter->token) !!}
+                                </div>
+                            @endif
+                        </div>
                         <div class="sig-name">{{ $sigName }}</div>
                         <div class="sig-number">{{ $sigNumber }}</div>
                     </div>

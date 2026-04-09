@@ -108,7 +108,7 @@ class LetterController extends Controller
 
     private function approvalBaseUrl()
     {
-        $base = env('BASE_UR') ?: env('APP_URL');
+        $base = env('APP_URL');
         if (!$base) {
             $base = config('app.url');
         }
@@ -337,7 +337,7 @@ class LetterController extends Controller
             }
 
             $link = $baseUrl . '/letters/' . $letter->token . '/approval/' . $approval->token;
-            $message = "Yth. {$name}\n"
+            $message = "Yth. {$name}\n\n"
                 . "Surat menunggu persetujuan anda.\n"
                 . "Nama: {$letterName}\n"
                 . "Tanggal: {$letterDate}\n"
@@ -438,7 +438,7 @@ class LetterController extends Controller
         $name = $approval->auth_name ?: ($approval->auth_type . ' #' . $approval->auth_id);
         $link = $baseUrl . '/letters/' . $letter->token;
 
-        $message = "Yth. {$name}\n"
+        $message = "Yth. {$name}\n\n"
             . "Surat telah terbit.\n"
             . "Nama: {$letterName}\n"
             . "Tanggal: {$letterDate}\n"
