@@ -168,6 +168,9 @@ class LetterController extends Controller
             'intro' => 'nullable|string',
             'body' => 'nullable|string',
             'outro' => 'nullable|string',
+            'attachement_content' => 'nullable|string',
+            'attachment_label' => 'nullable|string|max:255',
+            'custom_invitation' => 'nullable|string',
             'status' => 'nullable|integer',
             'participants' => 'nullable|array',
             'participants.*.auth_type' => 'required_with:participants|string|in:user,lecture,student',
@@ -195,6 +198,9 @@ class LetterController extends Controller
             'intro' => $this->sanitizeEditorHtml($request->intro),
             'body' => $this->sanitizeEditorHtml($request->body),
             'outro' => $this->sanitizeEditorHtml($request->outro),
+            'attachement_content' => $this->sanitizeEditorHtml($request->attachement_content),
+            'attachment_label' => $request->attachment_label,
+            'custom_invitation' => $this->sanitizeEditorHtml($request->custom_invitation),
             'status' => $request->status ?? 0,
             'token' => (string) Str::uuid(),
         ]);
@@ -429,6 +435,9 @@ class LetterController extends Controller
             'intro' => 'nullable|string',
             'body' => 'nullable|string',
             'outro' => 'nullable|string',
+            'attachement_content' => 'nullable|string',
+            'attachment_label' => 'nullable|string|max:255',
+            'custom_invitation' => 'nullable|string',
             'status' => 'nullable|integer',
             'participants' => 'nullable|array',
             'participants.*.auth_type' => 'required_with:participants|string|in:user,lecture,student',
@@ -452,6 +461,9 @@ class LetterController extends Controller
             'intro' => $this->sanitizeEditorHtml($request->intro),
             'body' => $this->sanitizeEditorHtml($request->body),
             'outro' => $this->sanitizeEditorHtml($request->outro),
+            'attachement_content' => $this->sanitizeEditorHtml($request->attachement_content),
+            'attachment_label' => $request->attachment_label,
+            'custom_invitation' => $this->sanitizeEditorHtml($request->custom_invitation),
             'status' => $request->status ?? $letter->status,
             'auth_type' => $letter->auth_type ?? $authType,
             'auth_id' => $letter->auth_id ?? $authId,
@@ -515,7 +527,7 @@ class LetterController extends Controller
         $approval = $letter->participants->firstWhere('type', 'approval');
         $invites = $letter->participants->where('type', 'invite')->values();
 
-        return view('letters.standar', [
+        return view('letters.standard', [
             'letter' => $letter,
             'approval' => $approval,
             'invites' => $invites,

@@ -70,35 +70,42 @@
 
                 <div class="grid gap-2 text-sm">
                     <span class="text-muted">Intro</span>
-                    <div class="rounded-2xl border border-border bg-white p-2">
-                        <vue-editor
-                            v-model="form.intro"
-                            :editor-toolbar="editorToolbar"
-                            placeholder="Intro..."
-                        />
-                    </div>
+                    <RichTextEditor v-model="form.intro" placeholder="Intro..." />
                 </div>
 
                 <div class="grid gap-2 text-sm">
                     <span class="text-muted">Body</span>
-                    <div class="rounded-2xl border border-border bg-white p-2">
-                        <vue-editor
-                            v-model="form.body"
-                            :editor-toolbar="editorToolbar"
-                            placeholder="Write letter body..."
-                        />
-                    </div>
+                    <RichTextEditor v-model="form.body" placeholder="Write letter body..." />
                 </div>
 
                 <div class="grid gap-2 text-sm">
                     <span class="text-muted">Outro</span>
-                    <div class="rounded-2xl border border-border bg-white p-2">
-                        <vue-editor
-                            v-model="form.outro"
-                            :editor-toolbar="editorToolbar"
-                            placeholder="Outro..."
-                        />
-                    </div>
+                    <RichTextEditor v-model="form.outro" placeholder="Outro..." />
+                </div>
+
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Attachment Label</span>
+                    <input
+                        v-model.trim="form.attachment_label"
+                        type="text"
+                        placeholder="Attachment label"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+
+                <div class="grid gap-2 text-sm">
+                    <span class="text-muted">Attachment Content</span>
+                    <RichTextEditor v-model="form.attachement_content" placeholder="Attachment content..." />
+                </div>
+
+                <div class="grid gap-2 text-sm">
+                    <span class="text-muted">Custom Invitation</span>
+                    <textarea
+                        v-model.trim="form.custom_invitation"
+                        rows="4"
+                        placeholder="Custom invitation..."
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    ></textarea>
                 </div>
 
                 <label class="grid gap-2 text-sm">
@@ -402,15 +409,15 @@
 <script>
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
-import { VueEditor } from 'vue2-editor';
 import Repository from '../../repository';
 import Modal from '../../components/Modal.vue';
+import RichTextEditor from '../../components/RichTextEditor.vue';
 
 export default {
     components: {
         Loading,
-        VueEditor,
         Modal,
+        RichTextEditor,
     },
     data() {
         return {
@@ -433,16 +440,6 @@ export default {
                 lectures: [],
                 students: [],
             },
-            editorToolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-                [{ header: 1 }, { header: 2 }],
-                [{ list: 'ordered' }, { list: 'bullet' }],
-                [{ indent: '-1' }, { indent: '+1' }],
-                [{ align: [] }],
-                ['blockquote', 'code-block'],
-                ['link'],
-                ['clean'],
-            ],
             statusOptions: [
                 { value: 0, label: 'Draft' },
                 { value: 1, label: 'Published' },
@@ -456,6 +453,9 @@ export default {
                 intro: '',
                 body: '',
                 outro: '',
+                attachement_content: '',
+                attachment_label: '',
+                custom_invitation: '',
                 status: 0,
                 participants: [],
                 approval: null,
@@ -664,6 +664,9 @@ export default {
                         intro: letter && letter.intro ? letter.intro : '',
                         body: letter && letter.body ? letter.body : '',
                         outro: letter && letter.outro ? letter.outro : '',
+                        attachement_content: letter && letter.attachement_content ? letter.attachement_content : '',
+                        attachment_label: letter && letter.attachment_label ? letter.attachment_label : '',
+                        custom_invitation: letter && letter.custom_invitation ? letter.custom_invitation : '',
                         status: typeof (letter && letter.status) !== 'undefined' && letter && letter.status !== null
                             ? Number(letter.status)
                             : 0,

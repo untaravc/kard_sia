@@ -32,34 +32,8 @@
     </div>
 </template>
 
-<script setup>
-import { onBeforeUnmount, watch } from 'vue';
+<script>
 import { Icon } from '../icons';
-
-const props = defineProps({
-    open: {
-        type: Boolean,
-        default: false,
-    },
-    title: {
-        type: String,
-        required: true,
-    },
-    eyebrow: {
-        type: String,
-        default: '',
-    },
-    size: {
-        type: String,
-        default: 'md',
-    },
-    closeOnBackdrop: {
-        type: Boolean,
-        default: true,
-    },
-});
-
-const emit = defineEmits(['close']);
 
 const sizeClassMap = {
     sm: 'max-w-md',
@@ -71,34 +45,61 @@ const sizeClassMap = {
     full: 'max-w-6xl',
 };
 
-const sizeClass = sizeClassMap[props.size] ?? sizeClassMap.md;
-
-const handleBackdropClick = () => {
-    if (props.closeOnBackdrop) {
-        emit('close');
-    }
-};
-
-const setBodyScrollLock = (locked) => {
-    if (typeof document === 'undefined') {
-        return;
-    }
-    if (locked) {
-        document.body.style.overflow = 'hidden';
-    } else {
-        document.body.style.overflow = '';
-    }
-};
-
-watch(
-    () => props.open,
-    (isOpen) => {
-        setBodyScrollLock(isOpen);
+export default {
+    name: 'Modal',
+    components: {
+        Icon,
     },
-    { immediate: true }
-);
-
-onBeforeUnmount(() => {
-    setBodyScrollLock(false);
-});
+    props: {
+        open: {
+            type: Boolean,
+            default: false,
+        },
+        title: {
+            type: String,
+            required: true,
+        },
+        eyebrow: {
+            type: String,
+            default: '',
+        },
+        size: {
+            type: String,
+            default: 'md',
+        },
+        closeOnBackdrop: {
+            type: Boolean,
+            default: true,
+        },
+    },
+    computed: {
+        sizeClass() {
+            return sizeClassMap[this.size] || sizeClassMap.md;
+        },
+    },
+    watch: {
+        open: {
+            immediate: true,
+            handler(isOpen) {
+                this.setBodyScrollLock(Boolean(isOpen));
+            },
+        },
+    },
+    beforeDestroy() {
+        this.setBodyScrollLock(false);
+    },
+    methods: {
+        handleBackdropClick() {
+            if (this.closeOnBackdrop) {
+                this.$emit('close');
+            }
+        },
+        setBodyScrollLock(locked) {
+            if (typeof document === 'undefined') {
+                return;
+            }
+            document.body.style.overflow = locked ? 'hidden' : '';
+        },
+    },
+};
 </script>

@@ -19,6 +19,9 @@
             padding: 28px 40px;
             border: 1px solid #e5e7eb;
         }
+        .page + .page {
+            margin-top: 24px;
+        }
         .header {
             border-bottom: 2px solid #111827;
             padding-bottom: 14px;
@@ -73,6 +76,17 @@
             line-height: 1.7;
         }
         .content p { margin: 0; }
+        .content table { margin-left: 40px; }
+        .content table td,
+        .content table th { vertical-align: top; }
+        .content .ql-indent-1 { padding-left: 3em; }
+        .content .ql-indent-2 { padding-left: 6em; }
+        .content .ql-indent-3 { padding-left: 9em; }
+        .content .ql-indent-4 { padding-left: 12em; }
+        .content .ql-indent-5 { padding-left: 15em; }
+        .content .ql-indent-6 { padding-left: 18em; }
+        .content .ql-indent-7 { padding-left: 21em; }
+        .content .ql-indent-8 { padding-left: 24em; }
         .content-section + .content-section { margin-top: 10px; }
         .section {
             margin-top: 18px;
@@ -129,6 +143,8 @@
         @media print {
             body { background: #fff; }
             .page { border: none; margin: 0; }
+            .page { page-break-after: always; }
+            .page:last-child { page-break-after: auto; }
         }
     </style>
 </head>
@@ -184,13 +200,25 @@
                     </div>
                 </div>
                 <div style="margin-top: 10px; font-size: 12px;">
-                    <div style="margin-bottom: 6px;"><strong>Kepada Yth.</strong></div>
-                    @if($invites && $invites->count())
+                    <div style="margin-bottom: 6px;">Kepada Yth.</div>
+                    @php
+                        $inviteItems = $invites && $invites->count() ? $invites : collect();
+                        $customInvitationLines = collect(preg_split("/\r\n|\r|\n/", (string) ($letter->custom_invitation ?? '')))
+                            ->map(fn ($line) => trim($line))
+                            ->filter(fn ($line) => $line !== '')
+                            ->values();
+                        $hasInvitationList = $inviteItems->count() || $customInvitationLines->count();
+                    @endphp
+
+                    @if($hasInvitationList)
                         <ol style="margin: 0; padding-left: 18px;">
-                            @foreach($invites as $invite)
+                            @foreach($inviteItems as $invite)
                                 <li style="margin: 2px 0;">
                                     {{ $invite->auth_name ?: ($invite->auth_type . ' #' . $invite->auth_id) }}
                                 </li>
+                            @endforeach
+                            @foreach($customInvitationLines as $line)
+                                <li style="margin: 2px 0;">{{ $line }}</li>
                             @endforeach
                         </ol>
                     @else
@@ -199,7 +227,7 @@
                 </div>
             </div>
             <div class="right">
-                <div><strong>Tanggal</strong>: {{ $letter->date ? date_indo_str($letter->date) : '-' }}</div>
+                <div>{{ $letter->date ? date_indo_str($letter->date) : '-' }}</div>
             </div>
         </div>
 
@@ -251,5 +279,40 @@
             </div>
         @endif
     </div>
+
+    @if(!empty($letter->attachement_content))
+        <div class="page">
+            <div class="header">
+                <img
+                    class="logo"
+                    alt="UGM Logo"
+                    src="https://firebasestorage.googleapis.com/v0/b/unt-dev.firebasestorage.app/o/KardiologiFkkmk%2FUGM-LOGO.png?alt=media&token=8e5ca470-6abb-42e5-b48a-5c2e7895b03e"
+                />
+                <div class="header-text">
+                    <div class="top" style="margin-bottom: 0">
+                        UNIVERSITAS GADJAH MADA<br />
+                        FAKULTAS KEDOKTERAN, KESEHATAN MASYARAKAT, DANKEPERAWATAN
+                    </div>
+                    <div class="dept" style="margin-top: 0">
+                        DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR
+                    </div>
+                    <div class="addr" style="margin-top: 0">
+                        Gedung Radioputro Lt 2 Sayap Barat, Fakultas Kedokteran Kesehatan Masyarakat dan Keperawatan
+                        <br>Jl. Farmako Sekip Utara, Sleman. Telp.0274-588688 ext 17230, Fax.0274-631011, Email : kardiologi@ugm.co.id
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <div style="font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 13px;">
+                    Lampiran
+                </div>
+            </div>
+
+            <div class="content">
+                {!! $letter->attachement_content !!}
+            </div>
+        </div>
+    @endif
 </body>
 </html>

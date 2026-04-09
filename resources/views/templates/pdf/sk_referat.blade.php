@@ -86,8 +86,8 @@
                         <br>
                         <br>
                         <br>
-                        <b>dr. Anggoro Budi Hartopo, Sp.PD, Sp.JP(K)</b><br>
-                        <u>NIP 197807182010121004</u>
+                        <b>Dr.Med. dr. Putrika Prastuti Ratna Gharini, SpJP(K)</b><br>
+                        <u>NIP 197305271999032001</u>
                     </div>
                 </div>
             </div>

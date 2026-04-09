@@ -22,8 +22,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 class DownloadController extends Controller
 {
     private $kps = [
-        'name'    => 'dr. Anggoro Budi Hartopo, MSc, SpPD, PhD, SpJP',
-        'nip'     => '197807182010121004',
+        'name'    => 'Dr.Med. dr. Putrika Prastuti Ratna Gharini, SpJP(K)',
+        'nip'     => '197305271999032001',
         'gol'     => 'Penata Tingkat I / III D',
         'jabatan' => 'Ketua Program Studi Jantung dan Pembuluh Darah'
     ];
@@ -34,7 +34,7 @@ class DownloadController extends Controller
     }
 
     private function ttd(){
-        $file_ttd = public_path('assets/ttd/ttd-abh.jpg');
+        $file_ttd = public_path('assets/ttd/ttd-prg.jpeg');
         return base64_encode(file_get_contents($file_ttd));
     }
 
@@ -145,7 +145,7 @@ class DownloadController extends Controller
         $file_logo = public_path('assets/images/logo-ugm.png');
         $logo = base64_encode(file_get_contents($file_logo));
 
-        $file_ttd = public_path('assets/ttd/ttd-abh.jpg');
+        $file_ttd = public_path('assets/ttd/ttd-prg.jpeg');
         $ttd = base64_encode(file_get_contents($file_ttd));
 
         $date = substr($activity->start_date, 5, 2);
@@ -251,7 +251,7 @@ class DownloadController extends Controller
         $file_logo = public_path('assets/images/logo-ugm.png');
         $logo = base64_encode(file_get_contents($file_logo));
 
-        $file_ttd = public_path('assets/ttd/ttd-abh.jpg');
+        $file_ttd = public_path('assets/ttd/ttd-prg.jpeg');
         $ttd = base64_encode(file_get_contents($file_ttd));
 
         $date = substr($activity->start_date, 5, 2);

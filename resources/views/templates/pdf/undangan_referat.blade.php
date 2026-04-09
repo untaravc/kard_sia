@@ -120,7 +120,7 @@
             <div style="margin-top: 10px">
                 <div style="margin-left: 200px; position: relative">
                     <div style="position: absolute; padding: 5px 0 0 0">
-                        <img src="data:image/jpg;base64, {{$ttd}}" style="width: 65px">
+                        <img src="data:image/jpg;base64, {{$ttd}}" style="width: 150px">
                     </div>
                     <div style="position: absolute">
                         Ketua Program Studi <br>
@@ -128,8 +128,8 @@
                         <br>
                         <br>
                         <br>
-                        <b>dr. Anggoro Budi Hartopo, Sp.PD, Sp.JP(K), MSc, PhD</b><br>
-                        <u>NIP. 197807182010121004</u>
+                        <b>Dr.Med.dr. Putrika Prastuti Ratna Gharini, SpJP(K)</b><br>
+                        <u>NIP. 197305271999032001</u>
                     </div>
                 </div>
             </div>
