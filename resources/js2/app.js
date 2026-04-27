@@ -15,9 +15,13 @@ import './mask';
 
 import routes from './routes';
 
+import vSelect from 'vue-select';
+import 'vue-select/dist/vue-select.css';
+
 Vue.use(VueCompositionApi);
 Vue.use(PiniaVuePlugin);
 Vue.use(ToastPlugin);
+Vue.component('v-select', vSelect);
 
 const router = new VueRouter({
     mode : 'history',

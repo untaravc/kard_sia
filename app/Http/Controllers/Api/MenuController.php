@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\ActivityLecture;
 use App\Models\ActivityStudent;
+use App\Models\StudentLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -58,6 +59,13 @@ class MenuController extends Controller
             $todayAgendaCount = $activities->count();
         }
 
+        $lecturePendingLogbookCount = 0;
+        if ($authType === 'lecture' && $authId) {
+            $lecturePendingLogbookCount = StudentLog::where('lecture_id', $authId)
+                ->where('status', 0)
+                ->count();
+        }
+
         $menuByType = [
             'user' => [
                 ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard"],
@@ -106,7 +114,7 @@ class MenuController extends Controller
             'lecture' => [
                 ['label' => 'Scoring', 'icon' => 'mdi:clipboard-check-outline', 'to' => "{$basePath}/dashboard-lecture/scoring"],
                 ['label' => 'Agenda', 'icon' => 'mdi:calendar-month-outline', 'to' => "{$basePath}/dashboard-lecture/agenda"],
-                ['label' => 'Report', 'icon' => 'mdi:file-chart-outline', 'to' => "{$basePath}/dashboard-lecture/report"],
+                ['label' => 'Logbook', 'icon' => 'mdi:notebook-outline', 'to' => "{$basePath}/dashboard-lecture/logbook", 'counter' => $lecturePendingLogbookCount],
                 ['label' => 'Accreditations', 'icon' => 'mdi:certificate-outline', 'to' => "{$basePath}/accreditations"],
                 ['label' => 'Profile', 'icon' => 'mdi:account-outline', 'to' => "{$basePath}/dashboard-lecture/profile"],
             ],

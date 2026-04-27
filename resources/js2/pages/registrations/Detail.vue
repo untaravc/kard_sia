@@ -107,10 +107,80 @@
                                             v-if="registration.image_uri"
                                             :src="registration.image_uri"
                                             alt="Registration"
-                                            class="h-72 w-full object-cover"
+                                            class="h-72 w-full object-contain"
                                         />
                                         <div v-else class="grid h-72 place-items-center text-sm text-muted">
                                             No image
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 rounded-2xl border border-border bg-white p-5">
+                            <div class="text-xs uppercase tracking-[0.2em] text-muted">Keluarga</div>
+                            <div class="mt-4 grid gap-4 text-sm">
+                                <div>
+                                    <div class="font-semibold text-ink">Ayah</div>
+                                    <div class="mt-2 grid gap-1">
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Nama</span>
+                                            <span class="text-ink">{{ registration.father_name || '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Pekerjaan</span>
+                                            <span class="text-ink">{{ registration.father_job || '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Alamat</span>
+                                            <span class="text-ink text-right">{{ registration.father_address || '-' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="font-semibold text-ink">Ibu</div>
+                                    <div class="mt-2 grid gap-1">
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Nama</span>
+                                            <span class="text-ink">{{ registration.mother_name || '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Pekerjaan</span>
+                                            <span class="text-ink">{{ registration.mother_job || '-' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="font-semibold text-ink">Pasangan</div>
+                                    <div class="mt-2 grid gap-1">
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Nama</span>
+                                            <span class="text-ink">{{ registration.spouse_name || '-' }}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-muted">Pekerjaan</span>
+                                            <span class="text-ink">{{ registration.spouse_job || '-' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="font-semibold text-ink">Anak</div>
+                                    <div v-if="children.length === 0" class="mt-2 text-sm text-muted">No children.</div>
+                                    <div v-else class="mt-3 grid gap-2">
+                                        <div
+                                            v-for="(child, i) in children"
+                                            :key="`child-${i}`"
+                                            class="rounded-xl border border-border bg-panel px-3 py-2"
+                                        >
+                                            <div class="text-sm font-medium text-ink">{{ child.name || '-' }}</div>
+                                            <div class="text-xs text-muted">
+                                                <span v-if="child.year">Tahun lahir: {{ child.year }}</span>
+                                                <span v-else-if="child.desc">Tahun lahir: {{ child.desc }}</span>
+                                                <span v-else>-</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -378,73 +448,7 @@
                     </div>
 
                     <div class="lg:col-span-3">
-                        <div class="rounded-2xl border border-border bg-white p-5">
-                            <div class="text-xs uppercase tracking-[0.2em] text-muted">Keluarga</div>
-                            <div class="mt-4 grid gap-4 text-sm">
-                                <div>
-                                    <div class="font-semibold text-ink">Ayah</div>
-                                    <div class="mt-2 grid gap-1">
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Nama</span>
-                                            <span class="text-ink">{{ registration.father_name || '-' }}</span>
-                                        </div>
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Pekerjaan</span>
-                                            <span class="text-ink">{{ registration.father_job || '-' }}</span>
-                                        </div>
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Alamat</span>
-                                            <span class="text-ink text-right">{{ registration.father_address || '-' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="font-semibold text-ink">Ibu</div>
-                                    <div class="mt-2 grid gap-1">
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Nama</span>
-                                            <span class="text-ink">{{ registration.mother_name || '-' }}</span>
-                                        </div>
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Pekerjaan</span>
-                                            <span class="text-ink">{{ registration.mother_job || '-' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="font-semibold text-ink">Pasangan</div>
-                                    <div class="mt-2 grid gap-1">
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Nama</span>
-                                            <span class="text-ink">{{ registration.spouse_name || '-' }}</span>
-                                        </div>
-                                        <div class="flex justify-between gap-4">
-                                            <span class="text-muted">Pekerjaan</span>
-                                            <span class="text-ink">{{ registration.spouse_job || '-' }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="font-semibold text-ink">Anak</div>
-                                    <div v-if="children.length === 0" class="mt-2 text-sm text-muted">No children.</div>
-                                    <div v-else class="mt-3 grid gap-2">
-                                        <div v-for="(child, i) in children" :key="`child-${i}`" class="rounded-xl border border-border bg-panel px-3 py-2">
-                                            <div class="text-sm font-medium text-ink">{{ child.name || '-' }}</div>
-                                            <div class="text-xs text-muted">
-                                                <span v-if="child.year">Tahun lahir: {{ child.year }}</span>
-                                                <span v-else-if="child.desc">Tahun lahir: {{ child.desc }}</span>
-                                                <span v-else>-</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 rounded-2xl border border-border bg-white p-5" v-if="registration.score">
+                        <div class="rounded-2xl border border-border bg-white p-5" v-if="registration.score">
                             <div class="text-xs uppercase tracking-[0.2em] text-muted">Score</div>
                             <div class="mt-4 grid gap-2 text-sm">
                                 <div class="flex justify-between gap-4">

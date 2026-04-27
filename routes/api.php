@@ -93,6 +93,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('delete-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'deleteScore']);
     Route::get('stase-task-logs', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'index']);
     Route::post('logbooks/bulk', [\App\Http\Controllers\Api\LogbookController::class, 'bulk']);
+    Route::post('logbooks/approve', [\App\Http\Controllers\Api\LogbookController::class, 'approve']);
     Route::resource('logbooks', 'Api\LogbookController');
     Route::get('presences/daily', [\App\Http\Controllers\Api\PresenceController::class, 'daily']);
     Route::get('presences/monthly', [\App\Http\Controllers\Api\PresenceController::class, 'monthly']);

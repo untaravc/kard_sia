@@ -13,14 +13,53 @@ use Illuminate\Support\Facades\DB;
 
 class LogbookController extends Controller
 {
+    public function approve(Request $request)
+    {
+        $lectureId = $this->resolveLectureId($request);
+        if ($lectureId) {
+            $request->merge([
+                'lecture_id' => $lectureId,
+            ]);
+        }
+
+        $query = StudentLog::query();
+        $query = $this->withApproveFilter($query, $request);
+
+        $total = (clone $query)->count();
+        $pending = (clone $query)->where('status', '!=', 1)->count();
+        $updated = $pending ? (clone $query)->where('status', '!=', 1)->update(['status' => 1]) : 0;
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Approve Logbooks Success',
+            'result' => [
+                'total' => $total,
+                'pending' => $pending,
+                'updated' => $updated,
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
         $studentId = $this->resolveStudentId($request);
-        $dataContent = StudentLog::with(['lecture', 'stase'])
+        $lectureId = $this->resolveLectureId($request);
+        $dataContent = StudentLog::query()
+            ->select('student_logs.*', 'form_options.name as form_option_name', 'students.name as student_name')
+            ->leftJoin('form_options', function ($join) {
+                $join->on('form_options.value', '=', 'student_logs.type')
+                    ->where('form_options.type', '=', 'stase-logbook')
+                    ->whereColumn('form_options.relation_id', '=', 'student_logs.stase_id');
+            })
+            ->leftJoin('students', 'students.id', '=', 'student_logs.student_id')
+            ->with(['lecture', 'stase'])
             ->when($studentId, function ($query) use ($studentId) {
                 $query->where('student_id', $studentId);
             })
-            ->orderByDesc('date');
+            ->when($lectureId, function ($query) use ($lectureId) {
+                $query->where('student_logs.lecture_id', $lectureId);
+            })
+            ->orderByDesc('student_logs.date');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);
 
@@ -240,7 +279,52 @@ class LogbookController extends Controller
     public function withFilter($dataContent, $request)
     {
         if ($request->stase_id != null) {
+            $dataContent = $dataContent->where('student_logs.stase_id', $request->stase_id);
+        }
+
+        if ($request->status != null) {
+            $dataContent = $dataContent->where('student_logs.status', $request->status);
+        }
+
+        if ($request->lecture_id != null) {
+            $dataContent = $dataContent->where('student_logs.lecture_id', $request->lecture_id);
+        }
+
+        if ($request->student_id != null) {
+            $dataContent = $dataContent->where('student_logs.student_id', $request->student_id);
+        }
+
+        if ($request->type != null) {
+            $dataContent = $dataContent->where('student_logs.type', $request->type);
+        }
+
+        if ($request->keyword != null) {
+            $dataContent = $dataContent->where(function ($q) use ($request) {
+                $q->where('student_logs.field_1', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('student_logs.field_2', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('student_logs.field_3', 'LIKE', '%' . $request->keyword . '%');
+            });
+        }
+
+        return $dataContent;
+    }
+
+    private function withApproveFilter($dataContent, Request $request)
+    {
+        if ($request->stase_id != null) {
             $dataContent = $dataContent->where('stase_id', $request->stase_id);
+        }
+
+        if ($request->status != null) {
+            $dataContent = $dataContent->where('status', $request->status);
+        }
+
+        if ($request->lecture_id != null) {
+            $dataContent = $dataContent->where('lecture_id', $request->lecture_id);
+        }
+
+        if ($request->student_id != null) {
+            $dataContent = $dataContent->where('student_id', $request->student_id);
         }
 
         if ($request->type != null) {
@@ -353,6 +437,25 @@ class LogbookController extends Controller
         }
 
         return $request->student_id;
+    }
+
+    private function resolveLectureId(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $logAsType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        $logAsId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+        $authId = $payload ? data_get($payload, 'auth_id') : null;
+
+        if ($logAsType === 'lecture' && $logAsId) {
+            return $logAsId;
+        }
+
+        if ($authType === 'lecture' && $authId) {
+            return $authId;
+        }
+
+        return null;
     }
 
     private function buildStudentLogData($studentId, $staseId, $orderDesc = true)
