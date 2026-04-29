@@ -205,7 +205,9 @@
         </div>
     </div>
     <div class="row mb-4">
+        <div class="col-12">
         <h5 class="mb-1">Anak</h5>
+        </div>
         @foreach ($children as $child)
             <div class="col-6">
                 <table>

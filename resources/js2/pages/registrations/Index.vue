@@ -339,10 +339,14 @@
             window.open(`/print/registration/${registration.id}`, '_blank');
         },
         openPrintProfiles() {
-            window.open('/print/registrations-profiles', '_blank');
+            const period = this.filters && this.filters.registration_period ? this.filters.registration_period : '';
+            const query = period ? `?registration_period=${encodeURIComponent(period)}` : '';
+            window.open(`/print/registrations-profiles${query}`, '_blank');
         },
         openResume() {
-            window.open('/print/registrations-resume', '_blank');
+            const period = this.filters && this.filters.registration_period ? this.filters.registration_period : '';
+            const query = period ? `?registration_period=${encodeURIComponent(period)}` : '';
+            window.open(`/print/registrations-resume${query}`, '_blank');
         },
     },
 };

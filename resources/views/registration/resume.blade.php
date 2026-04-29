@@ -221,7 +221,19 @@
                     return;
                 }
 
-                axios.get('/api/registrations?per_page=45&section=journal', {
+                const searchParams = new URLSearchParams(window.location.search || '')
+                const registration_period = searchParams.get('registration_period') || ''
+
+                const params = {
+                    per_page: 45,
+                    section: 'journal',
+                }
+                if (registration_period) {
+                    params.registration_period = registration_period
+                }
+
+                axios.get('/api/registrations', {
+                    params,
                     headers: {
                         Authorization: "Bearer " + token
                     }
