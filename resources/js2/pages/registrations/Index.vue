@@ -5,13 +5,22 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Registration Management</div>
                 <h1 class="text-2xl font-semibold text-ink">Registrations</h1>
             </div>
-            <button
-                class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                type="button"
-                @click="openCreate"
-            >
-                Add Registration
-            </button>
+            <div class="flex flex-wrap gap-2">
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="openPrintProfiles"
+                >
+                    Print Profiles
+                </button>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="openResume"
+                >
+                    Resume
+                </button>
+            </div>
         </header>
 
         <section class="rounded-2xl border border-border bg-panel p-5">
@@ -79,12 +88,9 @@
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
             </div>
-            <div
-                v-if="errorMessage && !modalOpen"
-                class="border-b border-rose-100 bg-rose-50 px-5 py-3 text-xs text-rose-600"
-            >
-                {{ errorMessage }}
-            </div>
+	            <div v-if="errorMessage" class="border-b border-rose-100 bg-rose-50 px-5 py-3 text-xs text-rose-600">
+	                {{ errorMessage }}
+	            </div>
             <div class="divide-y divide-border">
                 <div v-if="!loading && registrations.length === 0" class="px-5 py-6 text-sm text-muted">
                     No registrations found.
@@ -122,7 +128,7 @@
                         <div
                             v-if="actionMenuOpenId === registration.id"
                             class="absolute right-0 z-10 mt-2 w-36 rounded-xl border border-border bg-white p-1 shadow-lg"
-                        >
+	                        >
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
@@ -133,16 +139,9 @@
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
-                                @click="openEdit(registration)"
+                                @click="openPrintRegistration(registration)"
                             >
-                                Edit
-                            </button>
-                            <button
-                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
-                                type="button"
-                                @click="deleteRegistration(registration)"
-                            >
-                                Delete
+                                Print
                             </button>
                         </div>
                     </div>
@@ -169,105 +168,27 @@
             </div>
         </section>
 
-        <Modal
-            :open="modalOpen"
-            :title="editMode ? 'Edit Registration' : 'Create Registration'"
-            :eyebrow="editMode ? 'Update registration' : 'New registration'"
-            size="lg"
-            @close="closeModal"
-        >
-            <form class="grid gap-4" @submit.prevent="submitForm">
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Registration Period</span>
-                    <input
-                        v-model.trim="form.registration_period"
-                        type="text"
-                        placeholder="e.g. 2026-01"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <div class="grid gap-4 md:grid-cols-2">
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Name</span>
-                        <input
-                            v-model.trim="form.name"
-                            type="text"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            required
-                        />
-                    </label>
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Phone</span>
-                        <input
-                            v-model.trim="form.phone"
-                            type="text"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                    </label>
-                </div>
-                <div class="grid gap-4 md:grid-cols-2">
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Email</span>
-                        <input
-                            v-model.trim="form.email"
-                            type="email"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            required
-                        />
-                    </label>
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Status</span>
-                        <select
-                            v-model.number="form.status"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        >
-                            <option :value="null">Not Set</option>
-                            <option v-for="option in statusOptions" :key="option.value" :value="option.value">
-                                {{ option.label }}
-                            </option>
-                        </select>
-                    </label>
-                </div>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">
-                        Password
-                        <span v-if="editMode" class="text-xs text-muted">(leave empty to keep current)</span>
-                    </span>
-                    <input
-                        v-model.trim="form.password"
-                        type="password"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        :required="!editMode"
-                        minlength="6"
-                    />
-                </label>
+	    </div>
+	</template>
 
-                <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
-                    {{ errorMessage }}
-                </div>
+	<script>
+	import Loading from 'vue-loading-overlay';
+	import 'vue-loading-overlay/dist/vue-loading.css';
+	import Repository from '../../repository';
 
-                <button
-                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                    type="submit"
-                    :disabled="submitting"
-                >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update Registration' : 'Create Registration' }}
-                </button>
-            </form>
-        </Modal>
-    </div>
-</template>
+	export default {
+	    components: {
+	        Loading,
+	    },
+    watch: {
+        $route(to, from) {
+            if (!to || !from || to.fullPath === from.fullPath) {
+                return;
+            }
 
-<script>
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.css';
-import Modal from '../../components/Modal.vue';
-import Repository from '../../repository';
-
-export default {
-    components: {
-        Loading,
-        Modal,
+            this.filters.page = 1;
+            this.fetchRegistrations();
+        },
     },
     computed: {
         periodOptions() {
@@ -290,46 +211,37 @@ export default {
             return periods.reverse();
         },
     },
-    data() {
-        return {
-            baseUrl: '/api/registrations',
-            registrations: [],
-            pagination: {},
+	    data() {
+	        return {
+	            baseUrl: '/api/registrations',
+	            registrations: [],
+	            pagination: {},
             filters: {
                 keyword: '',
                 status: '',
                 registration_period: '',
                 page: 1,
             },
-            form: {
-                id: null,
-                registration_period: '',
-                name: '',
-                email: '',
-                phone: '',
-                status: null,
-                password: '',
-            },
-            statusOptions: [
-                { value: 100, label: 'Pengisian Pendaftaran' },
-                { value: 101, label: 'Pengisian Pendaftaran Selesai' },
-                { value: 200, label: 'Lolos Administrasi' },
+	            statusOptions: [
+	                { value: 100, label: 'Pengisian Pendaftaran' },
+	                { value: 101, label: 'Pengisian Pendaftaran Selesai' },
+	                { value: 200, label: 'Lolos Administrasi' },
                 { value: 201, label: 'Tidak Lolos Administrasi' },
                 { value: 300, label: 'Lolos Ujian Tulis - Jurnal' },
                 { value: 301, label: 'Tidak Lolos Ujian Tulis - Jurnal' },
-                { value: 400, label: 'Diterima' },
-                { value: 401, label: 'Tidak Lolos Ujian Wawancara' },
-                { value: 500, label: 'Dibatalkan' },
-            ],
-            editMode: false,
-            modalOpen: false,
-            loading: false,
-            submitting: false,
-            errorMessage: '',
-            actionMenuOpenId: null,
-        };
-    },
+	                { value: 400, label: 'Diterima' },
+	                { value: 401, label: 'Tidak Lolos Ujian Wawancara' },
+	                { value: 500, label: 'Dibatalkan' },
+	            ],
+	            loading: false,
+	            errorMessage: '',
+	            actionMenuOpenId: null,
+	        };
+	    },
     created() {
+        if (!this.filters.registration_period) {
+            this.filters.registration_period = this.periodOptions && this.periodOptions.length ? this.periodOptions[0] : '';
+        }
         this.fetchRegistrations();
     },
     mounted() {
@@ -346,6 +258,11 @@ export default {
             const params = {
                 ...this.filters,
             };
+
+            const section = this.$route && this.$route.query ? this.$route.query.section : null;
+            if (section) {
+                params.section = section;
+            }
 
             if (!params.status) {
                 delete params.status;
@@ -398,34 +315,14 @@ export default {
         resetFilter() {
             this.filters.keyword = '';
             this.filters.status = '';
-            this.filters.registration_period = '';
+            this.filters.registration_period = this.periodOptions && this.periodOptions.length ? this.periodOptions[0] : '';
             this.filters.page = 1;
             this.fetchRegistrations();
         },
-        changePage(page) {
-            this.filters.page = page;
-            this.fetchRegistrations();
-        },
-        openCreate() {
-            this.editMode = false;
-            this.resetForm();
-            this.errorMessage = '';
-            this.modalOpen = true;
-        },
-        openEdit(registration) {
-            this.editMode = true;
-            this.form = {
-                id: registration.id,
-                registration_period: registration.registration_period || '',
-                name: registration.name || '',
-                email: registration.email || '',
-                phone: registration.phone || '',
-                status: registration.status ?? null,
-                password: '',
-            };
-            this.errorMessage = '';
-            this.modalOpen = true;
-        },
+	        changePage(page) {
+	            this.filters.page = page;
+	            this.fetchRegistrations();
+	        },
         openDetail(registration) {
             this.closeActionMenu();
             if (!registration || !registration.id) {
@@ -433,73 +330,19 @@ export default {
             }
             this.$router.push(`/blu/registrations/${registration.id}`);
         },
-        closeModal() {
-            this.modalOpen = false;
-            this.errorMessage = '';
-            if (!this.editMode) {
-                this.resetForm();
-            }
-        },
-        resetForm() {
-            this.form = {
-                id: null,
-                registration_period: '',
-                name: '',
-                email: '',
-                phone: '',
-                status: null,
-                password: '',
-            };
-        },
-        submitForm() {
-            this.submitting = true;
-            this.errorMessage = '';
-
-            const payload = {
-                registration_period: this.form.registration_period || null,
-                name: this.form.name,
-                email: this.form.email,
-                phone: this.form.phone || null,
-                status: this.form.status ?? null,
-                password: this.form.password || '',
-            };
-
-            const request = this.editMode
-                ? Repository.put(`${this.baseUrl}/${this.form.id}`, payload)
-                : Repository.post(this.baseUrl, payload);
-
-            return request
-                .then(() => {
-                    this.fetchRegistrations();
-                    this.closeModal();
-                    this.$showToast(this.editMode ? 'Registration updated successfully.' : 'Registration created successfully.');
-                })
-                .catch((error) => {
-                    const message = error && error.response && error.response.data
-                        ? error.response.data.text
-                        : this.editMode
-                            ? 'Failed to update registration.'
-                            : 'Failed to create registration.';
-                    this.errorMessage = message;
-                })
-                .finally(() => {
-                    this.submitting = false;
-                });
-        },
-        deleteRegistration(registration) {
+        openPrintRegistration(registration) {
             this.closeActionMenu();
-            if (!window.confirm(`Delete registration ${registration.name}?`)) {
+            if (!registration || !registration.id) {
                 return;
             }
 
-            Repository.delete(`${this.baseUrl}/${registration.id}`)
-                .then(() => {
-                    this.fetchRegistrations();
-                    this.$showToast('Registration deleted successfully.');
-                })
-                .catch(() => {
-                    this.errorMessage = 'Failed to delete registration.';
-                });
+            window.open(`/print/registration/${registration.id}`, '_blank');
+        },
+        openPrintProfiles() {
+            window.open('/print/registrations-profiles', '_blank');
+        },
+        openResume() {
+            window.open('/print/registrations-resume', '_blank');
         },
     },
 };

@@ -97,6 +97,7 @@ const routes = [
             { path: 'students', component: require('./pages/students/Index.vue').default, meta: { page_name: 'Students' } },
             { path: 'students/:student_id/score', component: require('./pages/students/Score.vue').default, meta: { page_name: 'Student Score' } },
             { path: 'registrations', component: require('./pages/registrations/Index.vue').default, meta: { page_name: 'Registrations' } },
+            { path: 'registrations/score', component: require('./pages/registrations/Score.vue').default, meta: { page_name: 'Registration Score' } },
             { path: 'registrations/:id', component: require('./pages/registrations/Detail.vue').default, meta: { page_name: 'Registration Detail' } },
             { path: 'letters', component: require('./pages/letters/Index.vue').default, meta: { page_name: 'Letters' } },
             { path: 'letters/create', component: require('./pages/letters/AddEdit.vue').default, meta: { page_name: 'Create Letter' } },

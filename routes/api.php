@@ -103,6 +103,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
     Route::resource('device-tokens', 'Api\DeviceTokenController');
     Route::resource('notifications', 'Api\NotificationController');
+    Route::patch('registrations/score-administration', [RegistrationController::class, 'setScoreAdministration']);
+    Route::patch('registrations/score-administration-all', [RegistrationController::class, 'setScoreAdministrationAll']);
     Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);
     Route::resource('registrations', 'Api\RegistrationController');
     Route::resource('letters', 'Api\LetterController');

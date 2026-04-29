@@ -81,11 +81,20 @@ class MenuController extends Controller
                     'icon' => 'resident',
                     'children' => [
                         ['label' => 'Data', 'to' => "{$basePath}/students"],
-                        ['label' => 'Registrations', 'to' => "{$basePath}/registrations"],
                         ['label' => 'Presences', 'to' => "{$basePath}/presences"],
                         ['label' => 'Presences Daily', 'to' => "{$basePath}/presences/daily"],
                         ['label' => 'Presences Monthly', 'to' => "{$basePath}/presences/monthly"],
                         ['label' => 'Log Book', 'to' => "{$basePath}/logbooks"],
+                    ],
+                ],
+                [
+                    'label' => 'Registrations',
+                    'icon' => 'resident',
+                    'children' => [
+                        ['label' => 'Administrasi', 'to' => "{$basePath}/registrations"],
+                        ['label' => 'Journal', 'to' => "{$basePath}/registrations?section=journal"],
+                        ['label' => 'Interview', 'to' => "{$basePath}/registrations?section=interview"],
+                        ['label' => 'Score', 'to' => "{$basePath}/registrations/score"],
                     ],
                 ],
                 ['label' => 'Activities', 'icon' => 'agenda', 'to' => "{$basePath}/activities"],

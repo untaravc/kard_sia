@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use \App\Http\Controllers\Sadmin\GlobalFunctionController;
 use \App\Http\Controllers\Sadmin\DashboardController;
 use \App\Http\Controllers\Object\PublicController;
+use App\Http\Controllers\RegisterController;
 
 Route::get('/', function () {
     return redirect('/blu');
@@ -101,6 +102,10 @@ Route::group(['prefix'=>'test'], function(){
 Route::get('pass', function (){
    return \Illuminate\Support\Facades\Hash::make('password');
 });
+
+Route::get('/print/registration/{registration_id}', [RegisterController::class, 'print']);
+Route::get('/print/registrations-resume', [RegisterController::class, 'resumeView']);
+Route::get('/print/registrations-profiles', [RegisterController::class, 'registrationProfiles']);
 
 Route::get('/blu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
 Route::get('/blu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);
