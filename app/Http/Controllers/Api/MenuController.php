@@ -25,6 +25,14 @@ class MenuController extends Controller
             $authId = $payload ? data_get($payload, 'auth_id') : null;
         }
 
+        if (!in_array($authType, ['user', 'student', 'lecture'], true)) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
         $todayAgendaCount = 0;
         if (in_array($authType, ['student', 'lecture'], true)) {
             $today = Carbon::today();

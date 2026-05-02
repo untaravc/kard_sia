@@ -9,6 +9,7 @@ use App\Models\Registration;
 use App\Models\Student;
 use App\Models\StudentProfile;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Hash;
@@ -212,6 +213,59 @@ class AuthController extends Controller
         ];
 
         return $this->response;
+    }
+
+    public function checkAvailability(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $email = $payload ? data_get($payload, 'email') : null;
+
+        if (empty($email)) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $currentPeriod = env('REGISTRATION_PERIOD');
+        if (empty($currentPeriod)) {
+            return response()->json([
+                'success' => false,
+                'text' => 'REGISTRATION_PERIOD is not configured',
+                'result' => null,
+            ], 422);
+        }
+
+        $archiveRegistration = Registration::whereEmail($email)
+            ->orderByDesc('registration_period')
+            ->first();
+
+        $currentRegistration = Registration::whereEmail($email)
+            ->whereRegistrationPeriod($currentPeriod)
+            ->first();
+
+        if ($archiveRegistration && ! $currentRegistration && $archiveRegistration->registration_period !== $currentPeriod) {
+            return response()->json([
+                'success' => true,
+                'text' => 'Success',
+                'result' => [
+                    'copy_available' => 1,
+                    'period' => $archiveRegistration->registration_period,
+                    'period_str' => Carbon::parse($archiveRegistration->registration_period)->format('F Y'),
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Success',
+            'result' => [
+                'copy_available' => 0,
+                'period' => '',
+                'period_str' => '',
+            ],
+        ]);
     }
 
     public function auth(Request $request)

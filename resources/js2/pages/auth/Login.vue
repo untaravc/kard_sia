@@ -164,6 +164,12 @@ export default {
                         });
                     }
 
+                    const authType = data.result ? data.result.auth_type : null;
+                    if (authType === 'registration') {
+                        this.$router.push('/reg/index');
+                        return;
+                    }
+
                     this.$router.push('/blu/dashboard');
                 })
                 .catch((error) => {
@@ -243,6 +249,12 @@ export default {
 
         if (token) {
             localStorage.setItem('token', token);
+            const authType = this.$route && this.$route.query ? this.$route.query.auth_type : null;
+            if (authType === 'registration') {
+                this.$router.replace('/reg/index');
+                return;
+            }
+
             this.$router.replace('/blu/dashboard');
         }
     },

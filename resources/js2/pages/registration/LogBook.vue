@@ -1,0 +1,269 @@
+<template>
+    <div class="grid gap-4">
+        <div class="rounded-2xl border border-border bg-panel p-6">
+            <div class="flex items-center justify-between gap-4">
+                <div class="text-lg font-semibold">Log Book</div>
+                <button v-if="canEdit" type="button" class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    @click="showAddModal">
+                    Tambah
+                </button>
+            </div>
+
+            <div v-if="message" class="mt-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+                {{ message }}
+            </div>
+
+            <div class="mt-4 overflow-x-auto">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="text-xs uppercase text-muted">
+                        <tr class="border-b border-border">
+                            <th class="px-2 py-2 w-12">No</th>
+                            <th class="px-2 py-2 w-[30%]">Instansi / RS</th>
+                            <th class="px-2 py-2">Tahun</th>
+                            <th class="px-2 py-2">Dokumen</th>
+                            <th class="px-2 py-2 w-32 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="logbooks.length === 0">
+                            <td colspan="5" class="px-2 py-6 text-center text-sm text-muted">Belum ada data</td>
+                        </tr>
+                        <tr v-for="(detail, index) in logbooks" :key="detail.id" class="border-b border-border">
+                            <td class="px-2 py-2">{{ index + 1 }}</td>
+                            <td class="px-2 py-2">{{ detail.name }}</td>
+                            <td class="px-2 py-2">{{ detail.year }}</td>
+                            <td class="px-2 py-2">
+                                <a v-if="detail.file_url" :href="detail.file_url" target="_blank" rel="noreferrer"
+                                    class="inline-flex items-center rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-primary hover:bg-white">
+                                    Lampiran
+                                </a>
+                            </td>
+                            <td class="px-2 py-2 text-right">
+                                <div class="inline-flex gap-2">
+                                    <button v-if="canEdit" type="button"
+                                        class="rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white"
+                                        @click="showEditModal(detail)">
+                                        Edit
+                                    </button>
+                                    <button v-if="canEdit" type="button"
+                                        class="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white"
+                                        @click="removeDetail(detail.id)">
+                                        Hapus
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-border bg-panel p-6">
+            <div class="flex items-center justify-between gap-4">
+                <div class="font-semibold">Unduh template log book</div>
+                <a :href="referenceDocumentUrl" target="_blank" rel="noreferrer"
+                    class="inline-flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm hover:bg-white">
+                    <span class="text-primary">Open</span>
+                </a>
+            </div>
+        </div>
+
+        <Modal :open="modalOpen" title="Log Book" :closeOnBackdrop="false" @close="closeModal">
+            <div class="grid gap-4">
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Instansi / Rumah Sakit</span>
+                    <input class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
+                        :class="detailErrors.name ? 'border-red-300 focus:ring-red-500/20' : 'border-border focus:ring-primary/30'"
+                        v-model.trim="form.name" />
+                    <span v-if="detailErrors.name" class="text-xs text-red-600">{{ detailErrors.name }}</span>
+                </label>
+
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Tahun</span>
+                    <input type="number" class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
+                        :class="detailErrors.year ? 'border-red-300 focus:ring-red-500/20' : 'border-border focus:ring-primary/30'"
+                        v-model.trim="form.year" />
+                    <span v-if="detailErrors.year" class="text-xs text-red-600">{{ detailErrors.year }}</span>
+                </label>
+
+                <div class="grid gap-2 text-sm">
+                    <span class="text-muted">Log Book (PDF, max 2MB)</span>
+                    <input type="file" accept="application/pdf,.pdf"
+                        class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm"
+                        :disabled="uploading" @change="uploadFile" />
+                    <div v-if="uploading" class="text-xs text-muted">Uploading...</div>
+                    <span v-if="detailErrors.file_url" class="text-xs text-red-600">{{ detailErrors.file_url }}</span>
+                    <div v-if="form.file_url" class="text-xs">
+                        <a class="text-primary underline" :href="form.file_url" target="_blank" rel="noreferrer">{{ truncate(form.file_url) }}</a>
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <button type="button"
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+                    :disabled="saving" @click="submit">
+                    {{ saving ? 'Please wait...' : (editMode ? 'Simpan' : 'Tambah') }}
+                </button>
+            </template>
+        </Modal>
+    </div>
+</template>
+
+<script>
+import Repository from '../../repository';
+import Modal from '../../components/Modal.vue';
+import { uploadFirebaseFile } from '../../upload';
+
+export default {
+    name: 'RegistrationLogBook',
+    components: { Modal },
+    props: { registration: { type: Object, default: null } },
+    data() {
+        return {
+            message: '',
+            modalOpen: false,
+            editMode: false,
+            saving: false,
+            uploading: false,
+            detailErrors: {},
+            form: {
+                id: null,
+                label: 'logbook',
+                name: '',
+                year: '',
+                file_url: '',
+            },
+            referenceDocumentUrl:
+                'https://firebasestorage.googleapis.com/v0/b/unt-dev.firebasestorage.app/o/KardiologiFkkmk%2FAssets%2Ftemplate_verifikasi_logbook.docx?alt=media&token=75d48f56-5031-4d66-bac4-4ee9bd37e782',
+        };
+    },
+    computed: {
+        canEdit() {
+            return this.registration && this.registration.status === 100;
+        },
+        logbooks() {
+            const details = this.registration && Array.isArray(this.registration.details) ? this.registration.details : [];
+            return details.filter((item) => item && item.label === 'logbook');
+        },
+    },
+    methods: {
+        truncate(url) {
+            const text = String(url || '');
+            if (text.length <= 70) return text;
+            return `${text.slice(0, 40)}...${text.slice(-20)}`;
+        },
+        normalizeErrors(error) {
+            const responseData = error && error.response && error.response.data ? error.response.data : null;
+            const laravelErrors = responseData && responseData.errors ? responseData.errors : null;
+
+            if (laravelErrors && typeof laravelErrors === 'object') {
+                const mapped = {};
+                Object.keys(laravelErrors).forEach((key) => {
+                    const messages = laravelErrors[key];
+                    mapped[key] = Array.isArray(messages) ? messages[0] : String(messages);
+                });
+                return mapped;
+            }
+
+            return {};
+        },
+        validatePdf(file) {
+            if (!file) return 'File tidak ditemukan.';
+            if (file.type !== 'application/pdf') return 'Format file harus pdf.';
+            if (file.size > 2 * 1024 * 1024) return 'Ukuran file maksimal 2MB.';
+            return '';
+        },
+        showAddModal() {
+            this.message = '';
+            this.detailErrors = {};
+            this.editMode = false;
+            this.form = { id: null, label: 'logbook', name: '', year: '', file_url: '' };
+            this.modalOpen = true;
+        },
+        showEditModal(detail) {
+            this.message = '';
+            this.detailErrors = {};
+            this.editMode = true;
+            this.form = {
+                id: detail.id,
+                label: detail.label || 'logbook',
+                name: detail.name || '',
+                year: detail.year || '',
+                file_url: detail.file_url || '',
+            };
+            this.modalOpen = true;
+        },
+        closeModal() {
+            this.modalOpen = false;
+        },
+        uploadFile(event) {
+            const input = event && event.target ? event.target : null;
+            const file = input && input.files && input.files.length ? input.files[0] : null;
+            this.message = '';
+            this.detailErrors = {};
+
+            const validationMessage = this.validatePdf(file);
+            if (validationMessage) {
+                this.message = validationMessage;
+                if (input) input.value = '';
+                return;
+            }
+
+            this.uploading = true;
+            uploadFirebaseFile({ file, prefix: 'Registration/LogBook' })
+                .then((url) => {
+                    if (url) {
+                        this.form.file_url = url;
+                    } else {
+                        this.message = 'Upload failed';
+                    }
+                })
+                .catch(() => {
+                    this.message = 'Upload failed';
+                })
+                .finally(() => {
+                    this.uploading = false;
+                });
+        },
+        submit() {
+            this.saving = true;
+            this.message = '';
+            this.detailErrors = {};
+
+            const payload = {
+                label: this.form.label,
+                name: this.form.name,
+                year: this.form.year,
+                file_url: this.form.file_url,
+            };
+
+            const request = this.editMode
+                ? Repository.patch(`/api/registration-details/${this.form.id}`, payload)
+                : Repository.post('/api/registration-details', payload);
+
+            return request
+                .then(() => {
+                    this.closeModal();
+                    this.$emit('refresh');
+                })
+                .catch((error) => {
+                    this.detailErrors = this.normalizeErrors(error);
+                })
+                .finally(() => {
+                    this.saving = false;
+                });
+        },
+        removeDetail(id) {
+            if (!confirm('Hapus data?')) return;
+            return Repository.delete(`/api/registration-details/${id}`)
+                .then(() => {
+                    this.$emit('refresh');
+                })
+                .catch(() => {
+                    // ignore
+                });
+        },
+    },
+};
+</script>
+

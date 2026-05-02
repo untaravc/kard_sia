@@ -109,3 +109,6 @@ Route::get('/print/registrations-profiles', [RegisterController::class, 'registr
 
 Route::get('/blu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
 Route::get('/blu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);
+
+Route::get('/reg/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
+Route::get('/reg/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);

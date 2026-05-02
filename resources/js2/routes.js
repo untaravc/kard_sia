@@ -1,4 +1,5 @@
 const admin_prefix = '/blu';
+const reg_prefix = '/reg';
 
 const requireAuth = (to, from, next) => {
     const token = localStorage.getItem('token');
@@ -20,7 +21,70 @@ const redirectIfAuth = (to, from, next) => {
     next();
 };
 
+const requireRegAuth = (to, from, next) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        next(reg_prefix + '/login');
+        return;
+    }
+
+    next();
+};
+
+const redirectIfRegAuth = (to, from, next) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        next(reg_prefix + '/index');
+        return;
+    }
+
+    next();
+};
+
 const routes = [
+    {
+        path: reg_prefix,
+        component: require('./pages/registration/Layout.vue').default,
+        children: [
+            {
+                path: 'login',
+                component: require('./pages/registration/Login.vue').default,
+                beforeEnter: redirectIfRegAuth,
+                meta: { page_name: 'Registration Login' },
+            },
+            {
+                path: 'index',
+                component: require('./pages/registration/Index.vue').default,
+                beforeEnter: requireRegAuth,
+                meta: { page_name: 'Registration' },
+                children: [
+                    { path: '', component: require('./pages/registration/Home.vue').default, meta: { page_name: 'Registration Home' } },
+                    { path: 'account', component: require('./pages/registration/Account.vue').default, meta: { page_name: 'Registration Account' } },
+                    { path: 'identity', component: require('./pages/registration/Identity.vue').default, meta: { page_name: 'Registration Identity' } },
+                    { path: 'reg', component: require('./pages/registration/Reg.vue').default, meta: { page_name: 'Registration Form' } },
+                    { path: 'education-bg', component: require('./pages/registration/EducationBg.vue').default, meta: { page_name: 'Education Background' } },
+                    { path: 'institution', component: require('./pages/registration/Institution.vue').default, meta: { page_name: 'Institution' } },
+                    { path: 'family', component: require('./pages/registration/Family.vue').default, meta: { page_name: 'Family' } },
+                    { path: 'scores', component: require('./pages/registration/Scores.vue').default, meta: { page_name: 'Scores' } },
+                    { path: 'jobs', component: require('./pages/registration/Jobs.vue').default, meta: { page_name: 'Jobs' } },
+                    { path: 'upload', component: require('./pages/registration/Upload.vue').default, meta: { page_name: 'Upload' } },
+                    { path: 'educations', component: require('./pages/registration/Educations.vue').default, meta: { page_name: 'Educations' } },
+                    { path: 'scientifics', component: require('./pages/registration/Scientifics.vue').default, meta: { page_name: 'Scientifics' } },
+                    { path: 'organisations', component: require('./pages/registration/Organisations.vue').default, meta: { page_name: 'Organisations' } },
+                    { path: 'interenships', component: require('./pages/registration/Interenships.vue').default, meta: { page_name: 'Interenships' } },
+                    { path: 'recomendations', component: require('./pages/registration/Recomendations.vue').default, meta: { page_name: 'Recomendations' } },
+                    { path: 'achievements', component: require('./pages/registration/Achievements.vue').default, meta: { page_name: 'Achievements' } },
+                    { path: 'logbook', component: require('./pages/registration/LogBook.vue').default, meta: { page_name: 'Log Book' } },
+                ],
+            },
+        ],
+    },
+    {
+        path: admin_prefix + '/register',
+        component: require('./pages/Register.vue').default,
+        beforeEnter: redirectIfAuth,
+        meta: { page_name: 'Register' },
+    },
     {
         path: admin_prefix + '/login',
         component: require('./pages/auth/Login.vue').default,
