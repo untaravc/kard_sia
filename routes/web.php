@@ -103,9 +103,9 @@ Route::get('pass', function (){
    return \Illuminate\Support\Facades\Hash::make('password');
 });
 
-Route::get('/print/registration/{registration_id}', [RegisterController::class, 'print']);
-Route::get('/print/registrations-resume', [RegisterController::class, 'resumeView']);
-Route::get('/print/registrations-profiles', [RegisterController::class, 'registrationProfiles']);
+Route::get('/print/registration/{registration_id}', [RegisterController::class, 'print'])->middleware('jwt.query');
+Route::get('/print/registrations-resume', [RegisterController::class, 'resumeView'])->middleware('jwt.query');
+Route::get('/print/registrations-profiles', [RegisterController::class, 'registrationProfiles'])->middleware('jwt.query');
 
 Route::get('/blu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
 Route::get('/blu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);

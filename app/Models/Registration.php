@@ -9,6 +9,12 @@ class Registration extends Model
 {
     use SoftDeletes;
 
+    protected $casts = [
+        'ip_s1' => 'decimal:2',
+        'ip_profession' => 'decimal:2',
+        'ip_commulative' => 'decimal:2',
+    ];
+
     protected $fillable = [
         "registration_period",
         "name",

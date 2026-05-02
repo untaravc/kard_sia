@@ -330,24 +330,49 @@
             }
             this.$router.push(`/blu/registrations/${registration.id}`);
         },
-        openPrintRegistration(registration) {
-            this.closeActionMenu();
-            if (!registration || !registration.id) {
-                return;
-            }
+	        openPrintRegistration(registration) {
+	            this.closeActionMenu();
+	            if (!registration || !registration.id) {
+	                return;
+	            }
 
-            window.open(`/print/registration/${registration.id}`, '_blank');
-        },
-        openPrintProfiles() {
-            const period = this.filters && this.filters.registration_period ? this.filters.registration_period : '';
-            const query = period ? `?registration_period=${encodeURIComponent(period)}` : '';
-            window.open(`/print/registrations-profiles${query}`, '_blank');
-        },
-        openResume() {
-            const period = this.filters && this.filters.registration_period ? this.filters.registration_period : '';
-            const query = period ? `?registration_period=${encodeURIComponent(period)}` : '';
-            window.open(`/print/registrations-resume${query}`, '_blank');
-        },
-    },
-};
-</script>
+	            const token = localStorage.getItem('token');
+	            const params = new URLSearchParams();
+	            if (token) {
+	                params.set('token', token);
+	            }
+
+	            const query = params.toString() ? `?${params.toString()}` : '';
+	            window.open(`/print/registration/${registration.id}${query}`, '_blank');
+	        },
+	        openPrintProfiles() {
+	            const period = this.filters && this.filters.registration_period ? this.filters.registration_period : '';
+	            const token = localStorage.getItem('token');
+	            const params = new URLSearchParams();
+	            if (token) {
+	                params.set('token', token);
+	            }
+	            if (period) {
+	                params.set('registration_period', period);
+	            }
+
+	            const query = params.toString() ? `?${params.toString()}` : '';
+	            window.open(`/print/registrations-profiles${query}`, '_blank');
+	        },
+	        openResume() {
+	            const period = this.filters && this.filters.registration_period ? this.filters.registration_period : '';
+	            const token = localStorage.getItem('token');
+	            const params = new URLSearchParams();
+	            if (token) {
+	                params.set('token', token);
+	            }
+	            if (period) {
+	                params.set('registration_period', period);
+	            }
+
+	            const query = params.toString() ? `?${params.toString()}` : '';
+	            window.open(`/print/registrations-resume${query}`, '_blank');
+	        },
+	    },
+	};
+	</script>

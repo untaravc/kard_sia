@@ -66,6 +66,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'shared' => \App\Http\Middleware\SharedMiddleware::class,
         'jwt.auth' => \App\Http\Middleware\JwtAuth::class,
+        'jwt.query' => \App\Http\Middleware\JwtQueryAuth::class,
     ];
 
     /**

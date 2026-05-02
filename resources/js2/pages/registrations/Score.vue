@@ -162,15 +162,16 @@
                                     <option v-for="i in 2" :key="i" :value="i * 25">{{ i * 25 }}</option>
                                 </select>
                             </td>
-                            <td class="px-3 py-2">
-                                <select
-                                    v-model="item.score.origin_university_type"
-                                    class="w-[140px] rounded-lg border border-border bg-white px-2 py-1 text-xs"
-                                    @change="markChanged(item)"
-                                >
-                                    <option v-for="type in univType" :key="type.name" :value="type.name">{{ type.name }}</option>
-                                </select>
-                            </td>
+	                            <td class="px-3 py-2">
+	                                <select
+	                                    v-model="item.score.origin_university_type"
+	                                    class="w-[140px] rounded-lg border border-border bg-white px-2 py-1 text-xs"
+	                                    @change="markChanged(item)"
+	                                >
+	                                    <option :value="null">-</option>
+	                                    <option v-for="type in univType" :key="type.name" :value="type.name">{{ type.name }}</option>
+	                                </select>
+	                            </td>
                             <td class="px-3 py-2 text-xs text-muted">
                                 {{ item.score.origin_university_multiplier }}
                             </td>
@@ -305,17 +306,17 @@ export default {
         this.loadData();
     },
     methods: {
-        normalizeScore(score) {
-            const defaults = {
-                registration_id: 0,
-                period: 0,
-                selection_path_multiplier: 0,
-                pns_multiplier: 0,
-                origin_university_type: this.univType[0] ? this.univType[0].name : null,
-                origin_university_multiplier: 0,
-                quality_ipk: 0,
-                quality_toefl: 0,
-                quality_english: 0,
+	        normalizeScore(score) {
+	            const defaults = {
+	                registration_id: 0,
+	                period: 0,
+	                selection_path_multiplier: 0,
+	                pns_multiplier: 0,
+	                origin_university_type: null,
+	                origin_university_multiplier: 0,
+	                quality_ipk: 0,
+	                quality_toefl: 0,
+	                quality_english: 0,
                 quality_tpa: 0,
                 score_written_exam: 0,
                 score_ecg: 0,
