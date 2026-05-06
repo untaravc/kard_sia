@@ -68,10 +68,30 @@
             color: #111827;
         }
 
+        .option-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .option-hint {
             font-size: 12px;
             color: #6b7280;
             margin: 0;
+        }
+
+        .print-btn {
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 6px 10px;
+            font-size: 12px;
+            color: #111827;
+        }
+
+        .print-btn:hover {
+            background: #f8fafc;
+            cursor: pointer;
         }
 
         .option-grid {
@@ -117,6 +137,20 @@
             color: #111827;
             line-height: 1.2;
         }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                padding: 0 !important;
+            }
+
+            table {
+                font-size: 10px;
+            }
+        }
     </style>
 </head>
 
@@ -124,10 +158,13 @@
 <h1 class="text-center">Resume Registration</h1>
 
 <div id="app">
-    <div class="option-card">
+    <div class="option-card no-print" v-if="!is_printing">
         <div class="option-title">
             <h6>Options</h6>
-            <p class="option-hint">Toggle columns</p>
+            <div class="option-actions">
+                <button type="button" class="print-btn" @click="printPage()">Print</button>
+                <p class="option-hint">Toggle columns</p>
+            </div>
         </div>
         <div class="option-grid">
             <div v-for="field in filed_list" :key="field.key" class="option-item hover-pointer">
@@ -167,6 +204,17 @@
                         </a>
                         <span v-else>-</span>
                     </span>
+	                    <span v-if="head.type === 'details_list'">
+	                        <ul v-if="Array.isArray(data[head.name]) && filterDetailsByLabel(data[head.name], head.labelFilter).length" style="margin:0; padding-left: 16px;">
+	                            <li v-for="(item, i) in filterDetailsByLabel(data[head.name], head.labelFilter)" :key="(item && item.id) ? item.id : i">
+	                                @{{ formatValue(item && (item.desc || item.name || item.place || item.year || '')) }};
+	                            </li>
+	                        </ul>
+	                        <span v-else>-</span>
+	                    </span>
+                    <span v-if="head.type === 'detail_value'">
+                        @{{ formatValue(findDetailValue(data[head.name], head.labelFilter, head.nameFilter)) || '-' }}
+                    </span>
                 </td>
             </tr>
             </tbody>
@@ -177,7 +225,7 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    const { createApp, ref, reactive } = Vue
+    const { createApp, ref, reactive, onMounted, onBeforeUnmount, nextTick } = Vue
 
     createApp({
         setup() {
@@ -204,11 +252,17 @@
                     {key: '25', name: 'score', sub: 'score_journal', label: 'Jurnal', checked: true, type: 'sub'},
                     {key: '26', name: 'score', sub: 'quality_journal', label: 'Bobot Jurnal', checked: true, type: 'sub'},
                     {key: '27', name: 'score', sub: 'subtotal_score', label: 'Nilai total', checked: true, type: 'sub'},
+                    {key: '28', name: 'graduate_place', label: 'Tujuan Kerja Setelah Lulus ', checked: false, type: 'text'},
+                    {key: '29', name: 'graduate_reason', label: 'Alasan Tujuan', checked: false, type: 'text'},
+                    {key: '30', name: 'registration_details', label: 'Penghargaan', checked: false, type: 'details_list', labelFilter: 'acievement'},
+                    {key: '31', name: 'registration_details', label: 'UKDI CBT', checked: false, type: 'detail_value', labelFilter: 'score', nameFilter: 'UKDI CBT'},
                 ])
 
             const data_content = reactive({
                 data: []
             })
+
+            const is_printing = ref(false)
 
             function loadFields() {
                 filed_list.value.filter(field => field.checked).map(field => field.name)
@@ -244,6 +298,9 @@
                             if (!row.score) {
                                 row.score = {}
                             }
+                            if (!Array.isArray(row.registration_details)) {
+                                row.registration_details = []
+                            }
                         })
                         data_content.data = rows
                     })
@@ -265,12 +322,73 @@
                 return value;
             }
 
+            function filterDetailsByLabel(details, labelFilter) {
+                if (!Array.isArray(details) || !details.length) return []
+                const needle = (labelFilter || '').toString().trim().toLowerCase()
+                if (!needle) return details
+
+                return details.filter((d) => {
+                    const label = (d && d.label) ? String(d.label).toLowerCase() : ''
+                    return label === needle || label === 'achievement'
+                })
+            }
+
+            function findDetailValue(details, labelFilter, nameFilter) {
+                if (!Array.isArray(details) || !details.length) return ''
+                const labelNeedle = (labelFilter || '').toString().trim().toLowerCase()
+                const nameNeedle = (nameFilter || '').toString().trim().toLowerCase()
+
+                const match = details.find((d) => {
+                    const label = (d && d.label) ? String(d.label).toLowerCase() : ''
+                    const name = (d && d.name) ? String(d.name).toLowerCase() : ''
+                    const labelOk = !labelNeedle || label === labelNeedle
+                    const nameOk = !nameNeedle || name === nameNeedle
+                    return labelOk && nameOk
+                })
+
+                if (!match) return ''
+                return match.desc ?? match.desc_1 ?? match.desc_2 ?? match.year ?? match.place ?? match.date ?? match.name ?? ''
+            }
+
+            function printPage() {
+                is_printing.value = true
+                nextTick(() => {
+                    window.print()
+                    is_printing.value = false
+                })
+            }
+
+            function onKeydown(e) {
+                const key = (e && e.key) ? String(e.key).toLowerCase() : ''
+                const isPrintShortcut = (e && (e.ctrlKey || e.metaKey)) && key === 'p'
+                if (!isPrintShortcut) return
+
+                e.preventDefault()
+                is_printing.value = true
+                nextTick(() => {
+                    window.print()
+                    is_printing.value = false
+                })
+            }
+
+            onMounted(() => {
+                window.addEventListener('keydown', onKeydown)
+            })
+
+            onBeforeUnmount(() => {
+                window.removeEventListener('keydown', onKeydown)
+            })
+
             return {
                 filed_list,
                 loadDataContent,
                 loadFields,
                 isActiveField,
                 formatValue,
+                filterDetailsByLabel,
+                findDetailValue,
+                printPage,
+                is_printing,
                 data_content
             }
         }

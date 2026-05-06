@@ -90,6 +90,11 @@ class Registration extends Model
         return $this->hasMany(RegistrationDetail::class);
     }
 
+    public function registration_details()
+    {
+        return $this->hasMany(RegistrationDetail::class);
+    }
+
     public function score()
     {
         return $this->hasOne(RegistrationScore::class);

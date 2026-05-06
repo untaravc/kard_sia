@@ -30,7 +30,7 @@ class RegistrationController extends Controller
     public function index(Request $request)
     {
         $query = Registration::query()
-            ->with('score')
+            ->with(['score', 'registration_details'])
             ->orderBy('name');
 
         if ($request->filled('keyword')) {
