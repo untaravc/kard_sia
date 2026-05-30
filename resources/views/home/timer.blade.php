@@ -106,6 +106,9 @@
                 <button @click="play('enter')" class="btn btn-primary mx-1">
                     <span>Enter</span>
                 </button>
+                <button @click="play('soal')" class="btn btn-primary mx-1">
+                    <span>Membaca Soal</span>
+                </button>
                 <button @click="play('min2')" class="btn btn-warning mx-1">
                     <span>2 Menit</span>
                 </button>
@@ -156,6 +159,7 @@
                     finish: new Audio('/assets/sound/end.mp3'),
                     min2: new Audio('/assets/sound/two_min.mp3'),
                     enter: new Audio('/assets/sound/enter.mp3'),
+                    soal: new Audio('/assets/sound/soal.mp3'),
                 };
             },
             loadTimer() {

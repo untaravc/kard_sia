@@ -91,7 +91,7 @@
             </div>
 
             <div class="w-full max-w-full overflow-x-auto overflow-y-hidden">
-                <table class="min-w-[1400px] w-full border-collapse">
+                <table class="min-w-[2000px] w-full border-collapse">
                     <thead class="bg-slate-50 text-xs text-muted">
                         <tr>
                             <th class="px-3 py-3 text-left sticky left-0 bg-slate-50 z-10">No</th>
@@ -111,10 +111,14 @@
                             <th class="px-3 py-3 text-left">Bobot B.Ing</th>
                             <th class="px-3 py-3 text-left">TPA</th>
                             <th class="px-3 py-3 text-left">Bobot TPA</th>
+                            <th class="px-3 py-3 text-left">UKDI CBT</th>
                             <th class="px-3 py-3 text-left">UTUL</th>
                             <th class="px-3 py-3 text-left">EKG</th>
                             <th class="px-3 py-3 text-left">Total UTUL</th>
                             <th class="px-3 py-3 text-left">Bobot UTUL</th>
+                            <th class="px-3 py-3 text-left">Tujuan Kerja Setelah Lulus</th>
+                            <th class="px-3 py-3 text-left">Alasan Tujuan</th>
+                            <th class="px-3 py-3 text-left">Penghargaan</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm">
@@ -207,6 +211,9 @@
                             <td class="px-3 py-2 text-xs text-muted">
                                 {{ item.score.quality_tpa }}
                             </td>
+                            <td class="px-3 py-2 text-xs text-muted min-w-[140px]">
+                                {{ formatValue(findDetailValue(item.registration_details, 'score', 'UKDI CBT')) || '-' }}
+                            </td>
                             <td class="px-3 py-2">
                                 <input
                                     v-model.number="item.score.score_written_exam"
@@ -229,9 +236,18 @@
                             <td class="px-3 py-2 text-xs text-muted">
                                 {{ item.score.quality_written_exam }}
                             </td>
+                            <td class="px-3 py-2 text-xs text-muted min-w-[260px]">
+                                {{ formatValue(item.graduate_place) || '-' }}
+                            </td>
+                            <td class="px-3 py-2 text-xs text-muted min-w-[280px]">
+                                {{ formatValue(item.graduate_reason) || '-' }}
+                            </td>
+                            <td class="px-3 py-2 text-xs text-muted min-w-[240px]">
+                                {{ formatAchievementList(item.registration_details) || '-' }}
+                            </td>
                         </tr>
                         <tr v-if="!loading && rows.length === 0">
-                            <td colspan="21" class="px-5 py-6 text-sm text-muted">No data.</td>
+                            <td colspan="25" class="px-5 py-6 text-sm text-muted">No data.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -330,6 +346,46 @@ export default {
                 ...defaults,
                 ...(score || {}),
             };
+        },
+        formatValue(value) {
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'number' && isFinite(value)) return value.toFixed(2);
+            return value;
+        },
+        filterDetailsByLabel(details, labelFilter) {
+            if (!Array.isArray(details) || !details.length) return [];
+            const needle = (labelFilter || '').toString().trim().toLowerCase();
+            if (!needle) return details;
+
+            return details.filter((d) => {
+                const label = (d && d.label) ? String(d.label).toLowerCase() : '';
+                return label === needle || label === 'achievement' || label === 'acievement';
+            });
+        },
+        findDetailValue(details, labelFilter, nameFilter) {
+            if (!Array.isArray(details) || !details.length) return '';
+            const labelNeedle = (labelFilter || '').toString().trim().toLowerCase();
+            const nameNeedle = (nameFilter || '').toString().trim().toLowerCase();
+
+            const match = details.find((d) => {
+                const label = (d && d.label) ? String(d.label).toLowerCase() : '';
+                const name = (d && d.name) ? String(d.name).toLowerCase() : '';
+                const labelOk = !labelNeedle || label === labelNeedle;
+                const nameOk = !nameNeedle || name === nameNeedle;
+                return labelOk && nameOk;
+            });
+
+            if (!match) return '';
+            return match.desc ?? match.desc_1 ?? match.desc_2 ?? match.year ?? match.place ?? match.date ?? match.name ?? '';
+        },
+        formatAchievementList(details) {
+            const achievements = this.filterDetailsByLabel(details, 'acievement');
+            if (!achievements.length) return '';
+
+            return achievements
+                .map((item) => item && (item.desc || item.name || item.place || item.year || ''))
+                .filter(Boolean)
+                .join('; ');
         },
         markChanged(item) {
             item.has_change = 1;

@@ -122,6 +122,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('registrations/score-administration-all', [RegistrationController::class, 'setScoreAdministrationAll']);
     Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);
     Route::resource('registrations', 'Api\RegistrationController');
+    Route::resource('off-days', 'Api\OffDayController');
     Route::resource('letters', 'Api\LetterController');
     Route::post('letters/{id}/propose-approval', [LetterController::class, 'proposeApproval']);
     Route::post('letters/{id}/notify-approver', [LetterController::class, 'notifyApprover']);

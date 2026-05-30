@@ -47,12 +47,17 @@ class RegisterController extends Controller
     public function registrationProfiles(Request $request)
     {
         $period = $request->get('registration_period', env('REGISTRATION_PERIOD'));
+        $status = $request->get('status');
+        $per_page = $request->get('per_page');
 
         $registrations = Registration::when(!empty($period), function ($query) use ($period) {
             $query->where('registration_period', $period);
         })
             ->orderBy('name')
-            ->get();
+            ->when(!empty($status), function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->paginate($per_page);
 
         $details = RegistrationDetail::whereIn('registration_id', $registrations->pluck('id')->all())->get();
 

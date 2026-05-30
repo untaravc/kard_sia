@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\FormOption;
 use App\Models\Stase;
+use App\Models\StaseLog;
 use App\Models\Student;
 use App\Models\StudentLog;
+use App\Models\StudentProfile;
 use App\Models\StudentLogSkill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -417,6 +419,75 @@ class LogbookController extends Controller
             'student' => $student,
             'stase' => $stase,
             'name' => $name,
+        ]);
+    }
+
+    public function printStudentLogbook($student_id)
+    {
+        $student = Student::find($student_id);
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $student_profile = StudentProfile::whereStudentId($student_id)->first();
+
+        $stases = Stase::orderBy('desc')->orderBy('stase_order')->get();
+
+        $stase_logs = StaseLog::whereStudentId($student_id)
+            ->with('stase')
+            ->orderBy('stase_id')
+            ->get();
+
+        $student_logs = StudentLog::with(['lecture'])
+            ->whereStudentId($student_id)
+            ->orderBy('date')
+            ->get();
+
+        $form_options = FormOption::whereIn('type', ['stase-logbook', 'logbook-skill'])->get();
+
+        $skill_counts = StudentLogSkill::whereStudentId($student_id)
+            ->select('form_option_id', DB::raw('count(*) as total'))
+            ->groupBy('form_option_id')
+            ->pluck('total', 'form_option_id');
+
+        $logbook_skills = $form_options->where('type', 'logbook-skill')->values();
+        foreach ($logbook_skills as $skill) {
+            $skill->setAttribute('count', $skill_counts[$skill->id] ?? 0);
+            $stase = $stases->firstWhere('id', $skill->relation_id);
+            $skill->setAttribute('stase_name', $stase ? $stase->name : '');
+        }
+
+        foreach ($stases as $stase) {
+            $logbook_sections = $form_options
+                ->where('type', 'stase-logbook')
+                ->where('relation_id', $stase->id)
+                ->values();
+
+            foreach ($logbook_sections as $section) {
+                $section->setAttribute('data', $student_logs
+                    ->where('type', $section->value)
+                    ->where('stase_id', $stase->id)
+                    ->values());
+            }
+
+            $stase->setAttribute('logbook_sections', $logbook_sections);
+        }
+
+        // return $stases;
+
+        return view('templates.pdf.student_logbook', [
+            'student' => $student,
+            'student_profile' => $student_profile,
+            'stases' => $stases,
+            'stase_logs' => $stase_logs,
+            'student_logs' => $student_logs,
+            'form_options' => $form_options,
+            'logbook_skills' => $logbook_skills,
         ]);
     }
 

@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudentLogSkill extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'stase_id',
+        'student_log_id',
+        'form_option_id',
+    ];
 }

@@ -37,7 +37,7 @@
                             <td>{{$task['name']}}</td>
                             <td>{{$student['name']}}</td>
                             <td>{{$log['date'] ?? 'Belum ada penilaian online'}}</td>
-                            <td>{{$log['lecture']['name']}}</td>
+                            <td>{{$log['lecture'] ? $log['lecture']['name'] : ''}}</td>
                             <td>{{$log['point_average']}}</td>
                         </tr>
                     @endforeach

@@ -2,15 +2,15 @@
     <div class="grid gap-6">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Student Management</div>
-                <h1 class="text-2xl font-semibold text-ink">Students</h1>
+                <div class="text-xs uppercase tracking-[0.2em] text-muted">Off Day Management</div>
+                <h1 class="text-2xl font-semibold text-ink">Off Days</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add Student
+                Add Off Day
             </button>
         </header>
 
@@ -21,35 +21,26 @@
                     <input
                         v-model.trim="filters.keyword"
                         type="text"
-                        placeholder="Search name or email..."
                         @keyup.enter="applyFilter"
+                        placeholder="Search name or status..."
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
-                <div class="flex-1 min-w-[180px]">
-                    <label class="text-xs text-muted">Status</label>
-                    <select
-                        v-model="filters.status"
-                        @change="applyFilter"
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">From</label>
+                    <input
+                        v-model="filters.date_gte"
+                        type="date"
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option :value="null">All</option>
-                        <option value="active">Active</option>
-                        <option value="nonactive">Nonactive</option>
-                    </select>
+                    />
                 </div>
-                <div class="flex-1 min-w-[180px]">
-                    <label class="text-xs text-muted">Year</label>
-                    <select
-                        v-model="filters.year"
-                        @change="applyFilter"
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">To</label>
+                    <input
+                        v-model="filters.date_lte"
+                        type="date"
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option value="">All</option>
-                        <option v-for="year in yearOptions" :key="year" :value="year">
-                            {{ year }}
-                        </option>
-                    </select>
+                    />
                 </div>
                 <div class="flex items-end gap-2">
                     <button
@@ -73,7 +64,7 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Students</div>
+                <div class="font-semibold">Off Days</div>
                 <div class="text-xs text-muted" v-if="pagination.total">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -85,12 +76,12 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && students.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No students found.
+                <div v-if="!loading && offDays.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No off days found.
                 </div>
                 <div
-                    v-for="(student, index) in students"
-                    :key="student.id"
+                    v-for="(offDay, index) in offDays"
+                    :key="offDay.id"
                     class="flex flex-wrap items-center gap-3 px-5 py-4"
                 >
                     <div class="w-8 text-sm font-semibold text-muted">
@@ -98,68 +89,38 @@
                     </div>
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
-                            <div class="font-semibold text-ink">{{ student.name }}</div>
-                            <span v-if="student.status !== null && student.status !== undefined" class="text-xs text-muted">
-                                Status: {{ student.status }}
+                            <div class="font-semibold text-ink">{{ offDay.name }}</div>
+                            <span v-if="offDay.status" class="text-xs text-muted">
+                                Status: {{ offDay.status }}
                             </span>
                         </div>
                         <div class="text-xs text-muted">
-                            <span v-if="student.email">{{ student.email }}</span>
-                            <span v-if="student.phone">• {{ student.phone }}</span>
-                            <span v-if="student.year">• Year: {{ student.year }}</span>
+                            <span v-if="offDay.date">{{ formatDate(offDay.date) }}</span>
                         </div>
                     </div>
                     <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click.stop="toggleActionMenu(student.id)"
+                            @click.stop="toggleActionMenu(offDay.id)"
                         >
                             Actions
                         </button>
                         <div
-                            v-if="actionMenuOpenId === student.id"
+                            v-if="actionMenuOpenId === offDay.id"
                             class="absolute right-0 z-10 mt-2 w-36 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
-                                @click="handleAction('score', student)"
-                            >
-                                Score
-                            </button>
-                            <button
-                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
-                                type="button"
-                                @click="handleAction('presence', student)"
-                            >
-                                Presences
-                            </button>
-                            <button
-                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
-                                type="button"
-                                @click="handleAction('printLogbook', student)"
-                            >
-                                Print Logbook
-                            </button>
-                            <button
-                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
-                                type="button"
-                                @click="handleAction('logAs', student)"
-                            >
-                                Log As
-                            </button>
-                            <button
-                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
-                                type="button"
-                                @click="handleAction('edit', student)"
+                                @click="handleAction('edit', offDay)"
                             >
                                 Edit
                             </button>
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
                                 type="button"
-                                @click="handleAction('delete', student)"
+                                @click="handleAction('delete', offDay)"
                             >
                                 Delete
                             </button>
@@ -190,8 +151,8 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit Student' : 'Create Student'"
-            :eyebrow="editMode ? 'Update student' : 'New student'"
+            :title="editMode ? 'Edit Off Day' : 'Create Off Day'"
+            :eyebrow="editMode ? 'Update off day' : 'New off day'"
             size="md"
             @close="closeModal"
         >
@@ -201,37 +162,22 @@
                     <input
                         v-model.trim="form.name"
                         type="text"
+                        placeholder="Holiday name"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Email</span>
+                    <span class="text-muted">Date</span>
                     <input
-                        v-model.trim="form.email"
-                        type="email"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Password</span>
-                    <input
-                        v-model.trim="form.password"
-                        type="password"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Year</span>
-                    <input
-                        v-model.trim="form.year"
-                        type="text"
+                        v-model="form.date"
+                        type="date"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Status</span>
                     <select
-                        v-model.number="form.status"
+                        v-model="form.status"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     >
                         <option value="active">Active</option>
@@ -246,7 +192,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update Student' : 'Create Student' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Off Day' : 'Create Off Day' }}
                 </button>
             </form>
         </Modal>
@@ -266,35 +212,31 @@ export default {
     },
     data() {
         return {
-            baseUrl: '/api/students',
-            students: [],
+            baseUrl: '/api/off-days',
+            offDays: [],
             pagination: {},
             filters: {
                 keyword: '',
-                status: 'active',
-                year: '',
+                date_gte: '',
+                date_lte: '',
                 page: 1,
             },
             form: {
                 id: null,
                 name: '',
-                email: '',
-                password: '',
-                year: '',
-                status: null,
+                date: '',
+                status: 'active',
             },
             editMode: false,
             modalOpen: false,
             loading: false,
             submitting: false,
             errorMessage: '',
-            yearOptions: [],
             actionMenuOpenId: null,
         };
     },
     created() {
-        this.yearOptions = this.buildYearOptions();
-        this.fetchStudents();
+        this.fetchOffDays();
     },
     mounted() {
         document.addEventListener('click', this.handleDocumentClick);
@@ -303,25 +245,7 @@ export default {
         document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
-        buildYearOptions() {
-            const options = [];
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1;
-            const availableMonths = [1, 7];
-
-            for (let year = 2016; year <= currentYear; year += 1) {
-                availableMonths.forEach((month) => {
-                    if (year < currentYear || month <= currentMonth) {
-                        const monthLabel = String(month).padStart(2, '0');
-                        options.push(`${year}-${monthLabel}`);
-                    }
-                });
-            }
-
-            return options;
-        },
-        fetchStudents() {
+        fetchOffDays() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -332,47 +256,60 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.students = data;
+                    this.offDays = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.students = [];
+                    this.offDays = [];
                     this.pagination = {};
                 })
                 .finally(() => {
                     this.loading = false;
                 });
         },
-        toggleActionMenu(studentId) {
-            this.actionMenuOpenId = this.actionMenuOpenId === studentId ? null : studentId;
+        formatDate(value) {
+            if (!value) {
+                return '';
+            }
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            return date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+        },
+        applyFilter() {
+            this.filters.page = 1;
+            this.fetchOffDays();
+        },
+        resetFilter() {
+            this.filters.keyword = '';
+            this.filters.date_gte = '';
+            this.filters.date_lte = '';
+            this.filters.page = 1;
+            this.fetchOffDays();
+        },
+        changePage(page) {
+            this.filters.page = page;
+            this.fetchOffDays();
+        },
+        toggleActionMenu(offDayId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === offDayId ? null : offDayId;
         },
         closeActionMenu() {
             this.actionMenuOpenId = null;
         },
-        handleAction(action, student) {
+        handleAction(action, offDay) {
             this.closeActionMenu();
-            if (action === 'score') {
-                this.$router.push(`/blu/students/${student.id}/score`);
-                return;
-            }
-            if (action === 'presence') {
-                this.$router.push(`/blu/presences/student/${student.id}`);
-                return;
-            }
-            if (action === 'printLogbook') {
-                window.open(`/print/student-logbook/${student.id}`, '_blank');
-                return;
-            }
-            if (action === 'logAs') {
-                this.logAs(student);
-                return;
-            }
             if (action === 'edit') {
-                this.openEdit(student);
+                this.openEdit(offDay);
                 return;
             }
             if (action === 'delete') {
-                this.deleteStudent(student);
+                this.deleteOffDay(offDay);
             }
         },
         handleDocumentClick(event) {
@@ -385,36 +322,19 @@ export default {
             }
             this.closeActionMenu();
         },
-        applyFilter() {
-            this.filters.page = 1;
-            this.fetchStudents();
-        },
-        resetFilter() {
-            this.filters.keyword = '';
-            this.filters.status = 'active';
-            this.filters.year = '';
-            this.filters.page = 1;
-            this.fetchStudents();
-        },
-        changePage(page) {
-            this.filters.page = page;
-            this.fetchStudents();
-        },
         openCreate() {
             this.editMode = false;
             this.resetForm();
             this.errorMessage = '';
             this.modalOpen = true;
         },
-        openEdit(student) {
+        openEdit(offDay) {
             this.editMode = true;
             this.form = {
-                id: student.id,
-                name: student.name || '',
-                email: student.email || '',
-                password: '',
-                year: student.year || '',
-                status: student.status ?? null,
+                id: offDay.id,
+                name: offDay.name || '',
+                date: offDay.date ? String(offDay.date).slice(0, 10) : '',
+                status: offDay.status || 'active',
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -430,95 +350,69 @@ export default {
             this.form = {
                 id: null,
                 name: '',
-                email: '',
-                password: '',
-                year: '',
-                status: null,
+                date: '',
+                status: 'active',
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateStudent();
+                return this.updateOffDay();
             }
 
-            return this.createStudent();
+            return this.createOffDay();
         },
-        createStudent() {
+        createOffDay() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.post(this.baseUrl, this.form)
                 .then(() => {
                     this.closeModal();
-                    this.fetchStudents();
-                    this.$showToast('Student created successfully.');
+                    this.fetchOffDays();
+                    this.$showToast('Off day created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create student.';
+                        : 'Failed to create off day.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateStudent() {
+        updateOffDay() {
             this.submitting = true;
             this.errorMessage = '';
 
             return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
                 .then(() => {
-                    this.fetchStudents();
+                    this.fetchOffDays();
                     this.closeModal();
-                    this.$showToast('Student updated successfully.');
+                    this.$showToast('Off day updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update student.';
+                        : 'Failed to update off day.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        deleteStudent(student) {
-            if (!window.confirm(`Delete student ${student.name}?`)) {
+        deleteOffDay(offDay) {
+            if (!window.confirm(`Delete off day ${offDay.name}?`)) {
                 return;
             }
 
-            Repository.delete(`${this.baseUrl}/${student.id}`)
+            Repository.delete(`${this.baseUrl}/${offDay.id}`)
                 .then(() => {
-                    this.fetchStudents();
-                    this.$showToast('Student deleted successfully.');
+                    this.fetchOffDays();
+                    this.$showToast('Off day deleted successfully.');
                 })
                 .catch(() => {
-                    this.errorMessage = 'Failed to delete student.';
-                });
-        },
-        logAs(student) {
-            if (!student || !student.id) {
-                return;
-            }
-
-            Repository.post('/api/log-as', {
-                auth_type: 'student',
-                auth_id: student.id,
-            })
-                .then((response) => {
-                    const token = response && response.data && response.data.result
-                        ? response.data.result.token
-                        : null;
-                    if (!token) {
-                        this.errorMessage = 'Failed to log as student.';
-                        return;
-                    }
-                    localStorage.setItem('token', token);
-                    window.open('/blu/dashboard', '_blank');
-                })
-                .catch(() => {
-                    this.errorMessage = 'Failed to log as student.';
+                    this.errorMessage = 'Failed to delete off day.';
                 });
         },
     },

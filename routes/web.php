@@ -7,6 +7,7 @@ use \App\Http\Controllers\Sadmin\GlobalFunctionController;
 use \App\Http\Controllers\Sadmin\DashboardController;
 use \App\Http\Controllers\Object\PublicController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\Sadmin\StudentController;
 
 Route::get('/', function () {
     return redirect('/blu');
@@ -61,6 +62,7 @@ Route::get('upload', function (){ return view('upload-excel');});
 Route::get('get-activity-cats', [GlobalFunctionController::class, 'getActCats']);
 Route::post('upload', 'Sadmin\GlobalFunctionController@uploadExcel');
 Route::get('email-confirmation', [GlobalFunctionController::class, 'email_confirmation']);
+Route::get('documentations', [\App\Http\Controllers\Home\DocumentationController::class, 'index']);
 
 //Presensi
 Route::get('presensi/{id}', [PresensiController::class, 'view_presence']);
@@ -103,12 +105,18 @@ Route::get('pass', function (){
    return \Illuminate\Support\Facades\Hash::make('password');
 });
 
-Route::get('/print/registration/{registration_id}', [RegisterController::class, 'print'])->middleware('jwt.query');
-Route::get('/print/registrations-resume', [RegisterController::class, 'resumeView'])->middleware('jwt.query');
-Route::get('/print/registrations-profiles', [RegisterController::class, 'registrationProfiles'])->middleware('jwt.query');
+Route::group(['prefix' => 'print', 'middleware' => 'jwt.query'], function () {
+    Route::get('registration/{registration_id}', [RegisterController::class, 'print']);
+    Route::get('registrations-resume', [RegisterController::class, 'resumeView']);
+    Route::get('registrations-profiles', [RegisterController::class, 'registrationProfiles']);
+});
+
+Route::get('/print/student-logbook/{student_id}', [\App\Http\Controllers\Api\LogbookController::class, 'printStudentLogbook']);
 
 Route::get('/blu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
 Route::get('/blu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);
 
 Route::get('/reg/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
 Route::get('/reg/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);
+
+Route::get('/resident-score-export', [StudentController::class, 'score_export']);

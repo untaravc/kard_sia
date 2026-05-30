@@ -157,6 +157,7 @@ const routes = [
             { path: 'accreditations/:id', component: require('./pages/accreditations/Detail.vue').default, meta: { page_name: 'Accreditation Detail' } },
             { path: 'stase-tasks/:stase_id', component: require('./pages/stases/Task.vue').default, meta: { page_name: 'Stase Tasks' } },
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default, meta: { page_name: 'Lectures' } },
+            { path: 'off-days', component: require('./pages/off-days/Index.vue').default, meta: { page_name: 'Off Days' } },
             { path: 'scores', component: require('./pages/scores/Index.vue').default, meta: { page_name: 'Scores' } },
             { path: 'students', component: require('./pages/students/Index.vue').default, meta: { page_name: 'Students' } },
             { path: 'students/:student_id/score', component: require('./pages/students/Score.vue').default, meta: { page_name: 'Student Score' } },

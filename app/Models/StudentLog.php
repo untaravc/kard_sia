@@ -9,7 +9,25 @@ use Illuminate\Support\Facades\Auth;
 class StudentLog extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'lecture_id',
+        'type',
+        'stase_id',
+        'stase_log_id',
+        'stase_task_id',
+        'stase_task_log_id',
+        'field_1',
+        'field_2',
+        'field_3',
+        'field_4',
+        'field_5',
+        'field_6',
+        'date',
+        'status',
+        'photo',
+        'category',
+    ];
     protected $appends = ['photo_link'];
 
     public function lecture(){
