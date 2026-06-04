@@ -26,6 +26,7 @@ class Lecture extends Authenticatable
         "email",
         "is_in_house",
         "name",
+        "link_token",
     ];
 
     public function lectureProfile(){

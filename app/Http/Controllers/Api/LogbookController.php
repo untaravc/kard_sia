@@ -422,9 +422,9 @@ class LogbookController extends Controller
         ]);
     }
 
-    public function printStudentLogbook($student_id)
+    public function printStudentLogbook(Request $request)
     {
-        $student = Student::find($student_id);
+        $student = Student::whereLinkToken($request->link_token)->first();
 
         if (!$student) {
             return response()->json([
@@ -433,6 +433,8 @@ class LogbookController extends Controller
                 'result' => null,
             ], 404);
         }
+
+        $student_id = $student->id;
 
         $student_profile = StudentProfile::whereStudentId($student_id)->first();
 
@@ -468,15 +470,27 @@ class LogbookController extends Controller
                 ->where('relation_id', $stase->id)
                 ->values();
 
+            $hasData = false;
             foreach ($logbook_sections as $section) {
-                $section->setAttribute('data', $student_logs
+                $data = $student_logs
                     ->where('type', $section->value)
                     ->where('stase_id', $stase->id)
-                    ->values());
+                    ->values();
+                $section->setAttribute('data', $data);
+
+                if ($data->isNotEmpty()) {
+                    $hasData = true;
+                }
             }
 
             $stase->setAttribute('logbook_sections', $logbook_sections);
+            $stase->setAttribute('has_data', $hasData);
         }
+
+        // Mandatory stases always show; non-mandatory only when they have logbook data.
+        $stases = $stases
+            ->filter(fn ($stase) => $stase->is_mandatory || $stase->has_data)
+            ->values();
 
         // return $stases;
 

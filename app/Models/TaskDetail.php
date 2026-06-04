@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskDetail extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'task_id',
+        'order',
+        'name',
+        'type',
+    ];
 }

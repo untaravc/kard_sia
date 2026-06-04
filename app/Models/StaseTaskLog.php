@@ -9,7 +9,25 @@ use Illuminate\Support\Facades\Auth;
 class StaseTaskLog extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        'task_id',
+        'stase_task_id',
+        'stase_id',
+        'stase_log_id',
+        'student_id',
+        'lecture_id',
+        'point_amount',
+        'point_total',
+        'point_average',
+        'symbol',
+        'title',
+        'note',
+        'date',
+        'plan',
+        'status',
+        'admin',
+        'conclusion',
+    ];
 
     public function task(){
         return $this->belongsTo(Task::class);

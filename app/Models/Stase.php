@@ -11,15 +11,20 @@ class Stase extends Model
     use SoftDeletes, SearchableTrait;
 
     protected $fillable = [
-        "name", // string
-        "desc", // text
-        "font_color", // string
-        "stase_order", // int
-        "alias", // string
-        "color", // string
-        "lecture_names", // string
-        "evaluation_link", // string
-        "lecture_name", // string
+        "name",
+        "desc",
+        "font_color",
+        "stase_order",
+        "alias",
+        "color",
+        "lecture_names",
+        "evaluation_link",
+        "lecture_name",
+        "is_mandatory",
+    ];
+
+    protected $casts = [
+        'is_mandatory' => 'boolean',
     ];
 
     protected $searchable = [

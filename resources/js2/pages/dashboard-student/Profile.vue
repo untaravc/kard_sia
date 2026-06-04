@@ -60,6 +60,35 @@
             </div>
         </div>
         <div class="w-full rounded-2xl border border-border bg-white p-4 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Unduh Dokumen</div>
+            <div class="mt-3 grid gap-2">
+                <button
+                    class="flex w-full items-center justify-between rounded-xl border border-border px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-slate-50"
+                    type="button"
+                    @click="downloadScore"
+                >
+                    Penilaian
+                    <span class="text-muted">Unduh →</span>
+                </button>
+                <button
+                    class="flex w-full items-center justify-between rounded-xl border border-border px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-slate-50"
+                    type="button"
+                    @click="downloadLogbook"
+                >
+                    Logbook
+                    <span class="text-muted">Unduh →</span>
+                </button>
+                <button
+                    class="flex w-full items-center justify-between rounded-xl border border-border px-3 py-2 text-left text-xs font-semibold text-ink hover:bg-slate-50"
+                    type="button"
+                    @click="openPresenceModal"
+                >
+                    Presensi
+                    <span class="text-muted">Pilih tanggal →</span>
+                </button>
+            </div>
+        </div>
+        <div class="w-full rounded-2xl border border-border bg-white p-4 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Release Notes</div>
             <router-link
                 class="mt-3 block w-full rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
@@ -67,12 +96,12 @@
             >
                 Open Release Notes
             </router-link>
-            <router-link
+            <a
                 class="mt-2 block w-full rounded-xl bg-primary px-3 py-2 text-center text-xs font-semibold text-white"
-                to="/blu/tutorial"
+                href="/documentations"
             >
                 Tutorial
-            </router-link>
+            </a>
         </div>
         <Modal
             :open="profileModalOpen"
@@ -173,6 +202,51 @@
                 </button>
             </template>
         </Modal>
+        <Modal
+            :open="presenceModalOpen"
+            title="Unduh Presensi"
+            eyebrow="Pilih rentang tanggal"
+            size="sm"
+            @close="closePresenceModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <label class="grid gap-2">
+                    <span class="text-muted">Tanggal Mulai</span>
+                    <input
+                        v-model="presenceRange.start_date"
+                        type="date"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+                <label class="grid gap-2">
+                    <span class="text-muted">Tanggal Selesai</span>
+                    <input
+                        v-model="presenceRange.end_date"
+                        type="date"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+                <div v-if="presenceError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ presenceError }}
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closePresenceModal"
+                >
+                    Batal
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    @click="downloadPresence"
+                >
+                    Unduh
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -206,6 +280,12 @@ export default {
             },
             presenceCheck: null,
             loadingPresence: false,
+            presenceModalOpen: false,
+            presenceRange: {
+                start_date: '',
+                end_date: '',
+            },
+            presenceError: '',
         };
     },
     created() {
@@ -274,6 +354,53 @@ export default {
                 .finally(() => {
                     this.loadingPresence = false;
                 });
+        },
+        downloadScore() {
+            if (!this.user.link_token) {
+                this.$showToast('Token tidak tersedia untuk peserta ini.');
+                return;
+            }
+            window.open(`/print/student-scores?link_token=${this.user.link_token}`, '_blank');
+        },
+        downloadLogbook() {
+            if (!this.user.link_token) {
+                this.$showToast('Token tidak tersedia untuk peserta ini.');
+                return;
+            }
+            window.open(`/print/student-logbook?link_token=${this.user.link_token}`, '_blank');
+        },
+        openPresenceModal() {
+            if (!this.user.link_token) {
+                this.$showToast('Token tidak tersedia untuk peserta ini.');
+                return;
+            }
+            this.presenceError = '';
+            this.presenceRange = {
+                start_date: '',
+                end_date: '',
+            };
+            this.presenceModalOpen = true;
+        },
+        closePresenceModal() {
+            this.presenceModalOpen = false;
+            this.presenceError = '';
+        },
+        downloadPresence() {
+            if (!this.presenceRange.start_date || !this.presenceRange.end_date) {
+                this.presenceError = 'Tanggal mulai dan selesai wajib diisi.';
+                return;
+            }
+            if (this.presenceRange.start_date > this.presenceRange.end_date) {
+                this.presenceError = 'Tanggal mulai tidak boleh setelah tanggal selesai.';
+                return;
+            }
+            const params = new URLSearchParams({
+                link_token: this.user.link_token,
+                start_date: this.presenceRange.start_date,
+                end_date: this.presenceRange.end_date,
+            });
+            window.open(`/print/student-presences?${params.toString()}`, '_blank');
+            this.closePresenceModal();
         },
         openProfileModal() {
             this.profileModalOpen = true;

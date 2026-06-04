@@ -4,14 +4,73 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\OpenStaseTask;
+use App\Models\Stase;
 use App\Models\StaseLog;
 use App\Models\StaseTaskLog;
 use App\Models\StaseTaskLogPoint;
+use App\Models\Student;
+use App\Models\StudentProfile;
 use App\Models\TaskDetail;
 use Illuminate\Http\Request;
 
 class ScoreController extends Controller
 {
+    public function printStudentScore(Request $request)
+    {
+        $student = Student::whereLinkToken($request->link_token)->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $student_profile = StudentProfile::whereStudentId($student->id)->first();
+
+        $stases = Stase::with(['staseTasks.task'])
+            ->orderByDesc('is_mandatory')
+            ->orderBy('stase_order')
+            ->get();
+
+        $stase_logs = StaseLog::whereStudentId($student->id)->get();
+
+        $stase_task_logs = StaseTaskLog::with(['lecture'])
+            ->whereStudentId($student->id)
+            ->orderBy('date')
+            ->get();
+
+        foreach ($stases as $stase) {
+            $stase->setAttribute('stase_log', $stase_logs->firstWhere('stase_id', $stase->id));
+
+            $hasScore = false;
+            foreach ($stase->staseTasks as $staseTask) {
+                $logs = $stase_task_logs
+                    ->where('stase_task_id', $staseTask->id)
+                    ->values();
+                $staseTask->setAttribute('logs', $logs);
+
+                if ($logs->contains(fn ($log) => $log->point_average !== null)) {
+                    $hasScore = true;
+                }
+            }
+
+            $stase->setAttribute('has_score', $hasScore);
+        }
+
+        // Mandatory stases always show; non-mandatory only when they have a score.
+        $stases = $stases
+            ->filter(fn ($stase) => $stase->is_mandatory || $stase->has_score)
+            ->values();
+
+        return view('templates.pdf.student_score', [
+            'student' => $student,
+            'student_profile' => $student_profile,
+            'stases' => $stases,
+        ]);
+    }
+
     private function resolveLecture(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');

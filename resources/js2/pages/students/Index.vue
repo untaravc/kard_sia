@@ -145,6 +145,13 @@
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
+                                @click="handleAction('printScore', student)"
+                            >
+                                Print Score
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
                                 @click="handleAction('logAs', student)"
                             >
                                 Log As
@@ -360,7 +367,11 @@ export default {
                 return;
             }
             if (action === 'printLogbook') {
-                window.open(`/print/student-logbook/${student.id}`, '_blank');
+                window.open(`/print/student-logbook?link_token=${student.link_token}`, '_blank');
+                return;
+            }
+            if (action === 'printScore') {
+                window.open(`/print/student-scores?link_token=${student.link_token}`, '_blank');
                 return;
             }
             if (action === 'logAs') {

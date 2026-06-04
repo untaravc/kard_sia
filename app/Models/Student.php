@@ -19,6 +19,7 @@ class Student extends Authenticatable
         "name",
         "password",
         "email",
+        "link_token",
     ];
 
     protected $hidden = [

@@ -111,7 +111,9 @@ Route::group(['prefix' => 'print', 'middleware' => 'jwt.query'], function () {
     Route::get('registrations-profiles', [RegisterController::class, 'registrationProfiles']);
 });
 
-Route::get('/print/student-logbook/{student_id}', [\App\Http\Controllers\Api\LogbookController::class, 'printStudentLogbook']);
+Route::get('/print/student-logbook', [\App\Http\Controllers\Api\LogbookController::class, 'printStudentLogbook']);
+Route::get('/print/student-presences', [\App\Http\Controllers\Api\PresenceController::class, 'printStudentPresence']);
+Route::get('/print/student-scores', [\App\Http\Controllers\Api\ScoreController::class, 'printStudentScore']);
 
 Route::get('/blu/{path}', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2'])->where('path', '([A-z\d\-\/_.]+)?');
 Route::get('/blu/', [\App\Http\Controllers\Sadmin\DashboardController::class, 'index2']);

@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\ActivityStudent;
 use App\Models\Presence;
 use App\Models\Student;
+use App\Models\StudentProfile;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -297,6 +298,70 @@ class PresenceController extends Controller
                 'start_date' => $startDate->toDateString(),
                 'end_date' => $endDate->toDateString(),
             ],
+        ]);
+    }
+
+    public function printStudentPresence(Request $request)
+    {
+        $student = Student::whereLinkToken($request->link_token)->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+
+        if ($startDate->gt($endDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+
+        $student_profile = StudentProfile::whereStudentId($student->id)->first();
+
+        $presences = Presence::whereStudentId($student->id)
+            ->whereBetween('checkin', [
+                $startDate->toDateTimeString(),
+                $endDate->toDateTimeString(),
+            ])
+            ->get();
+
+        $activities = ActivityStudent::with('activity')
+            ->whereStudentId($student->id)
+            ->whereBetween('created_at', [
+                $startDate->toDateTimeString(),
+                $endDate->toDateTimeString(),
+            ])
+            ->get();
+
+        $days = [];
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $date = $currentDate->toDateString();
+
+            $days[] = [
+                'date' => $date,
+                'presence' => $presences->first(function ($presence) use ($date) {
+                    return substr($presence->checkin, 0, 10) === $date;
+                }),
+                'activities' => $activities->filter(function ($activity) use ($date) {
+                    return substr($activity->created_at, 0, 10) === $date;
+                })->values(),
+            ];
+
+            $currentDate->addDay();
+        }
+
+        return view('templates.pdf.activity_students', [
+            'student' => $student,
+            'student_profile' => $student_profile,
+            'days' => $days,
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
         ]);
     }
 

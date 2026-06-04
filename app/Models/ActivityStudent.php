@@ -10,7 +10,12 @@ class ActivityStudent extends Model
 {
     use SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'activity_id',
+        'note',
+        'desc',
+    ];
 
     public function student(){
         return $this->belongsTo(Student::class);

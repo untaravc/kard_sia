@@ -51,28 +51,28 @@
 </head>
 <body>
 {{-- Section: Header --}}
-<div class="border-bottom position-relative">
-    <div style="width: 120px; height: 100px"
-         class="position-absolute margin-auto d-flex justify-content-center align-items-center">
-        <img src="/assets/images/logo-ugm.png" style="width: 75px" alt="">
-    </div>
-    <div class="p-2 text-center">
-        <div class="font-weight-bold">
-            PROGRAM PENDIDIKAN DOKTER SPESIALIS I <br>
-            JANTUNG DAN PEMBULUH DARAH
-        </div>
-        <div>
-            DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR <br>
-            FKKMK UNIVERSITAS GADJAH MADA
-        </div>
-        <div>
-            Sekretariat : RSUP Dr. Sardjito, Jl. Kesehatan No.1 Yogyakarta <br>
-            Telp. 0274 – 587333, ext. 364 Fax. 0274– 547783 e-mail : kardiologi_fkugm@yahoo.co.id
-        </div>
-    </div>
-</div>
+<table class="table-custom mb-2">
+    <tr>
+        <td style="width: 120px; vertical-align: middle; text-align: center; padding: 10px;">
+            <img src="/assets/images/logo-ugm.png" style="width: 75px" alt="">
+        </td>
+        <td style="vertical-align: middle; text-align: center;">
+            <div style="font-weight: bold; font-size: 16px; line-height: 1.2;">
+                PROGRAM PENDIDIKAN DOKTER SPESIALIS I <br>
+                JANTUNG DAN PEMBULUH DARAH
+            </div>
+            <div style="font-weight: bold; font-size: 11px;">
+                DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR <br>
+                FKKMK UNIVERSITAS GADJAH MADA
+            </div>
+        </td>
+        <td style="width: 120px; vertical-align: middle; text-align: center; padding: 10px;">
+            {!! QrCode::size(80)->generate(Request::fullUrl()) !!}
+        </td>
+    </tr>
+</table>
 
-<div class="text-center font-weight-bold mt-2 mb-3">
+<div class="text-center mt-2 mb-3" style="font-weight: bold; font-size: 18px;">
     LOGBOOK PESERTA DIDIK
 </div>
 

@@ -78,7 +78,15 @@
                         ></span>
                     </div>
                     <div class="flex-1">
-                        <div class="font-semibold text-ink">{{ stase.name }}</div>
+                        <div class="flex items-center gap-2">
+                            <div class="font-semibold text-ink">{{ stase.name }}</div>
+                            <span
+                                v-if="stase.is_mandatory"
+                                class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary"
+                            >
+                                Mandatory
+                            </span>
+                        </div>
                         <div class="text-xs text-muted">
                             {{ stase.alias }}
                             <span v-if="stase.desc">• {{ stase.desc }}</span>
@@ -189,6 +197,14 @@
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input
+                        v-model="form.is_mandatory"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/30"
+                    />
+                    <span class="text-muted">Mandatory</span>
+                </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Lecture Name</span>
                     <input
@@ -256,6 +272,7 @@ export default {
                 font_color: '',
                 desc: '',
                 stase_order: null,
+                is_mandatory: false,
                 lecture_name: '',
                 lecture_names: '',
                 evaluation_link: '',
@@ -322,6 +339,7 @@ export default {
                 font_color: stase.font_color || '',
                 desc: stase.desc || '',
                 stase_order: stase.stase_order ?? null,
+                is_mandatory: !!stase.is_mandatory,
                 lecture_name: stase.lecture_name || '',
                 lecture_names: stase.lecture_names || '',
                 evaluation_link: stase.evaluation_link || '',
@@ -345,6 +363,7 @@ export default {
                 font_color: '',
                 desc: '',
                 stase_order: null,
+                is_mandatory: false,
                 lecture_name: '',
                 lecture_names: '',
                 evaluation_link: '',
