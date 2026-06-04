@@ -74,10 +74,10 @@
             <td style="width: 30%">Nama Peserta Program Pendidikan</td>
             <td>{{ $student['name'] }}</td>
         </tr>
-        <tr>
+        {{-- <tr>
             <td>No Pokok Mahasiswa</td>
             <td>{{ $student_profile['code'] ?? '' }}</td>
-        </tr>
+        </tr> --}}
         <tr>
             <td>Email</td>
             <td>{{ $student['email'] }}</td>
