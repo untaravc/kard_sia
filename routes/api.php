@@ -123,6 +123,13 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);
     Route::resource('registrations', 'Api\RegistrationController');
     Route::resource('off-days', 'Api\OffDayController');
+    Route::get('assets-properties', [\App\Http\Controllers\Api\AssetController::class, 'properties']);
+    Route::resource('assets', 'Api\AssetController');
+    Route::get('assets-logs/{asset_id}', [\App\Http\Controllers\Api\AssetLogController::class, 'index']);
+    Route::post('assets-logs/{asset_id}', [\App\Http\Controllers\Api\AssetLogController::class, 'store']);
+    Route::get('assets-logs/{asset_id}/{id}', [\App\Http\Controllers\Api\AssetLogController::class, 'show']);
+    Route::patch('assets-logs/{asset_id}/{id}', [\App\Http\Controllers\Api\AssetLogController::class, 'update']);
+    Route::delete('assets-logs/{asset_id}/{id}', [\App\Http\Controllers\Api\AssetLogController::class, 'destroy']);
     Route::resource('letters', 'Api\LetterController');
     Route::post('letters/{id}/propose-approval', [LetterController::class, 'proposeApproval']);
     Route::post('letters/{id}/notify-approver', [LetterController::class, 'notifyApprover']);

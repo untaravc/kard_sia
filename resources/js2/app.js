@@ -18,9 +18,12 @@ import routes from './routes';
 import vSelect from 'vue-select';
 import 'vue-select/dist/vue-select.css';
 
+import money from 'v-money';
+
 Vue.use(VueCompositionApi);
 Vue.use(PiniaVuePlugin);
 Vue.use(ToastPlugin);
+Vue.use(money, { precision: 0 });
 Vue.component('v-select', vSelect);
 
 const router = new VueRouter({

@@ -117,6 +117,7 @@ class MenuController extends Controller
                         ['label' => 'Post', 'to' => "{$basePath}/posts"],
                         ['label' => 'Stase', 'to' => "{$basePath}/stases"],
                         ['label' => 'Task', 'to' => "{$basePath}/tasks"],
+                        ['label' => 'Asset', 'to' => "{$basePath}/assets"],
                         ['label' => 'Admin', 'to' => "{$basePath}/users"],
                     ],
                 ],

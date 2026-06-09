@@ -160,6 +160,7 @@ const routes = [
             { path: 'off-days', component: require('./pages/off-days/Index.vue').default, meta: { page_name: 'Off Days' } },
             { path: 'scores', component: require('./pages/scores/Index.vue').default, meta: { page_name: 'Scores' } },
             { path: 'students', component: require('./pages/students/Index.vue').default, meta: { page_name: 'Students' } },
+            { path: 'assets', component: require('./pages/assets/Index.vue').default, meta: { page_name: 'Assets' } },
             { path: 'students/:student_id/score', component: require('./pages/students/Score.vue').default, meta: { page_name: 'Student Score' } },
             { path: 'registrations', component: require('./pages/registrations/Index.vue').default, meta: { page_name: 'Registrations' } },
             { path: 'registrations/score', component: require('./pages/registrations/Score.vue').default, meta: { page_name: 'Registration Score' } },
