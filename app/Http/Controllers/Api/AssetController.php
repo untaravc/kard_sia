@@ -24,6 +24,7 @@ class AssetController extends Controller
         'bangunan',
         'alat_pembelajaran',
         'aset_maya',
+        'konsumsi',
     ];
 
     protected $statusOptions = [
@@ -78,12 +79,26 @@ class AssetController extends Controller
         $data = $this->validateData($request);
 
         $asset = Asset::create($data);
+        $asset->number = $this->generateNumber($asset);
+        $asset->save();
 
         return response()->json([
             'success' => true,
             'text' => 'Create Asset Success',
             'result' => $asset,
         ]);
+    }
+
+    protected function generateNumber(Asset $asset)
+    {
+        $initial = collect(explode('_', (string) $asset->category))
+            ->filter()
+            ->map(function ($word) {
+                return strtoupper(substr($word, 0, 1));
+            })
+            ->implode('');
+
+        return $initial . str_pad($asset->id, 4, '0', STR_PAD_LEFT);
     }
 
     public function show($id)
@@ -116,7 +131,10 @@ class AssetController extends Controller
         }
 
         $data = $this->validateData($request);
+        unset($data['number']);
         $asset->update($data);
+        $asset->number = $this->generateNumber($asset);
+        $asset->save();
 
         return response()->json([
             'success' => true,

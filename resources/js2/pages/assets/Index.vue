@@ -213,7 +213,9 @@
                     <input
                         v-model.trim="form.number"
                         type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        disabled
+                        placeholder="Auto-generated"
+                        class="w-full cursor-not-allowed rounded-xl border border-border bg-slate-100 px-3 py-2 text-sm text-muted focus:outline-none"
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
