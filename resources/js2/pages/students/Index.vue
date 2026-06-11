@@ -152,6 +152,13 @@
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
+                                @click="handleAction('printPresence', student)"
+                            >
+                                Print Presence
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
                                 @click="handleAction('logAs', student)"
                             >
                                 Log As
@@ -257,6 +264,62 @@
                 </button>
             </form>
         </Modal>
+
+        <Modal
+            :open="presenceModalOpen"
+            title="Print Presence"
+            eyebrow="Pilih rentang tanggal"
+            size="sm"
+            @close="closePresenceModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <label class="flex items-center gap-2">
+                    <input
+                        v-model="presenceRange.all_period"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                    />
+                    <span class="text-ink">Semua periode</span>
+                </label>
+                <label class="grid gap-2">
+                    <span class="text-muted">Tanggal Mulai</span>
+                    <input
+                        v-model="presenceRange.start_date"
+                        type="date"
+                        :disabled="presenceRange.all_period"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:bg-slate-50"
+                    />
+                </label>
+                <label class="grid gap-2">
+                    <span class="text-muted">Tanggal Selesai</span>
+                    <input
+                        v-model="presenceRange.end_date"
+                        type="date"
+                        :disabled="presenceRange.all_period"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:bg-slate-50"
+                    />
+                </label>
+                <div v-if="presenceError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ presenceError }}
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closePresenceModal"
+                >
+                    Batal
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    @click="downloadPresence"
+                >
+                    Print
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -297,6 +360,13 @@ export default {
             errorMessage: '',
             yearOptions: [],
             actionMenuOpenId: null,
+            presenceModalOpen: false,
+            presenceStudent: null,
+            presenceRange: {
+                start_date: '',
+                end_date: '',
+            },
+            presenceError: '',
         };
     },
     created() {
@@ -374,6 +444,10 @@ export default {
                 window.open(`/print/student-scores?link_token=${student.link_token}`, '_blank');
                 return;
             }
+            if (action === 'printPresence') {
+                this.openPresenceModal(student);
+                return;
+            }
             if (action === 'logAs') {
                 this.logAs(student);
                 return;
@@ -385,6 +459,48 @@ export default {
             if (action === 'delete') {
                 this.deleteStudent(student);
             }
+        },
+        openPresenceModal(student) {
+            if (!student || !student.link_token) {
+                this.$showToast('Token tidak tersedia untuk peserta ini.');
+                return;
+            }
+            this.presenceStudent = student;
+            this.presenceError = '';
+            this.presenceRange = {
+                start_date: '',
+                end_date: '',
+                all_period: false,
+            };
+            this.presenceModalOpen = true;
+        },
+        closePresenceModal() {
+            this.presenceModalOpen = false;
+            this.presenceStudent = null;
+            this.presenceError = '';
+        },
+        downloadPresence() {
+            const params = new URLSearchParams({
+                link_token: this.presenceStudent.link_token,
+            });
+
+            if (this.presenceRange.all_period) {
+                params.append('all_period', '1');
+            } else {
+                if (!this.presenceRange.start_date || !this.presenceRange.end_date) {
+                    this.presenceError = 'Tanggal mulai dan selesai wajib diisi.';
+                    return;
+                }
+                if (this.presenceRange.start_date > this.presenceRange.end_date) {
+                    this.presenceError = 'Tanggal mulai tidak boleh setelah tanggal selesai.';
+                    return;
+                }
+                params.append('start_date', this.presenceRange.start_date);
+                params.append('end_date', this.presenceRange.end_date);
+            }
+
+            window.open(`/print/student-presences?${params.toString()}`, '_blank');
+            this.closePresenceModal();
         },
         handleDocumentClick(event) {
             const target = event && event.target ? event.target : null;

@@ -313,11 +313,28 @@ class PresenceController extends Controller
             ], 404);
         }
 
-        $startDate = Carbon::parse($request->start_date)->startOfDay();
-        $endDate = Carbon::parse($request->end_date)->endOfDay();
+        $allPeriod = filter_var($request->all_period, FILTER_VALIDATE_BOOLEAN);
 
-        if ($startDate->gt($endDate)) {
-            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        if ($allPeriod) {
+            $firstPresence = Presence::whereStudentId($student->id)->min('checkin');
+            $firstActivity = ActivityStudent::whereStudentId($student->id)->min('created_at');
+
+            $earliest = collect([$firstPresence, $firstActivity, $student->created_at])
+                ->filter()
+                ->map(function ($date) {
+                    return Carbon::parse($date);
+                })
+                ->min();
+
+            $startDate = ($earliest ?? Carbon::parse($student->created_at))->copy()->startOfDay();
+            $endDate = Carbon::now()->endOfDay();
+        } else {
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
+
+            if ($startDate->gt($endDate)) {
+                [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+            }
         }
 
         $student_profile = StudentProfile::whereStudentId($student->id)->first();
