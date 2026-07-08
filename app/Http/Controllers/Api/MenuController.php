@@ -89,6 +89,7 @@ class MenuController extends Controller
                     'icon' => 'resident',
                     'children' => [
                         ['label' => 'Data', 'to' => "{$basePath}/students"],
+                        ['label' => 'Monitoring', 'to' => "{$basePath}/students/monitoring"],
                         ['label' => 'Presences', 'to' => "{$basePath}/presences"],
                         ['label' => 'Presences Daily', 'to' => "{$basePath}/presences/daily"],
                         ['label' => 'Presences Monthly', 'to' => "{$basePath}/presences/monthly"],

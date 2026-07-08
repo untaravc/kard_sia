@@ -93,6 +93,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('stase-task-logs-update-score-proposal/{id}', [ScoreController::class, 'staseTaskLogUpdateProposal']);
     Route::resource('activities', 'Api\ActivityController');
     Route::resource('students', 'Api\StudentController');
+    Route::get('student-monitoring', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'index']);
+    Route::get('student-monitoring-detail', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'detail']);
     Route::get('student-list', [\App\Http\Controllers\Api\StudentController::class, 'studentList']);
     Route::get('stase-logs', [\App\Http\Controllers\Api\StaseLogController::class, 'index']);
     Route::get('stase-log-check', [\App\Http\Controllers\Api\StaseLogController::class, 'staseLogCheck']);
@@ -130,6 +132,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('assets-logs/{asset_id}/{id}', [\App\Http\Controllers\Api\AssetLogController::class, 'show']);
     Route::patch('assets-logs/{asset_id}/{id}', [\App\Http\Controllers\Api\AssetLogController::class, 'update']);
     Route::delete('assets-logs/{asset_id}/{id}', [\App\Http\Controllers\Api\AssetLogController::class, 'destroy']);
+    Route::resource('mail-logs', 'Api\MailLogController');
     Route::resource('letters', 'Api\LetterController');
     Route::post('letters/{id}/propose-approval', [LetterController::class, 'proposeApproval']);
     Route::post('letters/{id}/notify-approver', [LetterController::class, 'notifyApprover']);

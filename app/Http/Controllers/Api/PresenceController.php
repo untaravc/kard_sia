@@ -354,6 +354,19 @@ class PresenceController extends Controller
             ])
             ->get();
 
+        // Index by date once so each day is an O(1) lookup instead of
+        // re-scanning the full collections per day (slow when all_period spans years).
+        $presencesByDate = $presences
+            ->groupBy(function ($presence) {
+                return substr($presence->checkin, 0, 10);
+            })
+            ->map(function ($group) {
+                return $group->first();
+            });
+        $activitiesByDate = $activities->groupBy(function ($activity) {
+            return substr($activity->created_at, 0, 10);
+        });
+
         $days = [];
         $currentDate = $startDate->copy();
 
@@ -362,12 +375,8 @@ class PresenceController extends Controller
 
             $days[] = [
                 'date' => $date,
-                'presence' => $presences->first(function ($presence) use ($date) {
-                    return substr($presence->checkin, 0, 10) === $date;
-                }),
-                'activities' => $activities->filter(function ($activity) use ($date) {
-                    return substr($activity->created_at, 0, 10) === $date;
-                })->values(),
+                'presence' => $presencesByDate->get($date),
+                'activities' => ($activitiesByDate->get($date) ?? collect())->values(),
             ];
 
             $currentDate->addDay();
