@@ -235,6 +235,14 @@ class ActivityController extends Controller
             });
         }
 
+        if ($request->date_from != null) {
+            $dataContent = $dataContent->whereDate('start_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to != null) {
+            $dataContent = $dataContent->whereDate('start_date', '<=', $request->date_to);
+        }
+
         return $dataContent;
     }
 }

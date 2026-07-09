@@ -25,6 +25,24 @@
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">Date From</label>
+                    <input
+                        v-model="filters.date_from"
+                        type="date"
+                        @change="applyFilter"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </div>
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">Date To</label>
+                    <input
+                        v-model="filters.date_to"
+                        type="date"
+                        @change="applyFilter"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </div>
                 <div class="flex items-end gap-2">
                     <button
                         class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
@@ -63,6 +81,7 @@
                     v-for="(activity, index) in activities"
                     :key="activity.id"
                     class="flex flex-wrap items-center gap-3 px-5 py-4"
+                    :class="isToday(activity) ? 'bg-emerald-50' : ''"
                 >
                     <div class="w-8 text-sm font-semibold text-muted">
                         {{ (pagination.from ? pagination.from - 1 : 0) + index + 1 }}
@@ -77,13 +96,20 @@
                         <div class="text-xs text-muted">
                             <span v-if="activity.title">{{ activity.title }}</span>
                             <span v-if="activity.speaker">• Speaker: {{ activity.speaker }}</span>
+                            <span v-if="activity.place">• {{ activity.place }}</span>
                         </div>
-                        <div class="text-xs text-muted" v-if="activity.start_date || activity.end_date">
-                            <span v-if="activity.start_date">Start: {{ activity.start_date }}</span>
-                            <span v-if="activity.end_date">• End: {{ activity.end_date }}</span>
+                        <div class="text-xs text-muted" v-if="activity.start_date">
+                            Date: {{ formatDateRange(activity.start_date, activity.end_date) }}
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button
+                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
+                            type="button"
+                            @click="openView(activity)"
+                        >
+                            View
+                        </button>
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
@@ -122,17 +148,71 @@
             </div>
         </section>
 
+        <Modal
+            :open="viewModalOpen"
+            :title="viewActivity ? (viewActivity.name || 'Activity Detail') : 'Activity Detail'"
+            eyebrow="Activity detail"
+            size="md"
+            @close="closeView"
+        >
+            <div v-if="viewActivity" class="grid gap-3 text-sm">
+                <div v-if="isToday(viewActivity)" class="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+                    Happening today
+                </div>
+                <div v-for="field in viewFields" :key="field.label" class="grid grid-cols-3 gap-3">
+                    <div class="text-xs uppercase tracking-wide text-muted">{{ field.label }}</div>
+                    <div class="col-span-2 break-words text-ink">
+                        <a
+                            v-if="field.link"
+                            :href="field.value"
+                            target="_blank"
+                            rel="noopener"
+                            class="text-primary underline"
+                        >{{ field.value }}</a>
+                        <span v-else>{{ field.value }}</span>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+
     </div>
 </template>
 
 <script>
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
+import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+const todayStr = () => {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+};
+
+const parseDateTime = (value) => {
+    if (!value) {
+        return null;
+    }
+    const match = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/.exec(value);
+    if (!match) {
+        return null;
+    }
+    return {
+        y: Number(match[1]),
+        mo: Number(match[2]),
+        d: Number(match[3]),
+        hh: match[4],
+        mm: match[5],
+    };
+};
 
 export default {
     components: {
         Loading,
+        Modal,
     },
     data() {
         return {
@@ -141,16 +221,72 @@ export default {
             pagination: {},
             filters: {
                 keyword: '',
+                date_from: todayStr(),
+                date_to: '',
                 page: 1,
             },
             loading: false,
             errorMessage: '',
+            viewModalOpen: false,
+            viewActivity: null,
         };
+    },
+    computed: {
+        viewFields() {
+            const a = this.viewActivity;
+            if (!a) {
+                return [];
+            }
+            const fields = [
+                { label: 'Name', value: a.name },
+                { label: 'Title', value: a.title },
+                { label: 'Speaker', value: a.speaker },
+                { label: 'Place', value: a.place },
+                { label: 'Date', value: this.formatDateRange(a.start_date, a.end_date) },
+                { label: 'Category', value: a.category },
+                { label: 'Type', value: a.type },
+                { label: 'Status', value: a.status },
+                { label: 'Passcode', value: a.passcode },
+                { label: 'Link', value: a.link, link: true },
+                { label: 'Note', value: a.note },
+                { label: 'Description', value: a.desc },
+            ];
+            return fields.filter((field) => field.value !== null && field.value !== undefined && field.value !== '');
+        },
     },
     created() {
         this.fetchActivities();
     },
     methods: {
+        formatDateRange(start, end) {
+            const s = parseDateTime(start);
+            if (!s) {
+                return '';
+            }
+            const day = (p) => `${p.d} ${MONTHS[p.mo - 1]} ${p.y}`;
+            const time = (p) => `${p.hh}:${p.mm}`;
+
+            let out = `${day(s)} ${time(s)}`;
+            const e = parseDateTime(end);
+            if (e) {
+                const sameDay = e.y === s.y && e.mo === s.mo && e.d === s.d;
+                out += sameDay ? ` - ${time(e)}` : ` - ${day(e)} ${time(e)}`;
+            }
+            return out;
+        },
+        isToday(activity) {
+            const s = parseDateTime(activity && activity.start_date);
+            if (!s) {
+                return false;
+            }
+            const now = new Date();
+            const toNum = (p) => p.y * 10000 + p.mo * 100 + p.d;
+            const today = toNum({ y: now.getFullYear(), mo: now.getMonth() + 1, d: now.getDate() });
+            const startNum = toNum(s);
+            const e = parseDateTime(activity.end_date);
+            const endNum = e ? toNum(e) : startNum;
+            return today >= startNum && today <= endNum;
+        },
         fetchActivities() {
             this.loading = true;
             this.errorMessage = '';
@@ -179,12 +315,22 @@ export default {
         },
         resetFilter() {
             this.filters.keyword = '';
+            this.filters.date_from = todayStr();
+            this.filters.date_to = '';
             this.filters.page = 1;
             this.fetchActivities();
         },
         changePage(page) {
             this.filters.page = page;
             this.fetchActivities();
+        },
+        openView(activity) {
+            this.viewActivity = activity;
+            this.viewModalOpen = true;
+        },
+        closeView() {
+            this.viewModalOpen = false;
+            this.viewActivity = null;
         },
         openEdit(activity) {
             if (!activity || !activity.id) {
