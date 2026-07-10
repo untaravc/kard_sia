@@ -25,7 +25,14 @@ class OpenStaseTask extends Model
     ];
     protected $appends = ['score'];
 
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'stase_task_id',
+        'lecture_id',
+        'title',
+        'link_token',
+        'plan',
+    ];
 
     public function lecture(){
         return $this->belongsTo(Lecture::class);

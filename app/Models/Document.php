@@ -11,7 +11,20 @@ class Document extends Model
 {
     use SearchableTrait;
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        'lecture_id',
+        'student_id',
+        'type',
+        'title',
+        'category',
+        'desc',
+        'file',
+        'attachment',
+        'comment',
+        'date',
+        'model',
+        'relation_id',
+    ];
 
     public $searchable = [
         'columns'=>[

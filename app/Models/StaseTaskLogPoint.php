@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class StaseTaskLogPoint extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'stase_task_log_id',
+        'task_detail_id',
+        'score',
+    ];
     protected $appends = ['order'];
 
     public function taskDetail(){

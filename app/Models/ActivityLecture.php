@@ -9,7 +9,11 @@ class ActivityLecture extends Model
 {
     use SoftDeletes;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'activity_id',
+        'lecture_id',
+        'note',
+    ];
 
     public function lecture(){
         return $this->belongsTo(Lecture::class);

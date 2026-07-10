@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class LectureProfile extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'lecture_id',
+        'code',
+        'degree',
+        'pob',
+        'dob',
+        'phone',
+        'address',
+        'image',
+        'register_date',
+    ];
 }

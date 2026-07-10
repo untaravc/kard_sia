@@ -6,7 +6,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class RegistrationScore extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'registration_id',
+        'period',
+        'selection_path_multiplier',
+        'pns_multiplier',
+        'origin_university_type',
+        'origin_university_multiplier',
+        'quality_ipk',
+        'quality_toefl',
+        'quality_english',
+        'quality_tpa',
+        'score_written_exam',
+        'score_ecg',
+        'score_written_exam_total',
+        'quality_written_exam',
+        'score_journal',
+        'quality_journal',
+        'score_interview',
+        'quality_interview',
+        'score_mmpi',
+        'subtotal_score',
+        'total_score',
+        'is_pass',
+    ];
 
     public function getOriginUniversityMultiplierAttribute($value)
     {

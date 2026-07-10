@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class StandardPoint extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'parent_id',
+        'name',
+        'target',
+    ];
 
     public function form_options(){
         return $this->belongsToMany(

@@ -9,7 +9,15 @@ use Illuminate\Support\Facades\Auth;
 class KsmSchedule extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        'lecture_id',
+        'name',
+        'action',
+        'label',
+        'desc',
+        'schedule',
+        'status',
+    ];
     protected $appends = ['action_theme', 'mine'];
 
     public function lecture(){

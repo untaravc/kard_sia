@@ -9,7 +9,15 @@ use Illuminate\Support\Facades\Auth;
 class File extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'open_stase_task_id',
+        'stase_task_log_id',
+        'title',
+        'desc',
+        'link',
+        'type',
+    ];
 
     public function getLinkAttribute($value) {
         if (!$value) {

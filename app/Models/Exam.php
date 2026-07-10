@@ -9,7 +9,19 @@ use Illuminate\Support\Facades\Config;
 class Exam extends Model
 {
     use SoftDeletes;
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'desc',
+        'lecture_id',
+        'stase_id',
+        'stase_task_id',
+        'link',
+        'duration',
+        'token',
+        'status',
+        'available_at',
+        'expired_at',
+    ];
     protected $appends = ['status_label', 'direct_link'];
 
     public function lecture() {

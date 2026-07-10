@@ -6,7 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudentReg extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'name',
+        'photo',
+        'phone',
+        'email',
+        'address',
+        'cv',
+        'permission',
+        'written_exam',
+        'notes',
+        'psychology',
+        'health',
+        'interview',
+        'journal',
+        'status',
+        'date',
+    ];
     protected $appends = ['status_label'];
 
     public function documents(){

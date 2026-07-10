@@ -6,7 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class StudentProfile extends Model
 {
-    protected $guarded = [];
+    protected $fillable = [
+        'student_id',
+        'code',
+        'degree',
+        'pob',
+        'dob',
+        'phone',
+        'address',
+        'image',
+        'register_date',
+        'initial',
+        'city',
+        'postal_code',
+        'undergraduate',
+        'graduated_at',
+        'lecture_id',
+    ];
     protected $appends = ['image_link'];
 
     public function getImageLinkAttribute(){
