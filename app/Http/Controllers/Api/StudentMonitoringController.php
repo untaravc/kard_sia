@@ -35,7 +35,7 @@ class StudentMonitoringController extends Controller
 
         // stase_logs of the current page's students (enrollment / progress context).
         $staseLogs = StaseLog::whereIn('student_id', $studentIds)
-            ->get(['student_id', 'stase_id', 'status'])
+            ->get(['student_id', 'stase_id', 'status', 'start_date', 'end_date'])
             ->groupBy('student_id');
 
         // stase_task_logs of the current page's students that have been scored.
@@ -55,11 +55,17 @@ class StudentMonitoringController extends Controller
 
         $students->getCollection()->transform(function ($student) use ($stases, $totalByStase, $completed, $staseLogs) {
             $logsForStudent = $staseLogs->get($student->id);
-            $ongoingStaseIds = $logsForStudent
-                ? $logsForStudent->where('status', 'ongoing')->pluck('stase_id')->all()
+            // Stases the student actually has a stase_log for; the rest render grey.
+            $loggedStaseIds = $logsForStudent
+                ? $logsForStudent->pluck('stase_id')->all()
                 : [];
+            // The student's latest / currently ongoing stase, by start_date & end_date.
+            $currentStaseId = $this->currentStaseId($logsForStudent);
 
             $cells = [];
+            // Fulfilment counts only stases the student has actually taken.
+            $takenDone = 0;
+            $takenTotal = 0;
             foreach ($stases as $stase) {
                 $total = (int) ($totalByStase[$stase->id] ?? 0);
                 $done = isset($completed[$student->id][$stase->id])
@@ -67,11 +73,18 @@ class StudentMonitoringController extends Controller
                     : 0;
                 $done = min($done, $total);
 
+                $hasLog = in_array($stase->id, $loggedStaseIds, true);
+
+                if ($hasLog) {
+                    $takenDone += $done;
+                    $takenTotal += $total;
+                }
+
                 $cells[$stase->id] = [
                     'done' => $done,
                     'total' => $total,
-                    'status' => $this->cellStatus($done, $total),
-                    'ongoing' => in_array($stase->id, $ongoingStaseIds, true),
+                    'status' => $this->cellStatus($done, $total, $hasLog),
+                    'ongoing' => $stase->id === $currentStaseId,
                 ];
             }
 
@@ -80,6 +93,7 @@ class StudentMonitoringController extends Controller
                 'name' => $student->name,
                 'year' => $student->year,
                 'link_token' => $student->link_token,
+                'fulfilment' => $takenTotal > 0 ? (int) round($takenDone / $takenTotal * 100) : null,
                 'cells' => $cells,
             ];
         });
@@ -107,6 +121,12 @@ class StudentMonitoringController extends Controller
                 'result' => null,
             ], 404);
         }
+
+        // Enrollment window for this student/stase, if any.
+        $staseLog = StaseLog::where('student_id', $studentId)
+            ->where('stase_id', $staseId)
+            ->orderByDesc('start_date')
+            ->first(['start_date', 'end_date']);
 
         // Active tasks that make up this stase.
         $tasks = StaseTask::where('stase_id', $staseId)
@@ -144,14 +164,57 @@ class StudentMonitoringController extends Controller
             'result' => [
                 'student' => ['id' => $student->id, 'name' => $student->name, 'year' => $student->year],
                 'stase' => ['id' => $stase->id, 'name' => $stase->name, 'alias' => $stase->alias],
+                'stase_log' => $staseLog ? [
+                    'start_date' => $staseLog->start_date,
+                    'end_date' => $staseLog->end_date,
+                ] : null,
                 'summary' => ['done' => $doneCount, 'total' => $items->count()],
                 'tasks' => $items,
             ],
         ]);
     }
 
-    private function cellStatus($done, $total)
+    /**
+     * The student's current stase = the stase_log whose date range contains
+     * today; if none is active, the most recently started one. Returns the
+     * stase_id to mark, or null when the student has no started stase.
+     */
+    private function currentStaseId($logsForStudent)
     {
+        if (!$logsForStudent || $logsForStudent->isEmpty()) {
+            return null;
+        }
+
+        $today = date('Y-m-d');
+
+        // Only stases that have already started.
+        $started = $logsForStudent->filter(function ($log) use ($today) {
+            return $log->start_date && substr($log->start_date, 0, 10) <= $today;
+        });
+
+        if ($started->isEmpty()) {
+            return null;
+        }
+
+        // Prefer the one currently in range (today <= end_date, or open-ended).
+        $ongoing = $started->filter(function ($log) use ($today) {
+            return !$log->end_date || substr($log->end_date, 0, 10) >= $today;
+        });
+
+        $pool = $ongoing->isNotEmpty() ? $ongoing : $started;
+
+        $current = $pool->sortByDesc('start_date')->first();
+
+        return $current ? $current->stase_id : null;
+    }
+
+    private function cellStatus($done, $total, $hasLog = true)
+    {
+        // No stase_log for this student/stase → no data, render grey.
+        if (!$hasLog) {
+            return 'empty';
+        }
+
         if ($total <= 0) {
             return 'empty';
         }

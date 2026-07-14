@@ -12,6 +12,10 @@ use App\Models\StudentProfile;
 use App\Models\StudentLogSkill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade as PDF;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class LogbookController extends Controller
 {
@@ -434,6 +438,84 @@ class LogbookController extends Controller
             ], 404);
         }
 
+        return view('templates.pdf.student_logbook', $this->buildStudentLogbookViewData($student));
+    }
+
+    /**
+     * Export logbook PDFs for every student whose `year` falls within the
+     * given range, saving each rendered document to storage.
+     */
+    public function exportStudentLogbook(Request $request)
+    {
+        $request->validate([
+            'from_year' => 'required',
+            'to_year' => 'required',
+        ]);
+
+        $result = $this->generateStudentLogbooks(
+            $request->from_year,
+            $request->to_year
+        );
+
+        return response()->json([
+            'success' => true,
+            'text' => $result['count'] . ' logbook(s) exported',
+            'result' => $result,
+        ]);
+    }
+
+    /**
+     * Render and save a logbook PDF for every student whose `year` falls
+     * within the given (inclusive) range. Returns a summary of what was
+     * written. Shared by the HTTP route and the console command.
+     *
+     * @param  callable|null  $onProgress  called as ($student, $path) after each save.
+     */
+    public function generateStudentLogbooks($fromYear, $toYear, ?callable $onProgress = null)
+    {
+        // `year` is stored as 'YYYY-MM' (e.g. '2025-07'), so match on the
+        // 4-char year prefix rather than the full value.
+        $students = Student::whereBetween(DB::raw('LEFT(year, 4)'), [$fromYear, $toYear])
+            ->orderBy('year')
+            ->orderBy('name')
+            ->get();
+
+        $directory = 'logbooks/' . $fromYear . '-' . $toYear;
+        $exported = [];
+
+        foreach ($students as $student) {
+            $pdf = PDF::loadView(
+                'templates.pdf.student_logbook',
+                $this->buildStudentLogbookViewData($student)
+            )->setPaper('a4');
+
+            $fileName = $student->year . '-' . Str::slug($student->name) . '-' . $student->id . '.pdf';
+            $path = $directory . '/' . $fileName;
+
+            Storage::put($path, $pdf->output());
+
+            $exported[] = $path;
+
+            if ($onProgress) {
+                $onProgress($student, $path);
+            }
+        }
+
+        return [
+            'from_year' => $fromYear,
+            'to_year' => $toYear,
+            'count' => count($exported),
+            'directory' => $directory,
+            'files' => $exported,
+        ];
+    }
+
+    /**
+     * Build the view data for a single student's logbook document.
+     * Shared by printStudentLogbook (HTML) and exportStudentLogbook (PDF).
+     */
+    private function buildStudentLogbookViewData(Student $student)
+    {
         $student_id = $student->id;
 
         $student_profile = StudentProfile::whereStudentId($student_id)->first();
@@ -492,9 +574,7 @@ class LogbookController extends Controller
             ->filter(fn ($stase) => $stase->is_mandatory || $stase->has_data)
             ->values();
 
-        // return $stases;
-
-        return view('templates.pdf.student_logbook', [
+        return [
             'student' => $student,
             'student_profile' => $student_profile,
             'stases' => $stases,
@@ -502,7 +582,38 @@ class LogbookController extends Controller
             'student_logs' => $student_logs,
             'form_options' => $form_options,
             'logbook_skills' => $logbook_skills,
-        ]);
+            // Base64 data URIs so images render under DomPDF (which cannot
+            // resolve root-relative URLs or draw inline <svg>).
+            'logo' => $this->logoDataUri(),
+            'qr' => $this->qrDataUri(
+                url('/print/student-logbook?link_token=' . $student->link_token)
+            ),
+        ];
+    }
+
+    /**
+     * UGM logo as a base64 PNG data URI (empty string if the file is missing).
+     */
+    private function logoDataUri()
+    {
+        $path = public_path('assets/images/logo-ugm.png');
+
+        if (!is_file($path)) {
+            return '';
+        }
+
+        return 'data:image/png;base64,' . base64_encode(file_get_contents($path));
+    }
+
+    /**
+     * QR code for the given URL as a base64 SVG data URI. DomPDF renders SVG
+     * supplied via <img> (through php-svg-lib), unlike inline <svg>.
+     */
+    private function qrDataUri($url)
+    {
+        $svg = QrCode::format('svg')->size(80)->margin(0)->generate($url);
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 
     private function resolveStudentId(Request $request)

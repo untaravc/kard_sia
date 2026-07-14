@@ -80,6 +80,7 @@
                 <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span> In progress (≥ 50%)</span>
                 <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-rose-500"></span> Behind (&lt; 50%)</span>
                 <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span> No task</span>
+                <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded ring-2 ring-primary ring-inset"></span> Current stase</span>
             </div>
         </section>
 
@@ -98,6 +99,7 @@
                         <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
                             <th class="sticky left-0 z-30 w-14 bg-panel px-3 py-3">#</th>
                             <th class="sticky left-14 z-30 min-w-[160px] bg-panel px-3 py-3">Name</th>
+                            <th class="min-w-[110px] px-4 py-3 text-center">Fulfilment</th>
                             <th
                                 v-for="stase in stases"
                                 :key="stase.id"
@@ -110,7 +112,7 @@
                     </thead>
                     <tbody class="divide-y divide-border">
                         <tr v-if="!loading && rows.length === 0">
-                            <td :colspan="stases.length + 2" class="px-5 py-6 text-sm text-muted">
+                            <td :colspan="stases.length + 3" class="px-5 py-6 text-sm text-muted">
                                 No students found.
                             </td>
                         </tr>
@@ -121,6 +123,16 @@
                             <td class="sticky left-14 z-20 min-w-[160px] bg-panel px-3 py-3 group-hover:bg-slate-50">
                                 <div class="font-semibold text-ink">{{ row.name }}</div>
                                 <div v-if="row.year" class="text-xs text-muted">Year: {{ row.year }}</div>
+                            </td>
+                            <td class="px-4 py-3 text-center group-hover:bg-slate-50">
+                                <span
+                                    v-if="row.fulfilment !== null && row.fulfilment !== undefined"
+                                    class="inline-flex min-w-[44px] justify-center rounded-full px-2 py-1 text-xs font-semibold"
+                                    :class="fulfilmentClass(row.fulfilment)"
+                                >
+                                    {{ row.fulfilment }}%
+                                </span>
+                                <span v-else class="text-xs text-muted">&mdash;</span>
                             </td>
                             <td
                                 v-for="stase in stases"
@@ -133,8 +145,10 @@
                                     :class="[
                                         cellTextClass(cell(row, stase.id)),
                                         cell(row, stase.id).total > 0 ? 'cursor-pointer hover:bg-slate-100' : 'cursor-default',
+                                        cell(row, stase.id).ongoing ? 'bg-primary/10 ring-2 ring-primary ring-inset' : '',
                                     ]"
                                     :disabled="cell(row, stase.id).total === 0"
+                                    :title="cell(row, stase.id).ongoing ? 'Current stase' : ''"
                                     @click="openDetail(row, stase)"
                                 >
                                     <span class="h-2.5 w-2.5 rounded-full" :class="cellDotClass(cell(row, stase.id))"></span>
@@ -182,6 +196,16 @@
                         <span class="text-muted">{{ detail.student.name }}</span>
                         <span class="font-semibold text-ink">
                             {{ detail.summary.done }}/{{ detail.summary.total }} done
+                        </span>
+                    </div>
+
+                    <div
+                        v-if="detail.stase_log"
+                        class="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm"
+                    >
+                        <span class="text-muted">Period</span>
+                        <span class="font-medium text-ink">
+                            {{ formatDate(detail.stase_log.start_date) }} &ndash; {{ formatDate(detail.stase_log.end_date) }}
                         </span>
                     </div>
 
@@ -320,6 +344,20 @@ export default {
             }
             return EMPTY_CELL;
         },
+        formatDate(value) {
+            if (!value) {
+                return '-';
+            }
+            const date = new Date(String(value).replace(' ', 'T'));
+            if (Number.isNaN(date.getTime())) {
+                return String(value).slice(0, 10);
+            }
+            return date.toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+            });
+        },
         openDetail(row, stase) {
             if (this.cell(row, stase.id).total === 0) {
                 return;
@@ -362,6 +400,15 @@ export default {
                 red: 'text-rose-600',
             };
             return map[cell.status] || 'text-slate-400';
+        },
+        fulfilmentClass(value) {
+            if (value >= 100) {
+                return 'bg-emerald-100 text-emerald-700';
+            }
+            if (value >= 50) {
+                return 'bg-amber-100 text-amber-700';
+            }
+            return 'bg-rose-100 text-rose-700';
         },
         applyFilter() {
             this.filters.page = 1;

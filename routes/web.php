@@ -112,6 +112,7 @@ Route::group(['prefix' => 'print', 'middleware' => 'jwt.query'], function () {
 });
 
 Route::get('/print/student-logbook', [\App\Http\Controllers\Api\LogbookController::class, 'printStudentLogbook']);
+Route::get('/export/student-logbook', [\App\Http\Controllers\Api\LogbookController::class, 'exportStudentLogbook']);
 Route::get('/print/student-presences', [\App\Http\Controllers\Api\PresenceController::class, 'printStudentPresence']);
 Route::get('/print/student-scores', [\App\Http\Controllers\Api\ScoreController::class, 'printStudentScore']);
 

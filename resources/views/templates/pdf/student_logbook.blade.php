@@ -54,7 +54,9 @@
 <table class="table-custom mb-2">
     <tr>
         <td style="width: 120px; vertical-align: middle; text-align: center; padding: 10px;">
-            <img src="/assets/images/logo-ugm.png" style="width: 75px" alt="">
+            @if(!empty($logo))
+                <img src="{{ $logo }}" style="width: 75px" alt="">
+            @endif
         </td>
         <td style="vertical-align: middle; text-align: center;">
             <div style="font-weight: bold; font-size: 16px; line-height: 1.2;">
@@ -67,7 +69,9 @@
             </div>
         </td>
         <td style="width: 120px; vertical-align: middle; text-align: center; padding: 10px;">
-            {!! QrCode::size(80)->generate(Request::fullUrl()) !!}
+            @if(!empty($qr))
+                <img src="{{ $qr }}" style="width: 80px" alt="">
+            @endif
         </td>
     </tr>
 </table>
