@@ -60,6 +60,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
     Route::get('stase-list-all', [\App\Http\Controllers\Api\StaseController::class, 'listAll']);
     Route::get('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'studentStase']);
+    Route::get('student-checklist', [\App\Http\Controllers\Api\StaseController::class, 'studentChecklist']);
     Route::post('student-stase', [\App\Http\Controllers\Api\StaseController::class, 'storeStudentStase']);
     Route::patch('student-stase/{id}', [\App\Http\Controllers\Api\StaseController::class, 'updateStudentStase']);
     Route::get('stase-option/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'staseOption']);

@@ -127,7 +127,7 @@ class MenuController extends Controller
                 ['label' => 'Scoring', 'icon' => 'mdi:clipboard-check-outline', 'to' => "{$basePath}/dashboard-student/scoring"],
                 ['label' => 'Agenda', 'icon' => 'mdi:calendar-month-outline', 'to' => "{$basePath}/dashboard-student/agenda", 'counter' => $todayAgendaCount],
                 ['label' => 'Logbooks', 'icon' => 'mdi:notebook-outline', 'to' => "{$basePath}/logbook-student"],
-                ['label' => 'Accreditations', 'icon' => 'mdi:certificate-outline', 'to' => "{$basePath}/accreditations"],
+                ['label' => 'Checklist', 'icon' => 'mdi:format-list-checks', 'to' => "{$basePath}/dashboard-student/checklist"],
                 ['label' => 'Profile', 'icon' => 'mdi:account-outline', 'to' => "{$basePath}/dashboard-student/profile"],
             ],
             'lecture' => [

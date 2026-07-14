@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\Concerns\CalculatesAttendance;
 use App\Models\Stase;
 use App\Models\StaseLog;
+use App\Models\StaseTask;
+use App\Models\StaseTaskLog;
 use Illuminate\Http\Request;
 
 class StaseController extends Controller
 {
+    use CalculatesAttendance;
+
     public function index(Request $request)
     {
         $dataContent = Stase::withCount('staseTasks')->orderBy('name');
@@ -195,6 +200,137 @@ class StaseController extends Controller
             'result' => [
                 'taken_stase' => $takenLogs,
                 'available_stase' => $availableStase,
+            ],
+        ]);
+    }
+
+    /**
+     * Completion checklist of stase_task_logs for every taken stase
+     * (stase_logs) of the logged-in student.
+     */
+    public function studentChecklist(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType === 'user' && $request->student_id) {
+            $studentId = (int) $request->student_id;
+        }
+
+        if (!$studentId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $today = date('Y-m-d');
+
+        // Taken stases (stase_logs), newest first.
+        $staseLogs = StaseLog::with('stase')
+            ->whereStudentId($studentId)
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        $staseIds = $staseLogs->pluck('stase_id')->filter()->unique()->values()->all();
+
+        // Active tasks that make up each taken stase.
+        $tasks = StaseTask::whereIn('stase_id', $staseIds)
+            ->where('status', 1)
+            ->orderBy('id')
+            ->get(['id', 'stase_id', 'name']);
+        $tasksByStase = $tasks->groupBy('stase_id');
+        $activeTaskIds = $tasks->pluck('id')->flip();
+
+        // Scored task logs of this student; keep the best score per (stase, task).
+        $logByStaseTask = [];
+        StaseTaskLog::whereStudentId($studentId)
+            ->whereIn('stase_id', $staseIds)
+            ->where('point_average', '>', 0)
+            ->whereNotNull('stase_task_id')
+            ->get(['stase_id', 'stase_task_id', 'point_average', 'date'])
+            ->each(function ($log) use (&$logByStaseTask, $activeTaskIds) {
+                if (!$activeTaskIds->has($log->stase_task_id)) {
+                    return;
+                }
+                $key = $log->stase_id . '-' . $log->stase_task_id;
+                if (!isset($logByStaseTask[$key]) || $log->point_average > $logByStaseTask[$key]->point_average) {
+                    $logByStaseTask[$key] = $log;
+                }
+            });
+
+        // Distinct check-in days of the student (for the Kehadiran item).
+        $presenceDates = $this->studentPresenceDates($studentId);
+
+        $totalDone = 0;
+        $totalTasks = 0;
+
+        $stasesResult = $staseLogs->map(function ($staseLog) use ($tasksByStase, $logByStaseTask, $today, $presenceDates, &$totalDone, &$totalTasks) {
+            $staseTasks = $tasksByStase->get($staseLog->stase_id, collect());
+
+            $items = $staseTasks->map(function ($task) use ($staseLog, $logByStaseTask) {
+                $log = $logByStaseTask[$staseLog->stase_id . '-' . $task->id] ?? null;
+
+                return [
+                    'stase_task_id' => $task->id,
+                    'type' => 'task',
+                    'name' => $task->name,
+                    'done' => (bool) $log,
+                    'point_average' => $log ? $log->point_average : null,
+                    'percentage' => null,
+                    'date' => $log ? $log->date : null,
+                ];
+            })->values();
+
+            $start = $staseLog->start_date ? substr($staseLog->start_date, 0, 10) : null;
+            $end = $staseLog->end_date ? substr($staseLog->end_date, 0, 10) : null;
+            $ongoing = $start && $start <= $today && (!$end || $end >= $today);
+
+            // Kehadiran (attendance) as the first checklist item, if the stase
+            // has a usable date range.
+            $attendance = $this->attendanceItem($start, $end, $today, $presenceDates);
+            if ($attendance) {
+                $items->prepend($attendance);
+            }
+
+            $done = $items->where('done', true)->count();
+            $total = $items->count();
+            $totalDone += $done;
+            $totalTasks += $total;
+
+            return [
+                'stase_log_id' => $staseLog->id,
+                'stase_id' => $staseLog->stase_id,
+                'stase_name' => $staseLog->stase ? $staseLog->stase->name : 'Stase',
+                'alias' => $staseLog->stase ? $staseLog->stase->alias : null,
+                'start_date' => $staseLog->start_date,
+                'end_date' => $staseLog->end_date,
+                'status' => $staseLog->status,
+                'ongoing' => $ongoing,
+                'done' => $done,
+                'total' => $total,
+                'percentage' => $total > 0 ? (int) round($done / $total * 100) : null,
+                'tasks' => $items,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Checklist Success',
+            'result' => [
+                'summary' => [
+                    'done' => $totalDone,
+                    'total' => $totalTasks,
+                    'percentage' => $totalTasks > 0 ? (int) round($totalDone / $totalTasks * 100) : null,
+                    'stases' => $stasesResult->count(),
+                ],
+                'stases' => $stasesResult,
             ],
         ]);
     }

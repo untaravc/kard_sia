@@ -128,6 +128,7 @@ const routes = [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default, meta: { page_name: 'Dashboard' } },
             { path: 'dashboard-student', redirect: 'dashboard-student/profile', meta: { page_name: 'Student Dashboard' } },
             { path: 'dashboard-student/scoring', component: require('./pages/dashboard-student/Scoring.vue').default, meta: { page_name: 'Student Scoring' } },
+            { path: 'dashboard-student/checklist', component: require('./pages/dashboard-student/Checklist.vue').default, meta: { page_name: 'Student Checklist' } },
             { path: 'dashboard-student/scoring/:stase_log_id', component: require('./pages/dashboard-student/ScoringDetail.vue').default, meta: { page_name: 'Student Scoring Detail' } },
             { path: 'dashboard-student/agenda', component: require('./pages/dashboard-student/Agenda.vue').default, meta: { page_name: 'Student Agenda' } },
             { path: 'dashboard-student/report', component: require('./pages/dashboard-student/Report.vue').default, meta: { page_name: 'Student Report' } },

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\Concerns\CalculatesAttendance;
 use App\Models\Stase;
 use App\Models\StaseLog;
 use App\Models\StaseTask;
@@ -12,6 +13,8 @@ use Illuminate\Http\Request;
 
 class StudentMonitoringController extends Controller
 {
+    use CalculatesAttendance;
+
     public function index(Request $request)
     {
         // Columns: stases (optionally filtered by phase), ordered as on the board.
@@ -26,12 +29,18 @@ class StudentMonitoringController extends Controller
         $totalByStase = $activeTasks->groupBy('stase_id')->map->count();
         $activeTaskIds = $activeTasks->pluck('id')->flip();
 
-        // Paginated students, filtered by status / year / name.
+        // Students matching the current filters (status / year / name).
         $studentQuery = Student::query()->orderBy('name');
         $studentQuery = $this->withFilter($studentQuery, $request);
+
+        // All filtered ids drive the overall aggregate; the page drives the table.
+        $allStudentIds = (clone $studentQuery)->pluck('id')->all();
+
         $students = $studentQuery->paginate($request->get('per_page', 20));
 
         $studentIds = collect($students->items())->pluck('id')->all();
+
+        $overall = $this->overallFulfilment($allStudentIds, $stases->pluck('id')->all(), $totalByStase, $activeTaskIds);
 
         // stase_logs of the current page's students (enrollment / progress context).
         $staseLogs = StaseLog::whereIn('student_id', $studentIds)
@@ -103,7 +112,61 @@ class StudentMonitoringController extends Controller
             'text' => 'Retrieve Student Monitoring Success',
             'result' => $students,
             'stases' => $stases,
+            'overall' => $overall,
         ]);
+    }
+
+    /**
+     * Aggregate fulfilment across every filtered student (not just the current
+     * page), counting taken stases only, over the displayed stase columns.
+     */
+    private function overallFulfilment($studentIds, $staseIds, $totalByStase, $activeTaskIds)
+    {
+        if (empty($studentIds) || empty($staseIds)) {
+            return ['percentage' => null, 'done' => 0, 'total' => 0, 'students' => count($studentIds)];
+        }
+
+        // Distinct taken (student, stase) pairs within the displayed columns.
+        $takenPairs = [];
+        StaseLog::whereIn('student_id', $studentIds)
+            ->whereIn('stase_id', $staseIds)
+            ->get(['student_id', 'stase_id'])
+            ->each(function ($log) use (&$takenPairs) {
+                $takenPairs[$log->student_id][$log->stase_id] = true;
+            });
+
+        // Distinct completed active tasks per (student, stase).
+        $completed = [];
+        StaseTaskLog::whereIn('student_id', $studentIds)
+            ->whereIn('stase_id', $staseIds)
+            ->where('point_average', '>', 0)
+            ->whereNotNull('stase_task_id')
+            ->get(['student_id', 'stase_id', 'stase_task_id'])
+            ->each(function ($log) use (&$completed, $activeTaskIds) {
+                if ($activeTaskIds->has($log->stase_task_id)) {
+                    $completed[$log->student_id][$log->stase_id][$log->stase_task_id] = true;
+                }
+            });
+
+        $takenDone = 0;
+        $takenTotal = 0;
+        foreach ($takenPairs as $studentId => $staseSet) {
+            foreach ($staseSet as $staseId => $_) {
+                $total = (int) ($totalByStase[$staseId] ?? 0);
+                $done = isset($completed[$studentId][$staseId])
+                    ? count($completed[$studentId][$staseId])
+                    : 0;
+                $takenTotal += $total;
+                $takenDone += min($done, $total);
+            }
+        }
+
+        return [
+            'percentage' => $takenTotal > 0 ? (int) round($takenDone / $takenTotal * 100) : null,
+            'done' => $takenDone,
+            'total' => $takenTotal,
+            'students' => count($studentIds),
+        ];
     }
 
     public function detail(Request $request)
@@ -156,6 +219,17 @@ class StudentMonitoringController extends Controller
             ];
         })->values();
 
+        // Attendance (Kehadiran) over the stase's date range.
+        $attendance = null;
+        if ($staseLog) {
+            $attendance = $this->attendanceItem(
+                $staseLog->start_date ? substr($staseLog->start_date, 0, 10) : null,
+                $staseLog->end_date ? substr($staseLog->end_date, 0, 10) : null,
+                date('Y-m-d'),
+                $this->studentPresenceDates($studentId)
+            );
+        }
+
         $doneCount = $items->where('done', true)->count();
 
         return response()->json([
@@ -164,6 +238,7 @@ class StudentMonitoringController extends Controller
             'result' => [
                 'student' => ['id' => $student->id, 'name' => $student->name, 'year' => $student->year],
                 'stase' => ['id' => $stase->id, 'name' => $stase->name, 'alias' => $stase->alias],
+                'attendance' => $attendance,
                 'stase_log' => $staseLog ? [
                     'start_date' => $staseLog->start_date,
                     'end_date' => $staseLog->end_date,

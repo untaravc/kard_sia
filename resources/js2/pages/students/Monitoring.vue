@@ -84,6 +84,29 @@
             </div>
         </section>
 
+        <section class="rounded-2xl border border-border bg-panel p-5">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Overall Fulfilment</div>
+                    <div class="mt-1 text-3xl font-semibold text-ink">
+                        {{ overall.percentage !== null ? overall.percentage + '%' : '—' }}
+                    </div>
+                    <div class="mt-1 text-xs text-muted">
+                        {{ overall.done }}/{{ overall.total }} tasks across {{ overall.students }} student(s) · taken stases only
+                    </div>
+                </div>
+                <div class="w-full sm:w-72">
+                    <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                        <div
+                            class="h-full rounded-full transition-all"
+                            :class="fulfilmentBarClass(overall.percentage)"
+                            :style="{ width: (overall.percentage || 0) + '%' }"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="relative min-w-0 overflow-hidden rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
@@ -209,6 +232,24 @@
                         </span>
                     </div>
 
+                    <div
+                        v-if="detail.attendance"
+                        class="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm"
+                    >
+                        <div>
+                            <span class="text-muted">Kehadiran</span>
+                            <div class="text-xs text-muted">
+                                {{ detail.attendance.present }}/{{ detail.attendance.working_days }} working days
+                            </div>
+                        </div>
+                        <span
+                            class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                            :class="fulfilmentClass(detail.attendance.percentage)"
+                        >
+                            {{ detail.attendance.percentage }}%
+                        </span>
+                    </div>
+
                     <div v-if="detail.tasks.length === 0" class="px-1 py-4 text-sm text-muted">
                         No tasks configured for this stase.
                     </div>
@@ -269,6 +310,7 @@ export default {
             baseUrl: '/api/student-monitoring',
             rows: [],
             stases: [],
+            overall: { percentage: null, done: 0, total: 0, students: 0 },
             pagination: {},
             filters: {
                 name: '',
@@ -329,10 +371,12 @@ export default {
                     this.rows = Array.isArray(result.data) ? result.data : [];
                     this.pagination = result || {};
                     this.stases = Array.isArray(payload.stases) ? payload.stases : [];
+                    this.overall = payload.overall || { percentage: null, done: 0, total: 0, students: 0 };
                 })
                 .catch(() => {
                     this.rows = [];
                     this.pagination = {};
+                    this.overall = { percentage: null, done: 0, total: 0, students: 0 };
                 })
                 .finally(() => {
                     this.loading = false;
@@ -409,6 +453,15 @@ export default {
                 return 'bg-amber-100 text-amber-700';
             }
             return 'bg-rose-100 text-rose-700';
+        },
+        fulfilmentBarClass(value) {
+            if (value >= 100) {
+                return 'bg-emerald-500';
+            }
+            if (value >= 50) {
+                return 'bg-amber-400';
+            }
+            return 'bg-rose-500';
         },
         applyFilter() {
             this.filters.page = 1;
