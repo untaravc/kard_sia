@@ -140,4 +140,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('letters/{id}/propose-approval', [LetterController::class, 'proposeApproval']);
     Route::post('letters/{id}/notify-approver', [LetterController::class, 'notifyApprover']);
     Route::post('letter-clone/{id}', [LetterController::class, 'cloneLetter']);
+
+    // Form Builder (Google Form style)
+    Route::get('forms/{form}/responses', [\App\Http\Controllers\Api\Form\ResponseController::class, 'index']);
+    Route::get('form-responses/{id}', [\App\Http\Controllers\Api\Form\ResponseController::class, 'show']);
+    Route::delete('form-responses/{id}', [\App\Http\Controllers\Api\Form\ResponseController::class, 'destroy']);
+    Route::resource('forms', 'Api\Form\FormController');
 });

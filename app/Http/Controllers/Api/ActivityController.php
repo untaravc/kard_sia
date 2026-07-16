@@ -17,9 +17,11 @@ class ActivityController extends Controller
 {
     public function index(Request $request)
     {
-        $dataContent = Activity::withCount(['activity_lectures', 'activity_students'])->orderByDesc('start_date');
+        $dataContent = Activity::orderByDesc('start_date');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);
+
+        $this->attachAttendeeCounts($dataContent->getCollection());
 
         return response()->json([
             'success' => true,
@@ -415,6 +417,29 @@ class ActivityController extends Controller
         $this->validate($request, [
             'name' => 'required',
         ]);
+    }
+
+    private function attachAttendeeCounts($activities)
+    {
+        $activityIds = $activities->pluck('id');
+        if ($activityIds->isEmpty()) {
+            return;
+        }
+
+        $studentCounts = ActivityStudent::whereIn('activity_id', $activityIds)
+            ->selectRaw('activity_id, COUNT(*) as total')
+            ->groupBy('activity_id')
+            ->pluck('total', 'activity_id');
+
+        $lectureCounts = ActivityLecture::whereIn('activity_id', $activityIds)
+            ->selectRaw('activity_id, COUNT(*) as total')
+            ->groupBy('activity_id')
+            ->pluck('total', 'activity_id');
+
+        $activities->each(function ($activity) use ($studentCounts, $lectureCounts) {
+            $activity->setAttribute('activity_students_count', $studentCounts->get($activity->id, 0));
+            $activity->setAttribute('activity_lectures_count', $lectureCounts->get($activity->id, 0));
+        });
     }
 
     private function withFilter($dataContent, Request $request)

@@ -183,6 +183,10 @@ const routes = [
             { path: 'task-scoring/:open_stase_task_id', component: require('./pages/scores/TaskScore.vue').default, meta: { page_name: 'Task Scoring' } },
             { path: 'task-scoring-thesis/:open_stase_task_id', component: require('./pages/scores/TaskScoreThesis.vue').default, meta: { page_name: 'Task Scoring Thesis' } },
             { path: 'task-scoring-proposal/:open_stase_task_id', component: require('./pages/scores/TaskScoreProposal.vue').default, meta: { page_name: 'Task Scoring Proposal' } },
+            { path: 'forms', component: require('./pages/forms/Index.vue').default, meta: { page_name: 'Forms' } },
+            { path: 'forms/create', component: require('./pages/forms/Editor.vue').default, meta: { page_name: 'Create Form' } },
+            { path: 'forms/:id/responses', component: require('./pages/forms/Responses.vue').default, meta: { page_name: 'Form Responses' } },
+            { path: 'forms/:id', component: require('./pages/forms/Editor.vue').default, meta: { page_name: 'Edit Form' } },
         ],
     },
 ];

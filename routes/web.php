@@ -47,6 +47,12 @@ Route::get('/pub/quiz', [PublicController::class, 'quiz']);
 Route::post('/pub/select_option', [PublicController::class, 'select_option']);
 Route::post('/pub/quiz-finish', [PublicController::class, 'quiz_finish']);
 
+// Form Builder — public form fill (guests allowed; per-form login enforced
+// inside the controller). Admin CRUD lives in routes/api.php (JWT / js2 SPA).
+Route::get('/form/{slug}/thanks', [\App\Http\Controllers\Form\PublicController::class, 'thanks']);
+Route::get('/form/{slug}', [\App\Http\Controllers\Form\PublicController::class, 'show']);
+Route::post('/form/{slug}', [\App\Http\Controllers\Form\PublicController::class, 'submit']);
+
 //OPEN
 Route::get('l/{slug}', 'Sadmin\GlobalFunctionController@openLink');
 Route::get('get-lectures', 'Sadmin\GlobalFunctionController@getLectures');
