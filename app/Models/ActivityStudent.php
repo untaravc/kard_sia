@@ -15,6 +15,7 @@ class ActivityStudent extends Model
         'activity_id',
         'note',
         'desc',
+        'created_at',
     ];
 
     public function student(){

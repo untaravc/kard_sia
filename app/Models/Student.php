@@ -18,6 +18,7 @@ class Student extends Authenticatable
         "year",
         "name",
         "password",
+        "univ_number",
         "email",
         "link_token",
     ];

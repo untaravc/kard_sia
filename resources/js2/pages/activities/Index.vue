@@ -101,29 +101,51 @@
                         <div class="text-xs text-muted" v-if="activity.start_date">
                             Date: {{ formatDateRange(activity.start_date, activity.end_date) }}
                         </div>
+                        <div class="text-xs text-muted">
+                            Attendees: {{ activity.activity_students_count || 0 }} students, {{ activity.activity_lectures_count || 0 }} lecturers
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openView(activity)"
+                            @click.stop="toggleActionMenu(activity.id)"
                         >
-                            View
+                            Actions
                         </button>
-                        <button
-                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            type="button"
-                            @click="openEdit(activity)"
+                        <div
+                            v-if="actionMenuOpenId === activity.id"
+                            class="absolute right-0 z-10 mt-2 w-44 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
-                            Edit
-                        </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteActivity(activity)"
-                        >
-                            Delete
-                        </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('view', activity)"
+                            >
+                                View
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('edit', activity)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('import-presence', activity)"
+                            >
+                                Import Presensi
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', activity)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -149,30 +171,100 @@
         </section>
 
         <Modal
-            :open="viewModalOpen"
-            :title="viewActivity ? (viewActivity.name || 'Activity Detail') : 'Activity Detail'"
-            eyebrow="Activity detail"
-            size="md"
-            @close="closeView"
+            :open="importModalOpen"
+            :title="importActivity ? `Import Presensi - ${importActivity.name}` : 'Import Presensi'"
+            eyebrow="Activities"
+            size="xxl"
+            @close="closeImportPresence"
         >
-            <div v-if="viewActivity" class="grid gap-3 text-sm">
-                <div v-if="isToday(viewActivity)" class="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
-                    Happening today
+            <div class="grid gap-4">
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">File Presensi (.xls, .xlsx)</span>
+                    <input
+                        ref="importFileInput"
+                        type="file"
+                        accept=".xls,.xlsx"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        @change="onImportFileChange"
+                    />
+                </label>
+                <div v-if="importError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ importError }}
                 </div>
-                <div v-for="field in viewFields" :key="field.label" class="grid grid-cols-3 gap-3">
-                    <div class="text-xs uppercase tracking-wide text-muted">{{ field.label }}</div>
-                    <div class="col-span-2 break-words text-ink">
-                        <a
-                            v-if="field.link"
-                            :href="field.value"
-                            target="_blank"
-                            rel="noopener"
-                            class="text-primary underline"
-                        >{{ field.value }}</a>
-                        <span v-else>{{ field.value }}</span>
-                    </div>
+                <div v-if="importResult" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                    Imported {{ importResult.students_created + importResult.lectures_created }} new presence record(s)
+                    ({{ importResult.students_existing + importResult.lectures_existing }} already recorded,
+                    {{ importResult.unmatched }} unmatched of {{ importResult.total }} rows).
+                </div>
+                <div v-if="importRows.length" class="text-xs text-muted">
+                    {{ importMatchedCount }} of {{ importRows.length }} matched to an active student or lecture.
+                </div>
+                <div v-if="importRows.length" class="overflow-x-auto rounded-xl border border-border">
+                    <table class="min-w-full text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 text-left text-muted">
+                                <th class="px-3 py-2">No</th>
+                                <th class="px-3 py-2">Nama</th>
+                                <th class="px-3 py-2">Jenis Identitas</th>
+                                <th class="px-3 py-2">Nomor Identitas</th>
+                                <th class="px-3 py-2">Waktu Presensi</th>
+                                <th class="px-3 py-2">Unit/Fakultas/Prodi</th>
+                                <th class="px-3 py-2">Match</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border">
+                            <tr
+                                v-for="(row, idx) in importRows"
+                                :key="idx"
+                                :class="row.matched ? 'bg-emerald-50' : ''"
+                            >
+                                <td class="px-3 py-2">{{ row.no }}</td>
+                                <td class="px-3 py-2">{{ row.name }}</td>
+                                <td class="px-3 py-2">{{ row.identity_type }}</td>
+                                <td class="px-3 py-2">{{ row.identity_number }}</td>
+                                <td class="px-3 py-2">{{ row.presence_time }}</td>
+                                <td class="px-3 py-2">{{ row.unit }}</td>
+                                <td class="px-3 py-2">
+                                    <span
+                                        class="rounded-lg px-2 py-0.5 text-xs font-medium"
+                                        :class="row.matched ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-muted'"
+                                    >
+                                        {{ matchLabel(row) }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    :disabled="importSubmitting"
+                    @click="closeImportPresence"
+                >
+                    {{ importResult ? 'Close' : 'Cancel' }}
+                </button>
+                <button
+                    v-if="!importResult && !importRows.length"
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="importSubmitting || !importFile"
+                    @click="previewImportPresence"
+                >
+                    {{ importSubmitting ? 'Loading...' : 'Preview' }}
+                </button>
+                <button
+                    v-else-if="!importResult"
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="importSubmitting || importMatchedCount === 0"
+                    @click="uploadImportPresence"
+                >
+                    {{ importSubmitting ? 'Uploading...' : 'Upload' }}
+                </button>
+            </template>
         </Modal>
 
     </div>
@@ -227,35 +319,29 @@ export default {
             },
             loading: false,
             errorMessage: '',
-            viewModalOpen: false,
-            viewActivity: null,
+            actionMenuOpenId: null,
+            importModalOpen: false,
+            importActivity: null,
+            importFile: null,
+            importSubmitting: false,
+            importError: '',
+            importRows: [],
+            importResult: null,
         };
     },
     computed: {
-        viewFields() {
-            const a = this.viewActivity;
-            if (!a) {
-                return [];
-            }
-            const fields = [
-                { label: 'Name', value: a.name },
-                { label: 'Title', value: a.title },
-                { label: 'Speaker', value: a.speaker },
-                { label: 'Place', value: a.place },
-                { label: 'Date', value: this.formatDateRange(a.start_date, a.end_date) },
-                { label: 'Category', value: a.category },
-                { label: 'Type', value: a.type },
-                { label: 'Status', value: a.status },
-                { label: 'Passcode', value: a.passcode },
-                { label: 'Link', value: a.link, link: true },
-                { label: 'Note', value: a.note },
-                { label: 'Description', value: a.desc },
-            ];
-            return fields.filter((field) => field.value !== null && field.value !== undefined && field.value !== '');
+        importMatchedCount() {
+            return this.importRows.filter((row) => row.matched).length;
         },
     },
     created() {
         this.fetchActivities();
+    },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
         formatDateRange(start, end) {
@@ -324,13 +410,47 @@ export default {
             this.filters.page = page;
             this.fetchActivities();
         },
-        openView(activity) {
-            this.viewActivity = activity;
-            this.viewModalOpen = true;
+        toggleActionMenu(activityId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === activityId ? null : activityId;
         },
-        closeView() {
-            this.viewModalOpen = false;
-            this.viewActivity = null;
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
+        },
+        handleAction(action, activity) {
+            this.closeActionMenu();
+
+            if (action === 'view') {
+                this.openView(activity);
+                return;
+            }
+            if (action === 'edit') {
+                this.openEdit(activity);
+                return;
+            }
+            if (action === 'import-presence') {
+                this.openImportPresence(activity);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteActivity(activity);
+            }
+        },
+        openView(activity) {
+            if (!activity || !activity.id) {
+                return;
+            }
+
+            this.$router.push(`/blu/activities/${activity.id}/view`);
         },
         openEdit(activity) {
             if (!activity || !activity.id) {
@@ -352,6 +472,116 @@ export default {
                 .catch(() => {
                     this.errorMessage = 'Failed to delete activity.';
                 });
+        },
+        openImportPresence(activity) {
+            this.importActivity = activity || null;
+            this.importFile = null;
+            this.importError = '';
+            this.importRows = [];
+            this.importResult = null;
+            this.importModalOpen = true;
+        },
+        closeImportPresence(force = false) {
+            if (this.importSubmitting && !force) {
+                return;
+            }
+            const hadResult = Boolean(this.importResult);
+
+            this.importModalOpen = false;
+            this.importActivity = null;
+            this.importFile = null;
+            this.importError = '';
+            this.importRows = [];
+            this.importResult = null;
+            if (this.$refs.importFileInput) {
+                this.$refs.importFileInput.value = '';
+            }
+            if (hadResult) {
+                this.fetchActivities();
+            }
+        },
+        onImportFileChange(event) {
+            const files = event && event.target ? event.target.files : null;
+            this.importFile = files && files.length ? files[0] : null;
+            this.importError = '';
+            this.importRows = [];
+            this.importResult = null;
+        },
+        previewImportPresence() {
+            if (this.importSubmitting) {
+                return;
+            }
+            if (!this.importFile) {
+                this.importError = 'File is required.';
+                return;
+            }
+
+            this.importSubmitting = true;
+            this.importError = '';
+
+            const formData = new FormData();
+            formData.append('file', this.importFile);
+
+            return Repository.post('/api/activities/import-presence/preview', formData)
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.importRows = Array.isArray(result) ? result : [];
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to preview presence file.';
+                    this.importError = message;
+                })
+                .finally(() => {
+                    this.importSubmitting = false;
+                });
+        },
+        uploadImportPresence() {
+            if (this.importSubmitting) {
+                return;
+            }
+            if (!this.importFile || !this.importActivity || !this.importActivity.id) {
+                this.importError = 'File and activity are required.';
+                return;
+            }
+
+            this.importSubmitting = true;
+            this.importError = '';
+
+            const formData = new FormData();
+            formData.append('file', this.importFile);
+
+            return Repository.post(`/api/activities/${this.importActivity.id}/import-presence`, formData)
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    if (result && Array.isArray(result.rows)) {
+                        this.importRows = result.rows;
+                    }
+                    this.importResult = result;
+                    this.$showToast('Presence imported successfully.');
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to import presence file.';
+                    this.importError = message;
+                })
+                .finally(() => {
+                    this.importSubmitting = false;
+                });
+        },
+        matchLabel(row) {
+            if (row.student_matched && row.lecture_matched) {
+                return 'Matched (Student & Lecture)';
+            }
+            if (row.student_matched) {
+                return 'Matched (Student)';
+            }
+            if (row.lecture_matched) {
+                return 'Matched (Lecture)';
+            }
+            return 'No match';
         },
     },
 };

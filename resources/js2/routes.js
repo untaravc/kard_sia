@@ -173,6 +173,7 @@ const routes = [
             { path: 'letters/:id', component: require('./pages/letters/AddEdit.vue').default, meta: { page_name: 'Edit Letter' } },
             { path: 'activities', component: require('./pages/activities/Index.vue').default, meta: { page_name: 'Activities' } },
             { path: 'activities/create', component: require('./pages/activities/AddCreate.vue').default, meta: { page_name: 'Create Activity' } },
+            { path: 'activities/:id/view', component: require('./pages/activities/View.vue').default, meta: { page_name: 'Activity Detail' } },
             { path: 'activities/:id', component: require('./pages/activities/AddCreate.vue').default, meta: { page_name: 'Edit Activity' } },
             { path: 'presences', component: require('./pages/presences/Index.vue').default, meta: { page_name: 'Presences' } },
             { path: 'presences/daily', component: require('./pages/presences/Daily.vue').default, meta: { page_name: 'Daily Presences' } },

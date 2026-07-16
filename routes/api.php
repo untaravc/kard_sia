@@ -92,6 +92,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('stase-task-logs-update-score/{id}', [ScoreController::class, 'staseTaskLogUpdate']);
     Route::post('stase-task-logs-update-score-tesis/{id}', [ScoreController::class, 'staseTaskLogUpdateTesis']);
     Route::post('stase-task-logs-update-score-proposal/{id}', [ScoreController::class, 'staseTaskLogUpdateProposal']);
+    Route::post('activities/import-presence/preview', [ActivityController::class, 'previewImportPresence']);
+    Route::post('activities/{activity_id}/import-presence', [ActivityController::class, 'importPresence']);
     Route::resource('activities', 'Api\ActivityController');
     Route::resource('students', 'Api\StudentController');
     Route::get('student-monitoring', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'index']);

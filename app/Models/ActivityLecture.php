@@ -13,6 +13,7 @@ class ActivityLecture extends Model
         'activity_id',
         'lecture_id',
         'note',
+        'created_at',
     ];
 
     public function lecture(){

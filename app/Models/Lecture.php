@@ -20,6 +20,7 @@ class Lecture extends Authenticatable
     protected $fillable = [
         "password",
         "number",
+        "univ_number",
         "name_alt",
         "last_act",
         "status", // active, nonactive

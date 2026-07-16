@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Imports\ActivityPresenceImport;
 use App\Models\Activity;
 use App\Models\ActivityLecture;
 use App\Models\ActivityStudent;
+use App\Models\Lecture;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ActivityController extends Controller
 {
     public function index(Request $request)
     {
-        $dataContent = Activity::orderByDesc('start_date');
+        $dataContent = Activity::withCount(['activity_lectures', 'activity_students'])->orderByDesc('start_date');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);
 
@@ -47,7 +51,10 @@ class ActivityController extends Controller
 
     public function show($id)
     {
-        $activity = Activity::find($id);
+        $activity = Activity::with([
+            'activity_lectures' => fn ($query) => $query->with('lecture')->orderBy('created_at'),
+            'activity_students' => fn ($query) => $query->with('student')->orderBy('created_at'),
+        ])->find($id);
 
         if (!$activity) {
             return response()->json([
@@ -215,6 +222,192 @@ class ActivityController extends Controller
             'text' => 'Presence recorded',
             'result' => $presence,
         ]);
+    }
+
+    public function previewImportPresence(Request $request)
+    {
+        $this->validate($request, [
+            'file' => 'required|file|mimes:xls,xlsx',
+        ]);
+
+        $activeRows = $this->parsePresenceRows($request->file('file'));
+        $indexes = $this->loadPresenceMatchIndexes();
+
+        $result = array_map(fn ($cols) => $this->buildPresenceRow($cols, $indexes), $activeRows);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Presence Import Preview Success',
+            'result' => $result,
+        ]);
+    }
+
+    public function importPresence(Request $request, $activity_id)
+    {
+        $this->validate($request, [
+            'file' => 'required|file|mimes:xls,xlsx',
+        ]);
+
+        $activity = Activity::find($activity_id);
+        if (!$activity) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Activity not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $activeRows = $this->parsePresenceRows($request->file('file'));
+        $indexes = $this->loadPresenceMatchIndexes();
+
+        $summary = [
+            'total' => count($activeRows),
+            'matched' => 0,
+            'unmatched' => 0,
+            'students_created' => 0,
+            'students_existing' => 0,
+            'lectures_created' => 0,
+            'lectures_existing' => 0,
+        ];
+
+        $rows = [];
+        foreach ($activeRows as $cols) {
+            $row = $this->buildPresenceRow($cols, $indexes);
+
+            if (!$row['matched']) {
+                $summary['unmatched']++;
+                $rows[] = $row;
+                continue;
+            }
+
+            $summary['matched']++;
+            $identityNumber = $row['identity_number'] ? trim((string) $row['identity_number']) : null;
+            $presenceTime = $this->parsePresenceDateTime($row['presence_time']);
+
+            if ($row['student_matched']) {
+                $student = Student::find($row['student_id']);
+                if ($student && !$student->univ_number && $identityNumber) {
+                    $student->update(['univ_number' => $identityNumber]);
+                }
+
+                $activityStudent = ActivityStudent::firstOrCreate(
+                    [
+                        'activity_id' => $activity->id,
+                        'student_id' => $row['student_id'],
+                    ],
+                    $presenceTime ? ['created_at' => $presenceTime] : []
+                );
+                $summary[$activityStudent->wasRecentlyCreated ? 'students_created' : 'students_existing']++;
+            }
+
+            if ($row['lecture_matched']) {
+                $lecture = Lecture::find($row['lecture_id']);
+                if ($lecture && !$lecture->univ_number && $identityNumber) {
+                    $lecture->update(['univ_number' => $identityNumber]);
+                }
+
+                $activityLecture = ActivityLecture::firstOrCreate(
+                    [
+                        'activity_id' => $activity->id,
+                        'lecture_id' => $row['lecture_id'],
+                    ],
+                    $presenceTime ? ['created_at' => $presenceTime] : []
+                );
+                $summary[$activityLecture->wasRecentlyCreated ? 'lectures_created' : 'lectures_existing']++;
+            }
+
+            $rows[] = $row;
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Import Presence Success',
+            'result' => array_merge($summary, ['rows' => $rows]),
+        ]);
+    }
+
+    private function parsePresenceDateTime($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    private function parsePresenceRows($file)
+    {
+        $tabs = Excel::toArray(new ActivityPresenceImport, $file);
+        $rows = $tabs[0] ?? [];
+
+        $startIndex = null;
+        foreach ($rows as $index => $cols) {
+            $number = $cols[0] ?? null;
+            if ($number !== null && trim((string) $number) === '1') {
+                $startIndex = $index;
+                break;
+            }
+        }
+
+        return $startIndex === null ? [] : array_values(array_slice($rows, $startIndex));
+    }
+
+    private function loadPresenceMatchIndexes()
+    {
+        $students = Student::where('status', 'active')->get(['id', 'name', 'univ_number']);
+        $lectures = Lecture::get(['id', 'name_alt', 'univ_number']);
+
+        return [
+            'students_by_number' => $students->filter(fn ($student) => filled($student->univ_number))
+                ->keyBy(fn ($student) => trim($student->univ_number)),
+            'students_by_name' => $students->keyBy(fn ($student) => $this->normalizeName($student->name)),
+            'lectures_by_number' => $lectures->filter(fn ($lecture) => filled($lecture->univ_number))
+                ->keyBy(fn ($lecture) => trim($lecture->univ_number)),
+            'lectures_by_name' => $lectures->filter(fn ($lecture) => filled($lecture->name_alt))
+                ->keyBy(fn ($lecture) => $this->normalizeName($lecture->name_alt)),
+        ];
+    }
+
+    private function buildPresenceRow($cols, $indexes)
+    {
+        $name = $cols[1] ?? null;
+        $identityNumber = $cols[3] ?? null;
+        $normalizedName = $this->normalizeName($name);
+        $normalizedNumber = $identityNumber !== null && $identityNumber !== ''
+            ? trim((string) $identityNumber)
+            : null;
+
+        $student = ($normalizedNumber ? $indexes['students_by_number']->get($normalizedNumber) : null)
+            ?? $indexes['students_by_name']->get($normalizedName);
+
+        $lecture = ($normalizedNumber ? $indexes['lectures_by_number']->get($normalizedNumber) : null)
+            ?? $indexes['lectures_by_name']->get($normalizedName);
+
+        return [
+            'no' => $cols[0] ?? null,
+            'name' => $name,
+            'identity_type' => $cols[2] ?? null,
+            'identity_number' => $identityNumber,
+            'presence_time' => $cols[4] ?? null,
+            'unit' => $cols[5] ?? null,
+            'matched' => (bool) ($student || $lecture),
+            'student_matched' => (bool) $student,
+            'student_id' => $student ? $student->id : null,
+            'lecture_matched' => (bool) $lecture,
+            'lecture_id' => $lecture ? $lecture->id : null,
+        ];
+    }
+
+    private function normalizeName($name)
+    {
+        $name = (string) $name;
+        $name = preg_replace('/\s+/', ' ', trim($name));
+
+        return strtolower($name);
     }
 
     private function validateData(Request $request)
