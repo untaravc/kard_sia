@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\CalculatesAttendance;
+use App\Models\Activity;
+use App\Models\ActivityStudent;
+use App\Models\Presence;
 use App\Models\Stase;
 use App\Models\StaseLog;
 use App\Models\StaseTask;
 use App\Models\StaseTaskLog;
 use App\Models\Student;
+use App\Models\StudentLog;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class StudentMonitoringController extends Controller
@@ -169,6 +174,423 @@ class StudentMonitoringController extends Controller
         ];
     }
 
+    /**
+     * Per-student daily logbook counts over a date range, for the monitoring
+     * calendar table (columns = dates, cell = count of student_logs that day).
+     */
+    public function logbook(Request $request)
+    {
+        $dateTo = $request->filled('date_to') ? Carbon::parse($request->date_to) : Carbon::today();
+        $dateFrom = $request->filled('date_from') ? Carbon::parse($request->date_from) : $dateTo->copy()->subDays(29);
+
+        $studentQuery = Student::query()->orderBy('name');
+        $studentQuery = $this->withFilter($studentQuery, $request);
+
+        $students = $studentQuery->paginate($request->get('per_page', 10));
+
+        $studentIds = collect($students->items())->pluck('id')->all();
+
+        $logs = StudentLog::whereIn('student_id', $studentIds)
+            ->whereDate('date', '>=', $dateFrom->toDateString())
+            ->whereDate('date', '<=', $dateTo->toDateString())
+            ->get(['id', 'student_id', 'date']);
+
+        $logsByStudentDate = $logs->groupBy(function ($log) {
+            return $log->student_id . '_' . substr($log->date, 0, 10);
+        });
+
+        $dates = [];
+        $cursor = $dateFrom->copy();
+        while ($cursor->lte($dateTo)) {
+            $dates[] = $cursor->toDateString();
+            $cursor->addDay();
+        }
+
+        // Denominator for the "sufficient logging" label: weekdays in range.
+        $weekdays = $this->countWeekdays($dateFrom->toDateString(), $dateTo->toDateString());
+
+        $students->getCollection()->transform(function ($student) use ($dates, $logsByStudentDate, $weekdays) {
+            $cells = [];
+            $totalLogbook = 0;
+            foreach ($dates as $date) {
+                $count = $logsByStudentDate->get($student->id . '_' . $date, collect())->count();
+                $cells[$date] = $count;
+                $totalLogbook += $count;
+            }
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'year' => $student->year,
+                'cells' => $cells,
+                'total_logbook' => $totalLogbook,
+                'weekdays' => $weekdays,
+                'sufficient' => $totalLogbook >= $weekdays,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Monitoring Logbook Success',
+            'result' => $students,
+            'dates' => $dates,
+            'weekdays' => $weekdays,
+            'date_from' => $dateFrom->toDateString(),
+            'date_to' => $dateTo->toDateString(),
+        ]);
+    }
+
+    /**
+     * Student summary for the logbook monitoring modal: identity, current
+     * (or most recent) stase, and logbook count over the same date range
+     * used by logbook(). Backs the "Kirim notifikasi Email" action.
+     */
+    public function summary(Request $request)
+    {
+        $student = Student::find($request->student_id);
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $dateTo = $request->filled('date_to') ? Carbon::parse($request->date_to) : Carbon::today();
+        $dateFrom = $request->filled('date_from') ? Carbon::parse($request->date_from) : $dateTo->copy()->subDays(29);
+
+        $staseLogs = StaseLog::where('student_id', $student->id)
+            ->get(['stase_id', 'start_date', 'end_date']);
+
+        $staseId = $this->currentStaseId($staseLogs);
+        if (!$staseId) {
+            $latest = $staseLogs->sortByDesc('start_date')->first();
+            $staseId = $latest ? $latest->stase_id : null;
+        }
+
+        $stase = $staseId ? Stase::find($staseId, ['id', 'name', 'alias']) : null;
+
+        $logbookCount = StudentLog::where('student_id', $student->id)
+            ->whereDate('date', '>=', $dateFrom->toDateString())
+            ->whereDate('date', '<=', $dateTo->toDateString())
+            ->count();
+
+        $weekdays = $this->countWeekdays($dateFrom->toDateString(), $dateTo->toDateString());
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Logbook Summary Success',
+            'result' => [
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'year' => $student->year,
+                    'email' => $student->email,
+                    'phone' => optional($student->studentProfile)->phone,
+                ],
+                'stase' => $stase ? [
+                    'id' => $stase->id,
+                    'name' => $stase->name,
+                    'alias' => $stase->alias,
+                ] : null,
+                'logbook_count' => $logbookCount,
+                'weekdays' => $weekdays,
+                'sufficient' => $logbookCount >= $weekdays,
+                'date_from' => $dateFrom->toDateString(),
+                'date_to' => $dateTo->toDateString(),
+            ],
+        ]);
+    }
+
+    /**
+     * Per-student daily presence + activity attendance, for the monitoring
+     * calendar table (columns = dates). A cell is green when the student both
+     * checked in and attended at least one of that day's activities, yellow
+     * when only one of the two happened, grey when neither did.
+     */
+    public function presence(Request $request)
+    {
+        $dateTo = $request->filled('date_to') ? Carbon::parse($request->date_to) : Carbon::today();
+        $dateFrom = $request->filled('date_from') ? Carbon::parse($request->date_from) : $dateTo->copy()->subDays(29);
+
+        $studentQuery = Student::query()->orderBy('name');
+        $studentQuery = $this->withFilter($studentQuery, $request);
+
+        $students = $studentQuery->paginate($request->get('per_page', 10));
+        $studentIds = collect($students->items())->pluck('id')->all();
+
+        $dates = [];
+        $cursor = $dateFrom->copy();
+        while ($cursor->lte($dateTo)) {
+            $dates[] = $cursor->toDateString();
+            $cursor->addDay();
+        }
+
+        $activityIdsByDate = $this->activityIdsByDate($dateFrom, $dateTo);
+        $allActivityIds = collect($activityIdsByDate)->flatten()->unique()->values()->all();
+
+        $attendedByStudent = ActivityStudent::whereIn('student_id', $studentIds)
+            ->whereIn('activity_id', $allActivityIds)
+            ->get(['student_id', 'activity_id'])
+            ->groupBy('student_id')
+            ->map(function ($rows) {
+                return $rows->pluck('activity_id')->unique()->all();
+            });
+
+        $presenceDatesByStudent = Presence::whereIn('student_id', $studentIds)
+            ->whereDate('checkin', '>=', $dateFrom->toDateString())
+            ->whereDate('checkin', '<=', $dateTo->toDateString())
+            ->get(['student_id', 'checkin'])
+            ->groupBy('student_id')
+            ->map(function ($rows) {
+                return $rows->map(function ($row) {
+                    return substr($row->checkin, 0, 10);
+                })->unique()->all();
+            });
+
+        $weekdays = $this->countWeekdays($dateFrom->toDateString(), $dateTo->toDateString());
+
+        $students->getCollection()->transform(function ($student) use ($dates, $activityIdsByDate, $attendedByStudent, $presenceDatesByStudent, $weekdays) {
+            $presenceDates = $presenceDatesByStudent->get($student->id, []);
+            $attendedIds = $attendedByStudent->get($student->id, []);
+
+            $cells = [];
+            $presenceCount = 0;
+            $activityStudentTotal = 0;
+            $activityTotal = 0;
+
+            foreach ($dates as $date) {
+                $dayActivityIds = $activityIdsByDate[$date] ?? [];
+                $dayTotal = count($dayActivityIds);
+                $dayAttended = count(array_intersect($dayActivityIds, $attendedIds));
+                $hasPresence = in_array($date, $presenceDates, true);
+                $hasActivity = $dayAttended > 0;
+
+                $status = 'gray';
+                if ($hasPresence && $hasActivity) {
+                    $status = 'green';
+                } elseif ($hasPresence || $hasActivity) {
+                    $status = 'yellow';
+                }
+
+                $cells[$date] = [
+                    'presence' => $hasPresence,
+                    'activity_done' => $dayAttended,
+                    'activity_total' => $dayTotal,
+                    'status' => $status,
+                ];
+
+                if ($hasPresence) {
+                    $presenceCount++;
+                }
+                $activityStudentTotal += $dayAttended;
+                $activityTotal += $dayTotal;
+            }
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'year' => $student->year,
+                'cells' => $cells,
+                'presence_count' => $presenceCount,
+                'weekdays' => $weekdays,
+                'activity_student_total' => $activityStudentTotal,
+                'activity_total' => $activityTotal,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Monitoring Presence Success',
+            'result' => $students,
+            'dates' => $dates,
+            'weekdays' => $weekdays,
+            'date_from' => $dateFrom->toDateString(),
+            'date_to' => $dateTo->toDateString(),
+        ]);
+    }
+
+    /**
+     * Presence + activity detail for one student on one day, for the
+     * monitoring calendar's cell-click modal.
+     */
+    public function presenceDetail(Request $request)
+    {
+        $student = Student::find($request->student_id);
+        $date = $request->date;
+
+        if (!$student || !$date) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student or date not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $presence = Presence::where('student_id', $student->id)
+            ->whereDate('checkin', $date)
+            ->first(['checkin', 'checkout', 'status']);
+
+        $activities = Activity::whereDate('start_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereDate('end_date', '>=', $date)
+                    ->orWhere(function ($subQuery) use ($date) {
+                        $subQuery->whereNull('end_date')->whereDate('start_date', $date);
+                    });
+            })
+            ->orderBy('start_date')
+            ->get(['id', 'name', 'title', 'start_date', 'end_date']);
+
+        $attended = ActivityStudent::where('student_id', $student->id)
+            ->whereIn('activity_id', $activities->pluck('id')->all())
+            ->get(['activity_id', 'note', 'desc'])
+            ->keyBy('activity_id');
+
+        $activityList = $activities->map(function ($activity) use ($attended) {
+            $entry = $attended->get($activity->id);
+
+            return [
+                'id' => $activity->id,
+                'name' => $activity->name ?: $activity->title,
+                'start_date' => $activity->start_date,
+                'end_date' => $activity->end_date,
+                'attended' => (bool) $entry,
+                'note' => $entry ? $entry->note : null,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Presence Detail Success',
+            'result' => [
+                'student' => ['id' => $student->id, 'name' => $student->name],
+                'date' => $date,
+                'presence' => $presence,
+                'activities' => $activityList,
+            ],
+        ]);
+    }
+
+    /**
+     * Student summary for the presence monitoring modal: identity, current
+     * (or most recent) stase, and presence/activity totals over the same
+     * date range used by presence(). Backs the reminder email/WhatsApp action.
+     */
+    public function presenceSummary(Request $request)
+    {
+        $student = Student::find($request->student_id);
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $dateTo = $request->filled('date_to') ? Carbon::parse($request->date_to) : Carbon::today();
+        $dateFrom = $request->filled('date_from') ? Carbon::parse($request->date_from) : $dateTo->copy()->subDays(29);
+
+        $staseLogs = StaseLog::where('student_id', $student->id)
+            ->get(['stase_id', 'start_date', 'end_date']);
+
+        $staseId = $this->currentStaseId($staseLogs);
+        if (!$staseId) {
+            $latest = $staseLogs->sortByDesc('start_date')->first();
+            $staseId = $latest ? $latest->stase_id : null;
+        }
+
+        $stase = $staseId ? Stase::find($staseId, ['id', 'name', 'alias']) : null;
+
+        $presenceCount = Presence::where('student_id', $student->id)
+            ->whereDate('checkin', '>=', $dateFrom->toDateString())
+            ->whereDate('checkin', '<=', $dateTo->toDateString())
+            ->pluck('checkin')
+            ->map(function ($checkin) {
+                return substr($checkin, 0, 10);
+            })
+            ->unique()
+            ->count();
+
+        $weekdays = $this->countWeekdays($dateFrom->toDateString(), $dateTo->toDateString());
+
+        $activityIdsByDate = $this->activityIdsByDate($dateFrom, $dateTo);
+        $allActivityIds = collect($activityIdsByDate)->flatten()->unique()->values()->all();
+
+        $attendedIds = ActivityStudent::where('student_id', $student->id)
+            ->whereIn('activity_id', $allActivityIds)
+            ->pluck('activity_id')
+            ->unique()
+            ->all();
+
+        $activityStudentTotal = 0;
+        $activityTotal = 0;
+        foreach ($activityIdsByDate as $dayActivityIds) {
+            $activityTotal += count($dayActivityIds);
+            $activityStudentTotal += count(array_intersect($dayActivityIds, $attendedIds));
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Presence Summary Success',
+            'result' => [
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'year' => $student->year,
+                    'email' => $student->email,
+                    'phone' => optional($student->studentProfile)->phone,
+                ],
+                'stase' => $stase ? [
+                    'id' => $stase->id,
+                    'name' => $stase->name,
+                    'alias' => $stase->alias,
+                ] : null,
+                'presence_count' => $presenceCount,
+                'weekdays' => $weekdays,
+                'activity_student_total' => $activityStudentTotal,
+                'activity_total' => $activityTotal,
+                'date_from' => $dateFrom->toDateString(),
+                'date_to' => $dateTo->toDateString(),
+            ],
+        ]);
+    }
+
+    /**
+     * Activity ids that fall on each day of [dateFrom, dateTo], keyed by
+     * 'Y-m-d'. A null end_date is treated as a single-day event on
+     * start_date; multi-day activities appear under every day they span.
+     */
+    private function activityIdsByDate(Carbon $dateFrom, Carbon $dateTo)
+    {
+        $activities = Activity::whereDate('start_date', '<=', $dateTo->toDateString())
+            ->where(function ($query) use ($dateFrom) {
+                $query->whereDate('end_date', '>=', $dateFrom->toDateString())
+                    ->orWhereNull('end_date');
+            })
+            ->get(['id', 'start_date', 'end_date']);
+
+        $byDate = [];
+        foreach ($activities as $activity) {
+            $start = substr($activity->start_date, 0, 10);
+            $end = $activity->end_date ? substr($activity->end_date, 0, 10) : $start;
+            $start = max($start, $dateFrom->toDateString());
+            $end = min($end, $dateTo->toDateString());
+
+            if ($start > $end) {
+                continue;
+            }
+
+            $cursor = Carbon::parse($start);
+            $endCursor = Carbon::parse($end);
+            while ($cursor->lte($endCursor)) {
+                $byDate[$cursor->toDateString()][] = $activity->id;
+                $cursor->addDay();
+            }
+        }
+
+        return $byDate;
+    }
+
     public function detail(Request $request)
     {
         $studentId = $request->student_id;
@@ -236,7 +658,12 @@ class StudentMonitoringController extends Controller
             'success' => true,
             'text' => 'Retrieve Student Monitoring Detail Success',
             'result' => [
-                'student' => ['id' => $student->id, 'name' => $student->name, 'year' => $student->year],
+                'student' => [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'year' => $student->year,
+                    'phone' => optional($student->studentProfile)->phone,
+                ],
                 'stase' => ['id' => $stase->id, 'name' => $stase->name, 'alias' => $stase->alias],
                 'attendance' => $attendance,
                 'stase_log' => $staseLog ? [

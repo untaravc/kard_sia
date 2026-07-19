@@ -3,7 +3,7 @@
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Student Management</div>
-                <h1 class="text-2xl font-semibold text-ink">Monitoring</h1>
+                <h1 class="text-2xl font-semibold text-ink">Monitoring Logbook</h1>
             </div>
         </header>
 
@@ -19,7 +19,7 @@
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
-                <div class="flex-1 min-w-[180px]">
+                <div class="min-w-[160px]">
                     <label class="text-xs text-muted">Status</label>
                     <select
                         v-model="filters.status"
@@ -31,21 +31,7 @@
                         <option value="nonactive">Nonactive</option>
                     </select>
                 </div>
-                <div class="flex-1 min-w-[180px]">
-                    <label class="text-xs text-muted">Phase</label>
-                    <select
-                        v-model="filters.stase_desc"
-                        @change="applyFilter"
-                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option value="">All</option>
-                        <option value="tahap_1">Tahap 1</option>
-                        <option value="tahap_2">Tahap 2</option>
-                        <option value="tahap_3">Tahap 3</option>
-                        <option value="referat">Referat</option>
-                    </select>
-                </div>
-                <div class="flex-1 min-w-[180px]">
+                <div class="min-w-[160px]">
                     <label class="text-xs text-muted">Year</label>
                     <select
                         v-model="filters.year"
@@ -57,6 +43,22 @@
                             {{ year }}
                         </option>
                     </select>
+                </div>
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">From</label>
+                    <input
+                        v-model="filters.date_from"
+                        type="date"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </div>
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">To</label>
+                    <input
+                        v-model="filters.date_to"
+                        type="date"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
                 </div>
                 <div class="flex items-end gap-2">
                     <button
@@ -76,41 +78,17 @@
                 </div>
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted">
-                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Complete</span>
-                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span> In progress (≥ 50%)</span>
-                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-rose-500"></span> Behind (&lt; 50%)</span>
-                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span> No task</span>
-                <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded ring-2 ring-primary ring-inset"></span> Current stase</span>
-            </div>
-        </section>
-
-        <section class="rounded-2xl border border-border bg-panel p-5">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <div class="text-xs uppercase tracking-[0.2em] text-muted">Overall Fulfilment</div>
-                    <div class="mt-1 text-3xl font-semibold text-ink">
-                        {{ overall.percentage !== null ? overall.percentage + '%' : '—' }}
-                    </div>
-                    <div class="mt-1 text-xs text-muted">
-                        {{ overall.done }}/{{ overall.total }} tasks across {{ overall.students }} student(s) · taken stases only
-                    </div>
-                </div>
-                <div class="w-full sm:w-72">
-                    <div class="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                        <div
-                            class="h-full rounded-full transition-all"
-                            :class="fulfilmentBarClass(overall.percentage)"
-                            :style="{ width: (overall.percentage || 0) + '%' }"
-                        ></div>
-                    </div>
-                </div>
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Has logbook (count shown)</span>
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span> No logbook</span>
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Logbook total ≥ weekdays in range</span>
+                <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span> Logbook total &lt; weekdays in range</span>
             </div>
         </section>
 
         <section class="relative min-w-0 overflow-hidden rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Student Monitoring</div>
+                <div class="font-semibold">Student Logbook Calendar</div>
                 <div class="text-xs text-muted" v-if="pagination.total">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -120,22 +98,35 @@
                 <table class="w-full border-collapse text-sm">
                     <thead>
                         <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
-                            <th class="sticky left-0 z-30 w-14 bg-panel px-3 py-3">#</th>
-                            <th class="sticky left-14 z-30 min-w-[160px] bg-panel px-3 py-3">Name</th>
-                            <th class="min-w-[110px] px-4 py-3 text-center">Fulfilment</th>
+                            <th class="sticky left-0 z-30 w-14 bg-panel px-3 py-2"></th>
+                            <th class="sticky left-14 z-30 min-w-[160px] bg-panel px-3 py-2"></th>
+                            <th class="sticky left-[216px] z-30 min-w-[110px] bg-panel px-3 py-2"></th>
                             <th
-                                v-for="stase in stases"
-                                :key="stase.id"
-                                class="min-w-[84px] px-4 py-3 text-center"
-                                :title="stase.name"
+                                v-for="group in monthGroups"
+                                :key="group.label"
+                                class="px-2 py-2 text-center"
+                                :colspan="group.dates.length"
                             >
-                                {{ stase.alias || stase.name }}
+                                {{ group.label }}
+                            </th>
+                        </tr>
+                        <tr class="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
+                            <th class="sticky left-0 z-30 w-14 bg-panel px-3 py-3">No</th>
+                            <th class="sticky left-14 z-30 min-w-[160px] bg-panel px-3 py-3">Name</th>
+                            <th class="sticky left-[216px] z-30 min-w-[110px] bg-panel px-3 py-3 text-center">Logbook</th>
+                            <th
+                                v-for="date in dates"
+                                :key="date"
+                                class="min-w-[36px] px-1 py-3 text-center"
+                                :class="isToday(date) ? 'text-primary font-semibold' : ''"
+                            >
+                                {{ dayOfMonth(date) }}
                             </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
                         <tr v-if="!loading && rows.length === 0">
-                            <td :colspan="stases.length + 3" class="px-5 py-6 text-sm text-muted">
+                            <td :colspan="dates.length + 3" class="px-5 py-6 text-sm text-muted">
                                 No students found.
                             </td>
                         </tr>
@@ -147,35 +138,33 @@
                                 <div class="font-semibold text-ink">{{ row.name }}</div>
                                 <div v-if="row.year" class="text-xs text-muted">Year: {{ row.year }}</div>
                             </td>
-                            <td class="px-4 py-3 text-center group-hover:bg-slate-50">
-                                <span
-                                    v-if="row.fulfilment !== null && row.fulfilment !== undefined"
-                                    class="inline-flex min-w-[44px] justify-center rounded-full px-2 py-1 text-xs font-semibold"
-                                    :class="fulfilmentClass(row.fulfilment)"
+                            <td class="sticky left-[216px] z-20 min-w-[110px] bg-panel px-3 py-3 text-center group-hover:bg-slate-50">
+                                <button
+                                    type="button"
+                                    class="inline-flex min-w-[64px] justify-center rounded-full px-2.5 py-1 text-xs font-semibold"
+                                    :class="row.sufficient ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'"
+                                    @click="openSummary(row)"
                                 >
-                                    {{ row.fulfilment }}%
-                                </span>
-                                <span v-else class="text-xs text-muted">&mdash;</span>
+                                    {{ row.total_logbook || 0 }} / {{ row.weekdays || 0 }}
+                                </button>
                             </td>
                             <td
-                                v-for="stase in stases"
-                                :key="stase.id"
-                                class="px-4 py-3 text-center group-hover:bg-slate-50"
+                                v-for="date in dates"
+                                :key="date"
+                                class="px-1 py-3 text-center group-hover:bg-slate-50"
                             >
                                 <button
                                     type="button"
-                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-medium transition-colors"
-                                    :class="[
-                                        cellTextClass(cell(row, stase.id)),
-                                        cell(row, stase.id).total > 0 ? 'cursor-pointer hover:bg-slate-100' : 'cursor-default',
-                                        cell(row, stase.id).ongoing ? 'bg-primary/10 ring-2 ring-primary ring-inset' : '',
-                                    ]"
-                                    :disabled="cell(row, stase.id).total === 0"
-                                    :title="cell(row, stase.id).ongoing ? 'Current stase' : ''"
-                                    @click="openDetail(row, stase)"
+                                    class="inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-medium transition-colors"
+                                    :class="cellCount(row, date) > 0 ? 'cursor-pointer text-emerald-600 hover:bg-emerald-50' : 'cursor-default text-slate-400'"
+                                    :disabled="cellCount(row, date) === 0"
+                                    @click="openDetail(row, date)"
                                 >
-                                    <span class="h-2.5 w-2.5 rounded-full" :class="cellDotClass(cell(row, stase.id))"></span>
-                                    {{ cell(row, stase.id).done }}/{{ cell(row, stase.id).total }}
+                                    <span
+                                        class="h-2.5 w-2.5 rounded-full"
+                                        :class="cellCount(row, date) > 0 ? 'bg-emerald-500' : 'bg-slate-300'"
+                                    ></span>
+                                    <span v-if="cellCount(row, date) > 0">{{ cellCount(row, date) }}</span>
                                 </button>
                             </td>
                         </tr>
@@ -207,88 +196,88 @@
         <Modal
             :open="detailModalOpen"
             :title="detailTitle"
-            eyebrow="Task detail"
-            size="md"
+            eyebrow="Logbook entries"
+            size="lg"
             @close="closeDetail"
         >
             <div class="relative min-h-[120px]">
                 <Loading :active="detailLoading" :is-full-page="false" />
 
-                <div v-if="detail" class="grid gap-4">
-                    <div class="flex items-center justify-between rounded-xl border border-border bg-slate-50 px-4 py-3 text-sm">
-                        <span class="text-muted">{{ detail.student.name }}</span>
-                        <span class="font-semibold text-ink">
-                            {{ detail.summary.done }}/{{ detail.summary.total }} done
-                        </span>
-                    </div>
+                <div v-if="!detailLoading && detailLogs.length === 0" class="px-1 py-4 text-sm text-muted">
+                    No logbook entries found.
+                </div>
 
-                    <div
-                        v-if="detail.stase_log"
-                        class="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm"
+                <ul v-else class="grid gap-3">
+                    <li
+                        v-for="logbook in detailLogs"
+                        :key="logbook.id"
+                        class="rounded-xl border border-border px-4 py-3"
                     >
-                        <span class="text-muted">Period</span>
-                        <span class="font-medium text-ink">
-                            {{ formatDate(detail.stase_log.start_date) }} &ndash; {{ formatDate(detail.stase_log.end_date) }}
-                        </span>
-                    </div>
-
-                    <div
-                        v-if="detail.attendance"
-                        class="flex items-center justify-between rounded-xl border border-border px-4 py-3 text-sm"
-                    >
-                        <div>
-                            <span class="text-muted">Kehadiran</span>
-                            <div class="text-xs text-muted">
-                                {{ detail.attendance.present }}/{{ detail.attendance.working_days }} working days
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-semibold text-ink">
+                                {{ logbook.form_option_name || logbook.type || 'Logbook' }}
+                            </div>
+                            <span v-if="logbook.category" class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-muted">
+                                {{ logbook.category }}
+                            </span>
+                        </div>
+                        <div class="mt-1 text-xs text-muted">
+                            <span v-if="logbook.stase">{{ logbook.stase.name }}</span>
+                            <span v-if="logbook.lecture"> • Supervisor: {{ logbook.lecture.name }}</span>
+                        </div>
+                        <div class="mt-2 grid gap-1 text-sm text-ink">
+                            <div v-for="i in 6" :key="`field-${i}`" v-if="logbook[`field_${i}`]">
+                                {{ logbook[`field_${i}`] }}
                             </div>
                         </div>
+                    </li>
+                </ul>
+            </div>
+        </Modal>
+
+        <Modal
+            :open="summaryModalOpen"
+            title="Student Logbook Summary"
+            eyebrow="Logbook status"
+            size="md"
+            @close="closeSummary"
+        >
+            <div class="relative min-h-[160px]">
+                <Loading :active="summaryLoading" :is-full-page="false" />
+
+                <div v-if="summary" class="grid gap-4 text-sm">
+                    <div class="grid gap-1">
+                        <div class="text-xs text-muted">Name</div>
+                        <div class="font-semibold text-ink">{{ summary.student.name }}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="grid gap-1">
+                            <div class="text-xs text-muted">Year</div>
+                            <div class="font-medium text-ink">{{ summary.student.year || '-' }}</div>
+                        </div>
+                        <div class="grid gap-1">
+                            <div class="text-xs text-muted">Email</div>
+                            <div class="font-medium text-ink break-all">{{ summary.student.email || '-' }}</div>
+                        </div>
+                    </div>
+                    <div class="grid gap-1">
+                        <div class="text-xs text-muted">Current / Last Stase</div>
+                        <div class="font-medium text-ink">
+                            {{ summary.stase ? (summary.stase.alias || summary.stase.name) : 'No stase recorded' }}
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+                        <span class="text-muted">Logbook entries ({{ summary.date_from }} &ndash; {{ summary.date_to }})</span>
                         <span
                             class="rounded-full px-2.5 py-1 text-xs font-semibold"
-                            :class="fulfilmentClass(detail.attendance.percentage)"
+                            :class="summary.sufficient ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
                         >
-                            {{ detail.attendance.percentage }}%
+                            {{ summary.logbook_count }} / {{ summary.weekdays }}
                         </span>
                     </div>
 
-                    <div v-if="detail.tasks.length === 0" class="px-1 py-4 text-sm text-muted">
-                        No tasks configured for this stase.
-                    </div>
-
-                    <ul v-else class="divide-y divide-border rounded-xl border border-border">
-                        <li
-                            v-for="task in detail.tasks"
-                            :key="task.stase_task_id"
-                            class="flex items-center justify-between gap-3 px-4 py-3"
-                        >
-                            <div class="flex items-center gap-2.5">
-                                <span
-                                    class="grid h-6 w-6 place-items-center rounded-full text-xs font-bold"
-                                    :class="task.done ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'"
-                                >
-                                    {{ task.done ? '✓' : '•' }}
-                                </span>
-                                <div>
-                                    <div class="text-sm font-medium text-ink">{{ task.name }}</div>
-                                    <div v-if="task.done && task.date" class="text-xs text-muted">{{ task.date }}</div>
-                                </div>
-                            </div>
-                            <span
-                                v-if="task.done"
-                                class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600"
-                            >
-                                {{ task.point_average }}
-                            </span>
-                            <span
-                                v-else
-                                class="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-400"
-                            >
-                                Not yet
-                            </span>
-                        </li>
-                    </ul>
-
-                    <div v-if="reminderResult" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                        {{ reminderResult }}
+                    <div v-if="sendResult" class="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                        {{ sendResult }}
                     </div>
 
                     <div class="flex flex-wrap gap-2">
@@ -298,7 +287,7 @@
                             :disabled="previewLoading"
                             @click="openReminderPreview"
                         >
-                            {{ previewLoading ? 'Loading preview...' : 'Send Reminder Email' }}
+                            {{ previewLoading ? 'Memuat preview...' : 'Kirim notifikasi Email' }}
                         </button>
                         <button
                             class="rounded-xl border border-emerald-500 px-4 py-2 text-sm font-medium text-emerald-600 disabled:cursor-not-allowed disabled:border-border disabled:text-muted disabled:opacity-60"
@@ -334,8 +323,8 @@
                         class="h-[420px] w-full rounded-xl border border-border bg-white"
                     ></iframe>
 
-                    <div v-if="reminderError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
-                        {{ reminderError }}
+                    <div v-if="sendError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                        {{ sendError }}
                     </div>
 
                     <div class="flex items-center justify-end gap-2">
@@ -349,10 +338,10 @@
                         <button
                             class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                             type="button"
-                            :disabled="sendingReminder"
+                            :disabled="sending"
                             @click="sendReminderEmail"
                         >
-                            {{ sendingReminder ? 'Sending...' : 'Send Email' }}
+                            {{ sending ? 'Sending...' : 'Send Email' }}
                         </button>
                     </div>
                 </div>
@@ -367,7 +356,10 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
 
-const EMPTY_CELL = { done: 0, total: 0, status: 'empty' };
+const MONTH_LABELS = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+];
 
 // Normalizes a local Indonesian phone number into wa.me's expected format:
 // digits only, leading 0 replaced with the 62 country code.
@@ -397,55 +389,74 @@ export default {
     },
     data() {
         return {
-            baseUrl: '/api/student-monitoring',
+            baseUrl: '/api/student-monitoring-logbook',
             rows: [],
-            stases: [],
-            overall: { percentage: null, done: 0, total: 0, students: 0 },
+            dates: [],
             pagination: {},
             filters: {
                 name: '',
                 status: 'active',
-                stase_desc: '',
                 year: '',
+                date_from: '',
+                date_to: '',
                 page: 1,
             },
             loading: false,
             yearOptions: [],
             detailModalOpen: false,
             detailLoading: false,
-            detail: null,
-            sendingReminder: false,
-            reminderResult: '',
-            reminderError: '',
+            detailLogs: [],
+            detailStudent: null,
+            detailDate: null,
+            summaryModalOpen: false,
+            summaryLoading: false,
+            summary: null,
+            sending: false,
+            sendResult: '',
+            sendError: '',
             previewModalOpen: false,
             previewLoading: false,
             preview: null,
         };
     },
     computed: {
+        monthGroups() {
+            const groups = [];
+            this.dates.forEach((date) => {
+                const monthKey = date.slice(0, 7);
+                const last = groups[groups.length - 1];
+                if (last && last.key === monthKey) {
+                    last.dates.push(date);
+                    return;
+                }
+                const [year, month] = date.split('-');
+                groups.push({
+                    key: monthKey,
+                    label: `${MONTH_LABELS[Number(month) - 1]} ${year}`,
+                    dates: [date],
+                });
+            });
+            return groups;
+        },
         detailTitle() {
-            if (!this.detail) {
-                return 'Task Detail';
+            if (!this.detailStudent || !this.detailDate) {
+                return 'Logbook Detail';
             }
-            const stase = this.detail.stase;
-            return stase.alias || stase.name || 'Task Detail';
+            return `${this.detailStudent.name} — ${this.detailDate}`;
         },
         waPhoneDigits() {
-            if (!this.detail || !this.detail.student) {
+            if (!this.summary || !this.summary.student) {
                 return '';
             }
-            return maskPhoneForWa(this.detail.student.phone);
+            return maskPhoneForWa(this.summary.student.phone);
         },
         waMessage() {
-            if (!this.detail) {
+            if (!this.summary) {
                 return '';
             }
-            const staseName = this.detail.stase ? (this.detail.stase.alias || this.detail.stase.name) : '';
-            const done = this.detail.summary ? this.detail.summary.done : 0;
-            const total = this.detail.summary ? this.detail.summary.total : 0;
-
-            return `Halo ${this.detail.student.name}, kami informasikan bahwa tugas Anda pada stase ${staseName} `
-                + `masih ${done}/${total} yang terselesaikan. Mohon segera dilengkapi ya. Terima kasih.`;
+            return `Halo ${this.summary.student.name}, kami informasikan bahwa pencatatan logbook Anda dalam periode `
+                + `${this.summary.date_from} s/d ${this.summary.date_to} baru ${this.summary.logbook_count}/${this.summary.weekdays} hari kerja. `
+                + `Mohon segera dilengkapi ya. Terima kasih.`;
         },
     },
     created() {
@@ -483,58 +494,46 @@ export default {
 
                     this.rows = Array.isArray(result.data) ? result.data : [];
                     this.pagination = result || {};
-                    this.stases = Array.isArray(payload.stases) ? payload.stases : [];
-                    this.overall = payload.overall || { percentage: null, done: 0, total: 0, students: 0 };
+                    this.dates = Array.isArray(payload.dates) ? payload.dates : [];
                 })
                 .catch(() => {
                     this.rows = [];
                     this.pagination = {};
-                    this.overall = { percentage: null, done: 0, total: 0, students: 0 };
+                    this.dates = [];
                 })
                 .finally(() => {
                     this.loading = false;
                 });
         },
-        cell(row, staseId) {
-            if (row && row.cells && row.cells[staseId]) {
-                return row.cells[staseId];
-            }
-            return EMPTY_CELL;
+        cellCount(row, date) {
+            return (row && row.cells && row.cells[date]) || 0;
         },
-        formatDate(value) {
-            if (!value) {
-                return '-';
-            }
-            const date = new Date(String(value).replace(' ', 'T'));
-            if (Number.isNaN(date.getTime())) {
-                return String(value).slice(0, 10);
-            }
-            return date.toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-            });
+        dayOfMonth(date) {
+            return Number(date.slice(8, 10));
         },
-        openDetail(row, stase) {
-            if (this.cell(row, stase.id).total === 0) {
+        isToday(date) {
+            return date === new Date().toISOString().slice(0, 10);
+        },
+        openDetail(row, date) {
+            if (this.cellCount(row, date) === 0) {
                 return;
             }
 
-            this.detail = null;
+            this.detailStudent = row;
+            this.detailDate = date;
+            this.detailLogs = [];
             this.detailLoading = true;
             this.detailModalOpen = true;
-            this.reminderResult = '';
-            this.reminderError = '';
 
-            Repository.get('/api/student-monitoring-detail', {
-                params: { student_id: row.id, stase_id: stase.id },
+            Repository.get('/api/logbooks', {
+                params: { student_id: row.id, date, per_page: 50 },
             })
                 .then((response) => {
-                    this.detail = response && response.data ? response.data.result : null;
+                    const result = response && response.data ? response.data.result : null;
+                    this.detailLogs = result && Array.isArray(result.data) ? result.data : [];
                 })
                 .catch(() => {
-                    this.detail = null;
-                    this.closeDetail();
+                    this.detailLogs = [];
                 })
                 .finally(() => {
                     this.detailLoading = false;
@@ -542,34 +541,66 @@ export default {
         },
         closeDetail() {
             this.detailModalOpen = false;
-            this.detail = null;
-            this.reminderResult = '';
-            this.reminderError = '';
+            this.detailLogs = [];
+            this.detailStudent = null;
+            this.detailDate = null;
+        },
+        openSummary(row) {
+            this.summary = null;
+            this.sendResult = '';
+            this.sendError = '';
+            this.summaryLoading = true;
+            this.summaryModalOpen = true;
+
+            Repository.get('/api/student-monitoring-logbook-summary', {
+                params: {
+                    student_id: row.id,
+                    date_from: this.filters.date_from,
+                    date_to: this.filters.date_to,
+                },
+            })
+                .then((response) => {
+                    this.summary = response && response.data ? response.data.result : null;
+                })
+                .catch(() => {
+                    this.summary = null;
+                    this.closeSummary();
+                })
+                .finally(() => {
+                    this.summaryLoading = false;
+                });
+        },
+        closeSummary() {
+            this.summaryModalOpen = false;
+            this.summary = null;
+            this.sendResult = '';
+            this.sendError = '';
             this.closePreview();
         },
         openReminderPreview() {
-            if (!this.detail) {
+            if (!this.summary) {
                 return;
             }
 
             this.preview = null;
             this.previewLoading = true;
-            this.reminderError = '';
+            this.sendError = '';
             this.previewModalOpen = true;
 
-            Repository.get('/api/notification/insufficient-score/preview', {
+            Repository.get('/api/notification/insufficient-logbook/preview', {
                 params: {
-                    student_id: this.detail.student.id,
-                    stase_id: this.detail.stase.id,
+                    student_id: this.summary.student.id,
+                    date_from: this.summary.date_from,
+                    date_to: this.summary.date_to,
                 },
             })
                 .then((response) => {
                     this.preview = response && response.data ? response.data.result : null;
                 })
                 .catch((error) => {
-                    this.reminderError = error && error.response && error.response.data
+                    this.sendError = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to load email preview.';
+                        : 'Gagal memuat preview email.';
                     this.closePreview();
                 })
                 .finally(() => {
@@ -581,30 +612,31 @@ export default {
             this.preview = null;
         },
         sendReminderEmail() {
-            if (!this.detail) {
+            if (!this.summary) {
                 return;
             }
 
-            this.sendingReminder = true;
-            this.reminderResult = '';
-            this.reminderError = '';
+            this.sending = true;
+            this.sendResult = '';
+            this.sendError = '';
 
-            Repository.post('/api/notification/insufficient-score', {
-                student_id: this.detail.student.id,
-                stase_id: this.detail.stase.id,
+            Repository.post('/api/notification/insufficient-logbook', {
+                student_id: this.summary.student.id,
+                date_from: this.summary.date_from,
+                date_to: this.summary.date_to,
             })
                 .then(() => {
                     this.closePreview();
-                    this.reminderResult = 'Reminder email sent successfully.';
+                    this.sendResult = 'Email pengingat berhasil dikirim.';
                     this.$showToast('Reminder email sent.');
                 })
                 .catch((error) => {
-                    this.reminderError = error && error.response && error.response.data
+                    this.sendError = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to send reminder email.';
+                        : 'Gagal mengirim email pengingat.';
                 })
                 .finally(() => {
-                    this.sendingReminder = false;
+                    this.sending = false;
                 });
         },
         sendWhatsapp() {
@@ -615,40 +647,6 @@ export default {
             const link = `https://wa.me/${this.waPhoneDigits}?text=${encodeURIComponent(this.waMessage)}`;
             window.open(link, '_blank');
         },
-        cellDotClass(cell) {
-            const map = {
-                green: 'bg-emerald-500',
-                yellow: 'bg-amber-400',
-                red: 'bg-rose-500',
-            };
-            return map[cell.status] || 'bg-slate-300';
-        },
-        cellTextClass(cell) {
-            const map = {
-                green: 'text-emerald-600',
-                yellow: 'text-amber-600',
-                red: 'text-rose-600',
-            };
-            return map[cell.status] || 'text-slate-400';
-        },
-        fulfilmentClass(value) {
-            if (value >= 100) {
-                return 'bg-emerald-100 text-emerald-700';
-            }
-            if (value >= 50) {
-                return 'bg-amber-100 text-amber-700';
-            }
-            return 'bg-rose-100 text-rose-700';
-        },
-        fulfilmentBarClass(value) {
-            if (value >= 100) {
-                return 'bg-emerald-500';
-            }
-            if (value >= 50) {
-                return 'bg-amber-400';
-            }
-            return 'bg-rose-500';
-        },
         applyFilter() {
             this.filters.page = 1;
             this.fetchData();
@@ -656,8 +654,9 @@ export default {
         resetFilter() {
             this.filters.name = '';
             this.filters.status = 'active';
-            this.filters.stase_desc = '';
             this.filters.year = '';
+            this.filters.date_from = '';
+            this.filters.date_to = '';
             this.filters.page = 1;
             this.fetchData();
         },

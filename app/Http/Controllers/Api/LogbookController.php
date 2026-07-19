@@ -304,6 +304,10 @@ class LogbookController extends Controller
             $dataContent = $dataContent->where('student_logs.type', $request->type);
         }
 
+        if ($request->date != null) {
+            $dataContent = $dataContent->whereDate('student_logs.date', $request->date);
+        }
+
         if ($request->keyword != null) {
             $dataContent = $dataContent->where(function ($q) use ($request) {
                 $q->where('student_logs.field_1', 'LIKE', '%' . $request->keyword . '%');

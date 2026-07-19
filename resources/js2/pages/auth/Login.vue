@@ -55,6 +55,26 @@
                                 <input type="password" placeholder="Enter your password" v-model="form.password"
                                     class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                             </label>
+                            <div v-if="isDemo" class="grid gap-2">
+                                <span class="text-xs text-muted">Demo accounts</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <button type="button"
+                                        class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted hover:bg-slate-50"
+                                        :disabled="loading" @click="loginAsDemo('admin')">
+                                        Admin
+                                    </button>
+                                    <button type="button"
+                                        class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted hover:bg-slate-50"
+                                        :disabled="loading" @click="loginAsDemo('student')">
+                                        Student
+                                    </button>
+                                    <button type="button"
+                                        class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted hover:bg-slate-50"
+                                        :disabled="loading" @click="loginAsDemo('lecture')">
+                                        Lecture
+                                    </button>
+                                </div>
+                            </div>
                         </template>
                         <template v-else-if="loginMethod === 'email'">
                             <label class="grid gap-2 text-sm">
@@ -135,9 +155,37 @@ export default {
             loading: false,
             errorMessage: '',
             successMessage: '',
+            isDemo: false,
+            // Matches the fixed demo accounts seeded by UsersTableSeeder.
+            demoAccounts: {
+                admin: { email: 'admin@blu.test', password: 'password' },
+                student: { email: 'student@blu.test', password: 'password' },
+                lecture: { email: 'lecture@blu.test', password: 'password' },
+            },
         };
     },
     methods: {
+        fetchAppConfig() {
+            return Repository.get('/api/app-config')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.isDemo = !!result && result.env === 'demo';
+                })
+                .catch(() => {
+                    this.isDemo = false;
+                });
+        },
+        loginAsDemo(type) {
+            const account = this.demoAccounts[type];
+            if (!account) {
+                return;
+            }
+
+            this.loginMethod = 'password';
+            this.form.email = account.email;
+            this.form.password = account.password;
+            this.login();
+        },
         setLoginMethod(method) {
             this.loginMethod = method;
             this.errorMessage = '';
@@ -240,6 +288,8 @@ export default {
         },
     },
     mounted() {
+        this.fetchAppConfig();
+
         const token = this.$route && this.$route.query ? this.$route.query.token : null;
         const error = this.$route && this.$route.query ? this.$route.query.error : null;
 

@@ -28,6 +28,7 @@ Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('check-reset-password-token', [AuthController::class, 'checkResetPasswordToken']);
 Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordWithToken']);
 Route::get('firebase-config', [AuthController::class, 'firebaseConfig']);
+Route::get('app-config', [AuthController::class, 'appConfig']);
 Route::post('push-notifications', [\App\Http\Controllers\Api\NotificationController::class, 'pushNotif']);
 Route::get('cmd/clear-open-stase-task', [CmdController::class, 'celarOpenStaseTask']);
 Route::get('cmd/insert-accreditation', [\App\Http\Controllers\Api\AccreditationController::class, 'insertInitData']);
@@ -55,6 +56,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
 
     Route::resource('users', 'Api\UserController');
+    Route::resource('settings', 'Api\SettingController');
     Route::resource('form-options', 'Api\FormOptionController');
     Route::resource('stases', 'Api\StaseController');
     Route::get('stase-list', [\App\Http\Controllers\Api\StaseController::class, 'list']);
@@ -98,6 +100,11 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('students', 'Api\StudentController');
     Route::get('student-monitoring', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'index']);
     Route::get('student-monitoring-detail', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'detail']);
+    Route::get('student-monitoring-logbook', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'logbook']);
+    Route::get('student-monitoring-logbook-summary', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'summary']);
+    Route::get('student-monitoring-presence', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'presence']);
+    Route::get('student-monitoring-presence-detail', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'presenceDetail']);
+    Route::get('student-monitoring-presence-summary', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'presenceSummary']);
     Route::get('student-list', [\App\Http\Controllers\Api\StudentController::class, 'studentList']);
     Route::get('stase-logs', [\App\Http\Controllers\Api\StaseLogController::class, 'index']);
     Route::get('stase-log-check', [\App\Http\Controllers\Api\StaseLogController::class, 'staseLogCheck']);
@@ -123,6 +130,12 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('presences', [\App\Http\Controllers\Api\PresenceController::class, 'index']);
     Route::resource('device-tokens', 'Api\DeviceTokenController');
     Route::resource('notifications', 'Api\NotificationController');
+    Route::get('notification/insufficient-logbook/preview', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientLogbookPreview']);
+    Route::post('notification/insufficient-logbook', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientLogbook']);
+    Route::get('notification/insufficient-score/preview', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientScorePreview']);
+    Route::post('notification/insufficient-score', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientScore']);
+    Route::get('notification/insufficient-presence/preview', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientPresencePreview']);
+    Route::post('notification/insufficient-presence', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientPresence']);
     Route::patch('registrations/score-administration', [RegistrationController::class, 'setScoreAdministration']);
     Route::patch('registrations/score-administration-all', [RegistrationController::class, 'setScoreAdministrationAll']);
     Route::patch('registrations/{id}/status', [RegistrationController::class, 'updateStatus']);

@@ -215,6 +215,21 @@ class AuthController extends Controller
         return $this->response;
     }
 
+    /**
+     * Public app info the login page needs before authenticating, e.g.
+     * whether to show the one-click demo login buttons (APP_ENV=demo).
+     */
+    public function appConfig()
+    {
+        $this->response['success'] = true;
+        $this->response['text'] = 'Retrieve App Config Success';
+        $this->response['result'] = [
+            'env' => config('app.env'),
+        ];
+
+        return $this->response;
+    }
+
     public function checkAvailability(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');
