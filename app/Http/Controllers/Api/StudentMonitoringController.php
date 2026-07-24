@@ -56,7 +56,7 @@ class StudentMonitoringController extends Controller
         $taskLogs = StaseTaskLog::whereIn('student_id', $studentIds)
             ->where('point_average', '>', 0)
             ->whereNotNull('stase_task_id')
-            ->get(['student_id', 'stase_id', 'stase_task_id']);
+            ->get(['id','student_id', 'stase_id', 'stase_task_id']);
 
         // completed[student_id][stase_id] = set of distinct completed active task ids.
         $completed = [];
@@ -186,7 +186,7 @@ class StudentMonitoringController extends Controller
         $studentQuery = Student::query()->orderBy('name');
         $studentQuery = $this->withFilter($studentQuery, $request);
 
-        $students = $studentQuery->paginate($request->get('per_page', 10));
+        $students = $studentQuery->paginate($request->get('per_page', 14));
 
         $studentIds = collect($students->items())->pluck('id')->all();
 

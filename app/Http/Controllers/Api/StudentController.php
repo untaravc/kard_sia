@@ -155,11 +155,11 @@ class StudentController extends Controller
             ->whereIn('open_stase_tasks.stase_task_id', $staseTasks->pluck('id')->toArray())
             ->get();
 
-        $openStaseTasksByTask = $openStaseTasks->groupBy('task_id');
-        $staseTaskLogsByTask = $staseTaskLogs->groupBy('task_id');
+        $openStaseTasksByTask = $openStaseTasks->groupBy('stase_task_id');
+        $staseTaskLogsByTask = $staseTaskLogs->groupBy('stase_task_id');
 
         foreach ($staseTasks as $task) {
-            $taskId = $task->task_id;
+            $taskId = $task->id;
             $openTasks = $openStaseTasksByTask->get($taskId, collect())->values();
             $logs = $staseTaskLogsByTask->get($taskId, collect())->values();
 

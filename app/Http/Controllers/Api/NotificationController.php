@@ -8,6 +8,7 @@ use App\Models\Activity;
 use App\Models\ActivityStudent;
 use App\Models\DeviceToken;
 use App\Models\Lecture;
+use App\Models\MailLog;
 use App\Models\Notification;
 use App\Models\Presence;
 use App\Models\Stase;
@@ -227,8 +228,17 @@ class NotificationController extends Controller
         }
 
         $student = $data['student'];
+        $to = $this->notificationRecipient($student->email);
+        $subject = 'Pengingat Pengisian Logbook';
+        $template = 'mails.notifications.Insufficient_logbook';
 
-        Mail::send('mails.notifications.Insufficient_logbook', $data, function ($message) use ($student) {
+        $this->sendAndLogMail([
+            'name' => $student->name,
+            'email' => $to,
+            'origin' => config('mail.from.address') ?: env('MAIL_USERNAME'),
+            'title' => $subject,
+            'label' => 'insufficient_logbook',
+        ], $template, $data, function ($message) use ($student, $to, $subject) {
             $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
             $fromName = config('mail.from.name') ?: config('app.name');
 
@@ -236,8 +246,7 @@ class NotificationController extends Controller
                 $message->from($fromAddress, $fromName);
             }
 
-            $message->to($this->notificationRecipient($student->email), $student->name)
-                ->subject('Pengingat Pengisian Logbook');
+            $message->to($to, $student->name)->subject($subject);
         });
 
         return response()->json([
@@ -294,8 +303,17 @@ class NotificationController extends Controller
 
         $student = $data['student'];
         $stase = $data['stase'];
+        $to = $this->notificationRecipient($student->email);
+        $subject = 'Pengingat Penyelesaian Tugas Stase';
+        $template = 'mails.notifications.insufficient_score';
 
-        Mail::send('mails.notifications.insufficient_score', $data, function ($message) use ($student) {
+        $this->sendAndLogMail([
+            'name' => $student->name,
+            'email' => $to,
+            'origin' => config('mail.from.address') ?: env('MAIL_USERNAME'),
+            'title' => $subject,
+            'label' => 'insufficient_score',
+        ], $template, $data, function ($message) use ($student, $to, $subject) {
             $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
             $fromName = config('mail.from.name') ?: config('app.name');
 
@@ -303,8 +321,7 @@ class NotificationController extends Controller
                 $message->from($fromAddress, $fromName);
             }
 
-            $message->to($this->notificationRecipient($student->email), $student->name)
-                ->subject('Pengingat Penyelesaian Tugas Stase');
+            $message->to($to, $student->name)->subject($subject);
         });
 
         return response()->json([
@@ -441,8 +458,17 @@ class NotificationController extends Controller
         }
 
         $student = $data['student'];
+        $to = $this->notificationRecipient($student->email);
+        $subject = 'Pengingat Presensi dan Kehadiran Kegiatan';
+        $template = 'mails.notifications.insufficient_presence';
 
-        Mail::send('mails.notifications.insufficient_presence', $data, function ($message) use ($student) {
+        $this->sendAndLogMail([
+            'name' => $student->name,
+            'email' => $to,
+            'origin' => config('mail.from.address') ?: env('MAIL_USERNAME'),
+            'title' => $subject,
+            'label' => 'insufficient_presence',
+        ], $template, $data, function ($message) use ($student, $to, $subject) {
             $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
             $fromName = config('mail.from.name') ?: config('app.name');
 
@@ -450,8 +476,7 @@ class NotificationController extends Controller
                 $message->from($fromAddress, $fromName);
             }
 
-            $message->to($this->notificationRecipient($student->email), $student->name)
-                ->subject('Pengingat Presensi dan Kehadiran Kegiatan');
+            $message->to($to, $student->name)->subject($subject);
         });
 
         return response()->json([
@@ -564,6 +589,41 @@ class NotificationController extends Controller
         }
 
         return $email;
+    }
+
+    /**
+     * Send a mail through a Blade view while recording the attempt in
+     * mail_logs, including the raw SMTP conversation returned by the mail
+     * provider so delivery issues can be diagnosed after the fact.
+     */
+    private function sendAndLogMail(array $meta, $view, array $data, \Closure $buildMessage)
+    {
+        $mailLog = MailLog::create(array_merge($meta, [
+            'data' => json_encode($data),
+            'status' => 'pending',
+        ]));
+
+        $swiftLogger = new \Swift_Plugins_Loggers_ArrayLogger();
+        Mail::getSwiftMailer()->registerPlugin(new \Swift_Plugins_LoggerPlugin($swiftLogger));
+
+        try {
+            Mail::send($view, $data, $buildMessage);
+
+            $mailLog->update([
+                'status' => 'sent',
+                'sent_at' => now(),
+                'response' => $swiftLogger->dump(),
+            ]);
+        } catch (\Throwable $e) {
+            $mailLog->update([
+                'status' => 'fail',
+                'response' => $swiftLogger->dump() ?: $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+
+        return $mailLog;
     }
 
     public function validateData($request, $id = null)

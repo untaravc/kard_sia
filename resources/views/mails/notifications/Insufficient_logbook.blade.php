@@ -44,9 +44,9 @@
                                 belum terdokumentasi. Jika ada kendala dalam pengisian, jangan ragu untuk menghubungi
                                 bagian akademik.
                             </p>
-                            <p style="margin:24px 0 0; font-size:12px; color:#999;">
-                                Email ini dikirim otomatis oleh sistem Kardio berdasarkan pemantauan aktivitas logbook Anda.
-                            </p>
+{{--                            <p style="margin:24px 0 0; font-size:12px; color:#999;">--}}
+{{--                                Email ini dikirim otomatis oleh sistem Kardio berdasarkan pemantauan aktivitas logbook Anda.--}}
+{{--                            </p>--}}
                         </td>
                     </tr>
                 </table>

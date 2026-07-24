@@ -42,9 +42,9 @@
                                 mungkin. Jika Anda mengalami kendala, silakan hubungi dosen pembimbing atau bagian
                                 akademik.
                             </p>
-                            <p style="margin:24px 0 0; font-size:12px; color:#999;">
-                                Email ini dikirim otomatis oleh sistem Kardio berdasarkan pemantauan capaian tugas stase Anda.
-                            </p>
+{{--                            <p style="margin:24px 0 0; font-size:12px; color:#999;">--}}
+{{--                                Email ini dikirim otomatis oleh sistem Kardio berdasarkan pemantauan capaian tugas stase Anda.--}}
+{{--                            </p>--}}
                         </td>
                     </tr>
                 </table>

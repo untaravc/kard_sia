@@ -61,9 +61,9 @@
                                 kegiatan yang telah dijadwalkan. Jika ada kendala, silakan hubungi bagian akademik
                                 secepatnya.
                             </p>
-                            <p style="margin:24px 0 0; font-size:12px; color:#999;">
-                                Email ini dikirim otomatis oleh sistem Kardio berdasarkan pemantauan presensi dan kehadiran kegiatan Anda.
-                            </p>
+{{--                            <p style="margin:24px 0 0; font-size:12px; color:#999;">--}}
+{{--                                Email ini dikirim otomatis oleh sistem Kardio berdasarkan pemantauan presensi dan kehadiran kegiatan Anda.--}}
+{{--                            </p>--}}
                         </td>
                     </tr>
                 </table>
