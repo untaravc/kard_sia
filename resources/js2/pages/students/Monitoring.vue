@@ -366,6 +366,7 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
+import persistFilters from '../../mixins/persistFilters';
 
 const EMPTY_CELL = { done: 0, total: 0, status: 'empty' };
 
@@ -395,6 +396,7 @@ export default {
         Loading,
         Modal,
     },
+    mixins: [persistFilters('students/monitoring')],
     data() {
         return {
             baseUrl: '/api/student-monitoring',

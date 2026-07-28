@@ -150,9 +150,11 @@
 import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Repository from '../../repository';
+import persistFilters from '../../mixins/persistFilters';
 
 export default {
     components: { Loading },
+    mixins: [persistFilters('forms')],
     data() {
         return {
             baseUrl: '/api/forms',

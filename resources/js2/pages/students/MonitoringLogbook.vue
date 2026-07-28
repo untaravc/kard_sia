@@ -355,6 +355,7 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
+import persistFilters from '../../mixins/persistFilters';
 
 const MONTH_LABELS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -387,6 +388,7 @@ export default {
         Loading,
         Modal,
     },
+    mixins: [persistFilters('students/monitoring-logbook')],
     data() {
         return {
             baseUrl: '/api/student-monitoring-logbook',

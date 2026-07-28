@@ -275,6 +275,7 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
+import persistFilters from '../../mixins/persistFilters';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -306,6 +307,7 @@ export default {
         Loading,
         Modal,
     },
+    mixins: [persistFilters('activities')],
     data() {
         return {
             baseUrl: '/api/activities',

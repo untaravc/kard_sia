@@ -362,12 +362,14 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
+import persistFilters from '../../mixins/persistFilters';
 
 export default {
     components: {
         Loading,
         Modal,
     },
+    mixins: [persistFilters('report/stase-log')],
     computed: {
         allStasesSelected() {
             return this.stases.length > 0 && this.selectedStases.length === this.stases.length;
