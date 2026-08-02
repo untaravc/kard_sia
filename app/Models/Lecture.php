@@ -28,6 +28,11 @@ class Lecture extends Authenticatable
         "is_in_house",
         "name",
         "link_token",
+        "study_program_codes",
+    ];
+
+    protected $casts = [
+        'study_program_codes' => 'array',
     ];
 
     public function lectureProfile(){

@@ -25,6 +25,7 @@ class Asset extends Model
         "description",
         "warranty_until",
         "location",
+        "study_program_code",
     ];
 
     protected $casts = [

@@ -202,6 +202,7 @@ class StudentController extends Controller
             'password' => 'required_without:id',
             'year' => 'nullable',
             'status' => 'nullable',
+            'study_program_code' => 'nullable|string|max:50',
         ]);
     }
 

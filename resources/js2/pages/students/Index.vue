@@ -252,6 +252,18 @@
                         <option value="nonactive">Nonactive</option>
                     </select>
                 </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Study Program</span>
+                    <select
+                        v-model="form.study_program_code"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">-</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
                 </div>
@@ -341,6 +353,7 @@ export default {
             baseUrl: '/api/students',
             students: [],
             pagination: {},
+            studyPrograms: [],
             filters: {
                 keyword: '',
                 status: 'active',
@@ -354,6 +367,7 @@ export default {
                 password: '',
                 year: '',
                 status: null,
+                study_program_code: '',
             },
             editMode: false,
             modalOpen: false,
@@ -373,6 +387,7 @@ export default {
     },
     created() {
         this.yearOptions = this.buildYearOptions();
+        this.fetchStudyPrograms();
         this.fetchStudents();
     },
     mounted() {
@@ -399,6 +414,16 @@ export default {
             }
 
             return options;
+        },
+        fetchStudyPrograms() {
+            return Repository.get('/api/study-program-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.studyPrograms = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.studyPrograms = [];
+                });
         },
         fetchStudents() {
             this.loading = true;
@@ -544,6 +569,7 @@ export default {
                 password: '',
                 year: student.year || '',
                 status: student.status ?? null,
+                study_program_code: student.study_program_code || '',
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -563,6 +589,7 @@ export default {
                 password: '',
                 year: '',
                 status: null,
+                study_program_code: '',
             };
         },
         submitForm() {

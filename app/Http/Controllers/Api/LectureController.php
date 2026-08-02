@@ -137,6 +137,7 @@ class LectureController extends Controller
             'last_act' => 'nullable',
             'status' => 'nullable',
             'is_in_house' => 'nullable|boolean',
+            'study_program_codes' => 'nullable|array',
         ]);
     }
 

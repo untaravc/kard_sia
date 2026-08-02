@@ -31,11 +31,15 @@ class Activity extends Model
         "type",
         "activity_id",
         "stase_id",
+        "study_program_codes",
     ];
     protected $appends = [
         'is_author',
         'type_label',
         'category_label',
+    ];
+    protected $casts = [
+        'study_program_codes' => 'array',
     ];
 
     public function lectures()

@@ -181,6 +181,7 @@ class AssetController extends Controller
             'description' => 'nullable|string',
             'warranty_until' => 'nullable|date',
             'location' => 'nullable|string',
+            'study_program_code' => 'nullable|string|max:50',
         ]);
     }
 

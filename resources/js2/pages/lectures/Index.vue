@@ -216,6 +216,27 @@
                     />
                     <span class="text-muted">In House</span>
                 </label>
+                <div class="grid gap-2 text-sm">
+                    <span class="text-muted">Study Programs</span>
+                    <div class="grid gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-2">
+                        <span v-if="studyPrograms.length === 0" class="text-xs text-muted">
+                            No study programs found.
+                        </span>
+                        <label
+                            v-for="option in studyPrograms"
+                            :key="option.id"
+                            class="flex items-center gap-2 text-sm"
+                        >
+                            <input
+                                type="checkbox"
+                                class="h-4 w-4 rounded border border-border"
+                                :checked="isStudyProgramSelected(option.code)"
+                                @change="toggleStudyProgramSelection(option.code, $event.target.checked)"
+                            />
+                            <span class="text-ink">{{ option.name }}</span>
+                        </label>
+                    </div>
+                </div>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
                 </div>
@@ -249,6 +270,7 @@ export default {
             baseUrl: '/api/lectures',
             lectures: [],
             pagination: {},
+            studyPrograms: [],
             filters: {
                 keyword: '',
                 page: 1,
@@ -263,6 +285,7 @@ export default {
                 last_act: '',
                 status: null,
                 is_in_house: 0,
+                study_program_codes: [],
             },
             editMode: false,
             modalOpen: false,
@@ -273,6 +296,7 @@ export default {
         };
     },
     created() {
+        this.fetchStudyPrograms();
         this.fetchLectures();
     },
     mounted() {
@@ -282,6 +306,26 @@ export default {
         document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
+        fetchStudyPrograms() {
+            return Repository.get('/api/study-program-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.studyPrograms = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.studyPrograms = [];
+                });
+        },
+        isStudyProgramSelected(code) {
+            const codes = Array.isArray(this.form.study_program_codes) ? this.form.study_program_codes : [];
+            return codes.includes(code);
+        },
+        toggleStudyProgramSelection(code, checked) {
+            const current = Array.isArray(this.form.study_program_codes) ? [...this.form.study_program_codes] : [];
+            this.form.study_program_codes = checked
+                ? Array.from(new Set([...current, code]))
+                : current.filter((item) => item !== code);
+        },
         fetchLectures() {
             this.loading = true;
             this.errorMessage = '';
@@ -365,6 +409,7 @@ export default {
                 last_act: lecture.last_act || '',
                 status: lecture.status ?? null,
                 is_in_house: lecture.is_in_house ? 1 : 0,
+                study_program_codes: Array.isArray(lecture.study_program_codes) ? lecture.study_program_codes : [],
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -387,6 +432,7 @@ export default {
                 last_act: '',
                 status: null,
                 is_in_house: 0,
+                study_program_codes: [],
             };
         },
         submitForm() {

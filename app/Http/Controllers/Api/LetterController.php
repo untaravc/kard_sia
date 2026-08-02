@@ -214,6 +214,7 @@ class LetterController extends Controller
             'attachment_label' => 'nullable|string|max:255',
             'custom_invitation' => 'nullable|string',
             'status' => 'nullable|integer',
+            'study_program_code' => 'nullable|string|max:50',
             'participants' => 'nullable|array',
             'participants.*.auth_type' => 'required_with:participants|string|in:user,lecture,student',
             'participants.*.auth_id' => 'required_with:participants|integer',
@@ -245,6 +246,7 @@ class LetterController extends Controller
             'custom_invitation' => $this->sanitizeEditorHtml($request->custom_invitation),
             'status' => $request->status ?? 0,
             'token' => (string) Str::uuid(),
+            'study_program_code' => $request->study_program_code,
         ]);
 
         $this->syncInviteParticipants($letter, $request->input('participants', []));
@@ -682,6 +684,7 @@ class LetterController extends Controller
             'attachment_label' => 'nullable|string|max:255',
             'custom_invitation' => 'nullable|string',
             'status' => 'nullable|integer',
+            'study_program_code' => 'nullable|string|max:50',
             'participants' => 'nullable|array',
             'participants.*.auth_type' => 'required_with:participants|string|in:user,lecture,student',
             'participants.*.auth_id' => 'required_with:participants|integer',
@@ -711,6 +714,7 @@ class LetterController extends Controller
             'status' => $request->status ?? $letter->status,
             'auth_type' => $letter->auth_type ?? $authType,
             'auth_id' => $letter->auth_id ?? $authId,
+            'study_program_code' => $request->study_program_code ?? $letter->study_program_code,
         ]);
 
         if ($request->has('participants')) {

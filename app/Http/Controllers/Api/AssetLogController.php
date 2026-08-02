@@ -117,6 +117,7 @@ class AssetLogController extends Controller
             'note' => 'nullable|string',
             'location' => 'nullable|string',
             'photo_urls' => 'nullable',
+            'study_program_code' => 'nullable|string|max:50',
         ]);
     }
 

@@ -21,6 +21,7 @@ class Stase extends Model
         "evaluation_link",
         "lecture_name",
         "is_mandatory",
+        "study_program_code",
     ];
 
     protected $casts = [

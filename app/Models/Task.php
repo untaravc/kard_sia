@@ -12,6 +12,7 @@ class Task extends Model
         "name",
         "desc",
         "is_latter",
+        "study_program_code",
     ];
 
     // public function stase(){

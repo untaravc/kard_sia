@@ -131,6 +131,7 @@ class MenuController extends Controller
                     'icon' => 'data-master',
                     'children' => [
                         ['label' => 'Form Option', 'to' => "{$basePath}/form-options"],
+                        ['label' => 'Study Program', 'to' => "{$basePath}/study-programs"],
                         ['label' => 'Post', 'to' => "{$basePath}/posts"],
                         ['label' => 'Stase', 'to' => "{$basePath}/stases"],
                         ['label' => 'Task', 'to' => "{$basePath}/tasks"],

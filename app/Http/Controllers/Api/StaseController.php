@@ -434,6 +434,7 @@ class StaseController extends Controller
             'alias' => 'required',
             'color' => 'required',
             'is_mandatory' => 'nullable|boolean',
+            'study_program_code' => 'nullable|string|max:50',
         ]);
     }
 

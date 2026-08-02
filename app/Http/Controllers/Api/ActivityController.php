@@ -416,6 +416,7 @@ class ActivityController extends Controller
     {
         $this->validate($request, [
             'name' => 'required',
+            'study_program_codes' => 'nullable|array',
         ]);
     }
 

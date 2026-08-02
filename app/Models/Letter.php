@@ -22,6 +22,7 @@ class Letter extends Model
         'attachment_content',
         'attachment_label',
         'custom_invitation',
+        'study_program_code',
     ];
 
     public function participants()

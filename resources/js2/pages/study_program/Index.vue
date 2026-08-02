@@ -2,15 +2,15 @@
     <div class="grid gap-6">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">User Management</div>
-                <h1 class="text-2xl font-semibold text-ink">Admin Users</h1>
+                <div class="text-xs uppercase tracking-[0.2em] text-muted">Data Master</div>
+                <h1 class="text-2xl font-semibold text-ink">Study Programs</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add User
+                Add Study Program
             </button>
         </header>
 
@@ -22,7 +22,7 @@
                         v-model.trim="filters.keyword"
                         @keyup.enter="applyFilter"
                         type="text"
-                        placeholder="Search name..."
+                        placeholder="Search name, code, or head..."
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
@@ -48,8 +48,8 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Users</div>
-                <div class="text-xs text-muted" v-if="pagination.total">
+                <div class="font-semibold">Study Programs</div>
+                <div v-if="pagination.total" class="text-xs text-muted">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
             </div>
@@ -60,33 +60,46 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && users.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No users found.
+                <div v-if="!loading && studyPrograms.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No study programs found.
                 </div>
                 <div
-                    v-for="(user, index) in users"
-                    :key="user.id"
-                    class="flex flex-wrap items-center gap-3 px-5 py-4"
+                    v-for="(item, index) in studyPrograms"
+                    :key="item.id"
+                    class="flex flex-wrap items-start gap-3 px-5 py-4"
                 >
-                    <div class="w-8 text-sm font-semibold text-muted">
+                    <div class="w-8 pt-1 text-sm font-semibold text-muted">
                         {{ (pagination.from ? pagination.from - 1 : 0) + index + 1 }}
                     </div>
                     <div class="flex-1">
-                        <div class="font-semibold text-ink">{{ user.name }}</div>
-                        <div class="text-xs text-muted">{{ user.email }}</div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="font-semibold text-ink">{{ item.name }}</div>
+                            <span
+                                v-if="item.code"
+                                class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700"
+                            >
+                                {{ item.code }}
+                            </span>
+                        </div>
+                        <div class="mt-1 text-xs text-muted">
+                            <span v-if="item.head_name">Head: {{ item.head_name }}</span>
+                            <span v-if="item.deputy_head_name"> • Deputy: {{ item.deputy_head_name }}</span>
+                        </div>
+                        <div v-if="item.address" class="mt-1 text-xs text-muted">{{ item.address }}</div>
+                        <div v-if="item.desc" class="mt-2 text-sm text-muted">{{ formatDesc(item.desc) }}</div>
                     </div>
                     <div class="flex items-center gap-2">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(user)"
+                            @click="openEdit(item)"
                         >
                             Edit
                         </button>
                         <button
                             class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
                             type="button"
-                            @click="deleteUser(user)"
+                            @click="deleteStudyProgram(item)"
                         >
                             Delete
                         </button>
@@ -116,61 +129,64 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit User' : 'Create User'"
-            :eyebrow="editMode ? 'Update access' : 'New access'"
-            size="md"
+            :title="editMode ? 'Edit Study Program' : 'Create Study Program'"
+            :eyebrow="editMode ? 'Update study program' : 'New study program'"
+            size="lg"
             @close="closeModal"
         >
             <form class="grid gap-4" @submit.prevent="submitForm">
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Name</span>
-                    <input
-                        v-model.trim="form.name"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Email</span>
-                    <input
-                        v-model.trim="form.email"
-                        type="email"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Password</span>
-                    <input
-                        v-model="form.password"
-                        type="password"
-                        :placeholder="editMode ? 'Leave blank to keep current password' : 'Set a password'"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                    <span v-if="editMode" class="text-[11px] text-muted">
-                        Leave blank to keep the current password.
-                    </span>
-                </label>
-                <div class="grid gap-2 text-sm">
-                    <span class="text-muted">Study Programs</span>
-                    <div class="grid gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-2">
-                        <span v-if="studyPrograms.length === 0" class="text-xs text-muted">
-                            No study programs found.
-                        </span>
-                        <label
-                            v-for="option in studyPrograms"
-                            :key="option.id"
-                            class="flex items-center gap-2 text-sm"
-                        >
-                            <input
-                                type="checkbox"
-                                class="h-4 w-4 rounded border border-border"
-                                :checked="isStudyProgramSelected(option.code)"
-                                @change="toggleStudyProgramSelection(option.code, $event.target.checked)"
-                            />
-                            <span class="text-ink">{{ option.name }}</span>
-                        </label>
-                    </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Code</span>
+                        <input
+                            v-model.trim="form.code"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Name</span>
+                        <input
+                            v-model.trim="form.name"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
                 </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Head Name</span>
+                        <input
+                            v-model.trim="form.head_name"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Deputy Head Name</span>
+                        <input
+                            v-model.trim="form.deputy_head_name"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                </div>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Address</span>
+                    <textarea
+                        v-model.trim="form.address"
+                        rows="3"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    ></textarea>
+                </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Description</span>
+                    <textarea
+                        v-model.trim="form.desc"
+                        rows="5"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    ></textarea>
+                </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
                 </div>
@@ -179,7 +195,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update User' : 'Create User' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Study Program' : 'Create Study Program' }}
                 </button>
             </form>
         </Modal>
@@ -198,23 +214,24 @@ export default {
         Loading,
         Modal,
     },
-    mixins: [persistFilters('users')],
+    mixins: [persistFilters('study-programs')],
     data() {
         return {
-            baseUrl: '/api/users',
-            users: [],
-            pagination: {},
+            baseUrl: '/api/study-programs',
             studyPrograms: [],
+            pagination: {},
             filters: {
                 keyword: '',
                 page: 1,
             },
             form: {
                 id: null,
+                code: '',
                 name: '',
-                email: '',
-                password: '',
-                study_program_codes: [],
+                desc: '',
+                address: '',
+                head_name: '',
+                deputy_head_name: '',
             },
             editMode: false,
             modalOpen: false,
@@ -225,30 +242,9 @@ export default {
     },
     created() {
         this.fetchStudyPrograms();
-        this.fetchUsers();
     },
     methods: {
         fetchStudyPrograms() {
-            return Repository.get('/api/study-program-list')
-                .then((response) => {
-                    const result = response && response.data ? response.data.result : null;
-                    this.studyPrograms = Array.isArray(result) ? result : [];
-                })
-                .catch(() => {
-                    this.studyPrograms = [];
-                });
-        },
-        isStudyProgramSelected(code) {
-            const codes = Array.isArray(this.form.study_program_codes) ? this.form.study_program_codes : [];
-            return codes.includes(code);
-        },
-        toggleStudyProgramSelection(code, checked) {
-            const current = Array.isArray(this.form.study_program_codes) ? [...this.form.study_program_codes] : [];
-            this.form.study_program_codes = checked
-                ? Array.from(new Set([...current, code]))
-                : current.filter((item) => item !== code);
-        },
-        fetchUsers() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -259,12 +255,13 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.users = data;
+                    this.studyPrograms = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.users = [];
+                    this.studyPrograms = [];
                     this.pagination = {};
+                    this.errorMessage = 'Failed to load study programs.';
                 })
                 .finally(() => {
                     this.loading = false;
@@ -272,16 +269,16 @@ export default {
         },
         applyFilter() {
             this.filters.page = 1;
-            this.fetchUsers();
+            this.fetchStudyPrograms();
         },
         resetFilter() {
             this.filters.keyword = '';
             this.filters.page = 1;
-            this.fetchUsers();
+            this.fetchStudyPrograms();
         },
         changePage(page) {
             this.filters.page = page;
-            this.fetchUsers();
+            this.fetchStudyPrograms();
         },
         openCreate() {
             this.editMode = false;
@@ -289,14 +286,16 @@ export default {
             this.errorMessage = '';
             this.modalOpen = true;
         },
-        openEdit(user) {
+        openEdit(item) {
             this.editMode = true;
             this.form = {
-                id: user.id,
-                name: user.name || '',
-                email: user.email || '',
-                password: '',
-                study_program_codes: Array.isArray(user.study_program_codes) ? user.study_program_codes : [],
+                id: item.id,
+                code: item.code || '',
+                name: item.name || '',
+                desc: item.desc || '',
+                address: item.address || '',
+                head_name: item.head_name || '',
+                deputy_head_name: item.deputy_head_name || '',
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -311,76 +310,96 @@ export default {
         resetForm() {
             this.form = {
                 id: null,
+                code: '',
                 name: '',
-                email: '',
-                password: '',
-                study_program_codes: [],
+                desc: '',
+                address: '',
+                head_name: '',
+                deputy_head_name: '',
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateUser();
+                return this.updateStudyProgram();
             }
 
-            return this.createUser();
+            return this.createStudyProgram();
         },
-        createUser() {
+        createStudyProgram() {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.post(this.baseUrl, this.form)
+            return Repository.post(this.baseUrl, this.buildPayload())
                 .then(() => {
                     this.closeModal();
-                    this.fetchUsers();
-                    this.$showToast('User created successfully.');
+                    this.fetchStudyPrograms();
+                    this.$showToast('Study program created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create user.';
+                        : 'Failed to create study program.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateUser() {
+        updateStudyProgram() {
             this.submitting = true;
             this.errorMessage = '';
 
-            const payload = { ...this.form };
-            if (!payload.password) {
-                delete payload.password;
-            }
-
-            return Repository.put(`${this.baseUrl}/${this.form.id}`, payload)
+            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.buildPayload())
                 .then(() => {
-                    this.fetchUsers();
+                    this.fetchStudyPrograms();
                     this.closeModal();
-                    this.$showToast('User updated successfully.');
+                    this.$showToast('Study program updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update user.';
+                        : 'Failed to update study program.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        deleteUser(user) {
-            if (!window.confirm(`Delete user ${user.name}?`)) {
+        deleteStudyProgram(item) {
+            if (!window.confirm(`Delete study program ${item.name}?`)) {
                 return;
             }
 
-            Repository.delete(`${this.baseUrl}/${user.id}`)
+            Repository.delete(`${this.baseUrl}/${item.id}`)
                 .then(() => {
-                    this.fetchUsers();
+                    this.fetchStudyPrograms();
+                    this.$showToast('Study program deleted successfully.');
                 })
                 .catch(() => {
-                    this.errorMessage = 'Failed to delete user.';
+                    this.errorMessage = 'Failed to delete study program.';
                 });
+        },
+        buildPayload() {
+            return {
+                code: this.form.code || null,
+                name: this.form.name,
+                desc: this.form.desc || null,
+                address: this.form.address || null,
+                head_name: this.form.head_name || null,
+                deputy_head_name: this.form.deputy_head_name || null,
+            };
+        },
+        formatDesc(value) {
+            if (!value) {
+                return '';
+            }
+
+            const normalized = String(value).replace(/\s+/g, ' ').trim();
+            if (normalized.length <= 140) {
+                return normalized;
+            }
+
+            return `${normalized.slice(0, 140)}...`;
         },
     },
 };

@@ -147,6 +147,7 @@ const routes = [
             { path: 'users', component: require('./pages/users/Index.vue').default, meta: { page_name: 'Users' } },
             { path: 'settings', component: require('./pages/settings/Index.vue').default, meta: { page_name: 'Settings' } },
             { path: 'form-options', component: require('./pages/form-options/Index.vue').default, meta: { page_name: 'Form Options' } },
+            { path: 'study-programs', component: require('./pages/study_program/Index.vue').default, meta: { page_name: 'Study Programs' } },
             { path: 'posts', component: require('./pages/posts/Index.vue').default, meta: { page_name: 'Posts' } },
             { path: 'posts/create', component: require('./pages/posts/AddEdit.vue').default, meta: { page_name: 'Create Post' } },
             { path: 'posts/:id', component: require('./pages/posts/AddEdit.vue').default, meta: { page_name: 'Edit Post' } },

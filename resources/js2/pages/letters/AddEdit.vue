@@ -56,7 +56,7 @@
                     />
                 </label>
 
-                <div class="grid gap-6 md:grid-cols-2">
+                <div class="grid gap-6 md:grid-cols-3">
                     <label class="grid gap-2 text-sm">
                         <span class="text-muted">Subtitle</span>
                         <input
@@ -75,6 +75,19 @@
                         >
                             <option v-for="option in statusOptions" :key="option.value" :value="option.value">
                                 {{ option.label }}
+                            </option>
+                        </select>
+                    </label>
+
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Study Program</span>
+                        <select
+                            v-model="form.study_program_code"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        >
+                            <option value="">-</option>
+                            <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                                {{ option.name }}
                             </option>
                         </select>
                     </label>
@@ -444,6 +457,7 @@ export default {
                 { value: 0, label: 'Draft' },
                 { value: 1, label: 'Published' },
             ],
+            studyPrograms: [],
             form: {
                 id: null,
                 number: '',
@@ -457,6 +471,7 @@ export default {
                 attachment_label: '',
                 custom_invitation: '',
                 status: 1,
+                study_program_code: '',
                 participants: [],
                 approval: null,
             },
@@ -496,11 +511,22 @@ export default {
     },
     created() {
         this.fetchInviteSources();
+        this.fetchStudyPrograms();
         if (this.isEdit) {
             this.fetchLetter();
         }
     },
     methods: {
+        fetchStudyPrograms() {
+            return Repository.get('/api/study-program-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.studyPrograms = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.studyPrograms = [];
+                });
+        },
         filterInviteList(list, ...fields) {
             const items = Array.isArray(list) ? list : [];
             const keyword = (this.inviteKeyword || '').toLowerCase().trim();
@@ -670,6 +696,7 @@ export default {
                         status: typeof (letter && letter.status) !== 'undefined' && letter && letter.status !== null
                             ? Number(letter.status)
                             : 0,
+                        study_program_code: letter && letter.study_program_code ? letter.study_program_code : '',
                         participants: participants
                             .filter((participant) => String(participant.type) === 'invite')
                             .map((participant) => ({

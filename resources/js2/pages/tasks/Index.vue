@@ -156,6 +156,18 @@
                     />
                     <span class="text-muted">Latter task</span>
                 </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Study Program</span>
+                    <select
+                        v-model="form.study_program_code"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">-</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
                 </div>
@@ -189,6 +201,7 @@ export default {
             baseUrl: '/api/tasks',
             tasks: [],
             pagination: {},
+            studyPrograms: [],
             filters: {
                 keyword: '',
                 page: 1,
@@ -198,6 +211,7 @@ export default {
                 name: '',
                 desc: '',
                 is_latter: 0,
+                study_program_code: '',
             },
             editMode: false,
             modalOpen: false,
@@ -207,9 +221,20 @@ export default {
         };
     },
     created() {
+        this.fetchStudyPrograms();
         this.fetchTasks();
     },
     methods: {
+        fetchStudyPrograms() {
+            return Repository.get('/api/study-program-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.studyPrograms = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.studyPrograms = [];
+                });
+        },
         fetchTasks() {
             this.loading = true;
             this.errorMessage = '';
@@ -258,6 +283,7 @@ export default {
                 name: task.name || '',
                 desc: task.desc || '',
                 is_latter: task.is_latter ? 1 : 0,
+                study_program_code: task.study_program_code || '',
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -275,6 +301,7 @@ export default {
                 name: '',
                 desc: '',
                 is_latter: 0,
+                study_program_code: '',
             };
         },
         submitForm() {

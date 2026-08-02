@@ -101,6 +101,7 @@ class UserController extends Controller
             "name"          => 'required',
             "email"         => 'required|email',
             "password"      => 'required_without:id',
+            "study_program_codes" => 'nullable|array',
         ]);
     }
 

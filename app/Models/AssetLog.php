@@ -17,6 +17,7 @@ class AssetLog extends Model
         "note",
         "location",
         "photo_urls",
+        "study_program_code",
     ];
 
     protected $casts = [

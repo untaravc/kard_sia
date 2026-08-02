@@ -145,6 +145,28 @@
                 </div>
 
                 <div class="grid gap-3">
+                    <div class="text-sm font-medium text-ink">Study Program</div>
+                    <div class="grid gap-2 rounded-2xl border border-border bg-white p-4 sm:grid-cols-2 md:grid-cols-3">
+                        <span v-if="studyPrograms.length === 0" class="text-xs text-muted">
+                            Tidak ada data program studi.
+                        </span>
+                        <label
+                            v-for="option in studyPrograms"
+                            :key="option.id"
+                            class="flex cursor-pointer items-center gap-2 text-sm"
+                        >
+                            <input
+                                class="h-4 w-4"
+                                type="checkbox"
+                                :checked="isStudyProgramSelected(option.code)"
+                                @change="toggleStudyProgramSelection(option.code, $event.target.checked)"
+                            />
+                            <span class="text-ink">{{ option.name }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid gap-3">
                     <div class="text-sm font-medium text-ink">Staff</div>
                     <div class="grid gap-4 md:grid-cols-3">
                         <div class="grid gap-2 rounded-2xl border border-border bg-white p-4">
@@ -263,6 +285,7 @@ export default {
             loading: false,
             errorMessage: '',
             stases: [],
+            studyPrograms: [],
             lectureOptions: [],
             lectureLoading: false,
             lectureModalOpen: false,
@@ -295,6 +318,7 @@ export default {
                 lecture_penguji: [],
                 lecture_pembimbing: [],
                 lecture_pengampu: [],
+                study_program_codes: [],
             },
         };
     },
@@ -324,12 +348,23 @@ export default {
     },
     created() {
         this.fetchStases();
+        this.fetchStudyPrograms();
         this.fetchLectures();
         if (this.isEdit) {
             this.fetchActivity();
         }
     },
     methods: {
+        fetchStudyPrograms() {
+            return Repository.get('/api/study-program-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.studyPrograms = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.studyPrograms = [];
+                });
+        },
         fetchStases() {
             return Repository.get('/api/stases', {
                 params: {
@@ -390,6 +425,7 @@ export default {
                     merged.lecture_penguji = this.normalizeLectureIds(merged.lecture_penguji);
                     merged.lecture_pembimbing = this.normalizeLectureIds(merged.lecture_pembimbing);
                     merged.lecture_pengampu = this.normalizeLectureIds(merged.lecture_pengampu);
+                    merged.study_program_codes = Array.isArray(merged.study_program_codes) ? merged.study_program_codes : [];
                     this.form = merged;
                 })
                 .catch(() => {
@@ -398,6 +434,16 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        isStudyProgramSelected(code) {
+            const codes = Array.isArray(this.form.study_program_codes) ? this.form.study_program_codes : [];
+            return codes.includes(code);
+        },
+        toggleStudyProgramSelection(code, checked) {
+            const current = Array.isArray(this.form.study_program_codes) ? [...this.form.study_program_codes] : [];
+            this.form.study_program_codes = checked
+                ? Array.from(new Set([...current, code]))
+                : current.filter((item) => item !== code);
         },
         selectedLectures(roleKey) {
             const ids = Array.isArray(this.form[roleKey]) ? this.form[roleKey] : [];
@@ -470,6 +516,7 @@ export default {
                 lecture_penguji: JSON.stringify(this.form.lecture_penguji || []),
                 lecture_pembimbing: JSON.stringify(this.form.lecture_pembimbing || []),
                 lecture_pengampu: JSON.stringify(this.form.lecture_pengampu || []),
+                study_program_codes: this.form.study_program_codes || [],
             };
 
             const request = this.isEdit

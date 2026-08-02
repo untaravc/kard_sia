@@ -318,6 +318,18 @@
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Study Program</span>
+                    <select
+                        v-model="form.study_program_code"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">-</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </label>
                 <div class="grid gap-2 text-sm md:col-span-2">
                     <span class="text-muted">Photo</span>
                     <input
@@ -447,6 +459,18 @@
                         rows="3"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     ></textarea>
+                </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Study Program</span>
+                    <select
+                        v-model="logForm.study_program_code"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">-</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
                 </label>
                 <div class="grid gap-2 text-sm">
                     <span class="text-muted">Photos</span>
@@ -647,6 +671,7 @@ export default {
             ownerOptions: [],
             categoryOptions: [],
             statusOptions: [],
+            studyPrograms: [],
             filters: {
                 keyword: '',
                 owner: '',
@@ -673,6 +698,7 @@ export default {
                 location: '',
                 note: '',
                 photo_urls: [],
+                study_program_code: '',
             },
             logSubmitting: false,
             logError: '',
@@ -700,6 +726,7 @@ export default {
     },
     created() {
         this.fetchProperties();
+        this.fetchStudyPrograms();
         this.fetchAssets();
     },
     mounted() {
@@ -726,7 +753,18 @@ export default {
                 description: '',
                 warranty_until: '',
                 location: '',
+                study_program_code: '',
             };
+        },
+        fetchStudyPrograms() {
+            return Repository.get('/api/study-program-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.studyPrograms = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.studyPrograms = [];
+                });
         },
         openImage(url) {
             this.imageModalUrl = url;
@@ -786,6 +824,7 @@ export default {
                 location: asset.location || '',
                 note: '',
                 photo_urls: [],
+                study_program_code: asset.study_program_code || '',
             };
             this.logError = '';
             this.logModalOpen = true;
@@ -1054,6 +1093,7 @@ export default {
                 description: asset.description || '',
                 warranty_until: asset.warranty_until ? String(asset.warranty_until).substring(0, 10) : '',
                 location: asset.location || '',
+                study_program_code: asset.study_program_code || '',
             };
             this.errorMessage = '';
             this.photoError = '';

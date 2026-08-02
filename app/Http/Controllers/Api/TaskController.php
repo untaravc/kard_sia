@@ -101,6 +101,7 @@ class TaskController extends Controller
             'name' => 'required',
             'desc' => 'nullable',
             'is_latter' => 'nullable|boolean',
+            'study_program_code' => 'nullable|string|max:50',
         ]);
     }
 
