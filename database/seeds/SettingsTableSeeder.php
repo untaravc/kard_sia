@@ -12,18 +12,39 @@ class SettingsTableSeeder extends Seeder
     public function run()
     {
         $rows = [
-            'app_name' => 'BLU',
-            'app_motto' => 'Code Blue is a call to act without delay.',
-            'app_color' => '#0ca5e9',
-            'app_logo_url' => '',
+            [
+                'name' => 'Nama Aplikasi',
+                'label' => 'app.name',
+                'value' => 'BLU',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Prefix Aplikasi',
+                'label' => 'app.prefix',
+                'value' => 'KardiologiFkkmk',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Logo URL',
+                'label' => 'app.logo',
+                'value' => '',
+                'status' => 1,
+            ],
+            [
+                'name' => 'Login Description',
+                'label' => 'app.login-desc',
+                'value' => "Code Blue is a call to act without delay.\nBLU prepares cardiology residents for decisive moments.\nBecause every heartbeat matters.",
+                'status' => 1,
+            ],
         ];
 
-        foreach ($rows as $label => $value) {
+        foreach ($rows as $row) {
             DB::table('settings')->updateOrInsert(
-                ['label' => $label],
+                ['label' => $row['label']],
                 [
-                    'value' => $value,
-                    'status' => 1,
+                    'name' => $row['name'],
+                    'value' => $row['value'],
+                    'status' => $row['status'],
                     'updated_at' => now(),
                     'created_at' => now(),
                 ]

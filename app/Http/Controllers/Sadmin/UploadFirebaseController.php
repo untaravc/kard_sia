@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\File;
 use App\Models\Presence;
+use App\Models\Setting;
 use App\Models\StudentLog;
 use Illuminate\Http\Request;
 use Kreait\Firebase\Factory;
@@ -23,6 +24,11 @@ class UploadFirebaseController extends Controller
             ->withDefaultStorageBucket($this->bucket);
 
         $this->firebaseStorage = $factory->createStorage();
+
+        $prefixSetting = Setting::where('label', 'app.prefix')->first();
+        if ($prefixSetting && $prefixSetting->value) {
+            $this->base_path = $prefixSetting->value;
+        }
     }
 
     public function firebaseUpload(Request $request)

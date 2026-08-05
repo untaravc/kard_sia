@@ -679,7 +679,7 @@ export default {
             }
             this.uploadSubmitting = true;
             try {
-                const prefix = 'KardiologiFkkmk/Student/ScoreDocument';
+                const prefix = 'Student/ScoreDocument';
                 const url = await uploadFirebaseFile({ file, prefix });
                 if (url) {
                     this.uploadForm.link = url;

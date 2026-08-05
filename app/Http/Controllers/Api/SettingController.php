@@ -52,6 +52,24 @@ class SettingController extends Controller
         ]);
     }
 
+    public function showByLabel($label)
+    {
+        $setting = Setting::where('label', $label)->first();
+        if (!$setting) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Setting not found',
+                'result' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Setting Success',
+            'result' => $setting,
+        ]);
+    }
+
     public function update(Request $request, $id)
     {
         $setting = Setting::find($id);

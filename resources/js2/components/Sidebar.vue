@@ -6,7 +6,7 @@
         <div class="flex items-center gap-3 justify-center">
             <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent text-lg font-bold text-ink">K</span>
             <div v-if="!collapsed" class="leading-tight">
-                <div class="font-semibold tracking-wide">Kardio</div>
+                <div class="font-semibold tracking-wide">{{ appName }}</div>
                 <div class="text-xs text-sidebar-text/70">Admin Suite</div>
             </div>
         </div>
@@ -76,6 +76,7 @@
 <script>
 import Repository from '../repository';
 import { Icon, ICONS } from '../icons';
+import { useAppSettingsStore } from '../stores/appSettings';
 
 export default {
     components: {
@@ -99,14 +100,24 @@ export default {
         return {
             openGroups: {},
             menuItems: [],
+            appName: 'Kardio',
         };
     },
     created() {
         this.fetchMenu();
+        this.fetchAppName();
     },
     methods: {
         resolveIcon(iconKey) {
             return ICONS[iconKey] || iconKey || '';
+        },
+        fetchAppName() {
+            const appSettingsStore = useAppSettingsStore();
+            return appSettingsStore.fetchSetting('app.name').then((value) => {
+                if (value) {
+                    this.appName = value;
+                }
+            });
         },
         fetchMenu() {
             return Repository.get('/api/menu', {

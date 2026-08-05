@@ -220,7 +220,7 @@ export default {
 
             this.uploadingImage = true;
             try {
-                const prefix = 'KardiologiFkkmk/Lecture/Profile';
+                const prefix = 'Lecture/Profile';
                 const url = await uploadFirebaseFile({ file, prefix });
                 if (url) {
                     this.user.image = url;

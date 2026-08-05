@@ -4,11 +4,11 @@
             <div class="grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                 <div class="rounded-3xl bg-gradient-to-br from-surface to-ext p-10">
                     <h1 class="mt-3 text-5xl font-semibold tracking-tight text-sky-500 sm:text-6xl">
-                        BLU.
+                        {{ appName }}.
                     </h1>
                     <p class="mt-4 text-sm leading-relaxed text-muted">
                         <span class="block">Code Blue is a call to act without delay.</span>
-                        <span class="block">BLU prepares cardiology residents for decisive moments.</span>
+                        <span class="block">{{ appName }} prepares cardiology residents for decisive moments.</span>
                         <span class="block">Because every heartbeat matters.</span>
                     </p>
                 </div>
@@ -77,6 +77,7 @@
 <script>
 import Repository from '../repository';
 import { initWebFcm } from '../firebase/messaging';
+import { useAppSettingsStore } from '../stores/appSettings';
 
 export default {
     name: 'Register',
@@ -92,7 +93,15 @@ export default {
             errorMessage: '',
             successMessage: '',
             fieldErrors: {},
+            appName: 'BLU',
         };
+    },
+    created() {
+        useAppSettingsStore().fetchSetting('app.name').then((value) => {
+            if (value) {
+                this.appName = value;
+            }
+        });
     },
     methods: {
         normalizeErrors(error) {

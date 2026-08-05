@@ -457,7 +457,7 @@ export default {
 
             this.uploadingImage = true;
             try {
-                const prefix = 'KardiologiFkkmk/Student/Profile';
+                const prefix = 'Student/Profile';
                 const url = await uploadFirebaseFile({ file, prefix });
                 if (url) {
                     this.user.image = url;

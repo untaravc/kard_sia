@@ -3,7 +3,7 @@
         <div class="grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
             <div class="rounded-3xl bg-gradient-to-br from-surface to-ext p-10">
                 <h1 class="mt-3 text-5xl font-semibold tracking-tight text-sky-500 sm:text-6xl">
-                    BLU.
+                    {{ appName }}.
                 </h1>
                 <p class="mt-4 text-sm leading-relaxed text-muted">
                     <span class="block">Registration portal.</span>
@@ -50,6 +50,7 @@
 <script>
 import Repository from '../../repository';
 import { initWebFcm } from '../../firebase/messaging';
+import { useAppSettingsStore } from '../../stores/appSettings';
 
 export default {
     name: 'RegistrationLogin',
@@ -61,7 +62,15 @@ export default {
             },
             loading: false,
             errorMessage: '',
+            appName: 'BLU',
         };
+    },
+    created() {
+        useAppSettingsStore().fetchSetting('app.name').then((value) => {
+            if (value) {
+                this.appName = value;
+            }
+        });
     },
     methods: {
         login() {

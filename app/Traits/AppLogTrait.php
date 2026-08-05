@@ -117,7 +117,7 @@ trait AppLogTrait {
         }
 
         try {
-            return JWT::decode(trim($matches[1]), new Key(env('JWT_SECRET'), 'HS256'));
+            return JWT::decode(trim($matches[1]), new Key(config('jwt.secret'), 'HS256'));
         } catch (Throwable $e) {
             return null;
         }

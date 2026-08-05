@@ -745,7 +745,7 @@ export default {
 
             this.editEvidenceUploading = true;
             try {
-                const prefix = 'KardiologiFkkmk/Accreditation/Evidence';
+                const prefix = 'Accreditation/Evidence';
                 for (const file of files) {
                     const url = await uploadFirebaseFile({ file, prefix });
                     if (!url) {
@@ -777,7 +777,7 @@ export default {
 
             this.evidenceUploading = true;
             try {
-                const prefix = 'KardiologiFkkmk/Accreditation/Evidence';
+                const prefix = 'Accreditation/Evidence';
                 for (const file of files) {
                     const url = await uploadFirebaseFile({ file, prefix });
                     if (!url) {

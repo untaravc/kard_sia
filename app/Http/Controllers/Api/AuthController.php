@@ -34,7 +34,7 @@ class AuthController extends Controller
             'jti' => (string) Str::uuid(),
         ], $baseClaims, $overrides);
 
-        return JWT::encode($claims, env('JWT_SECRET'), 'HS256');
+        return JWT::encode($claims, config('jwt.secret'), 'HS256');
     }
 
     private function buildLoginRedirectUrl(array $params = [])

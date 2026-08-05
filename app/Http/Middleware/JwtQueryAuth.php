@@ -26,7 +26,7 @@ class JwtQueryAuth
         }
 
         try {
-            $payload = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
+            $payload = JWT::decode($token, new Key(config('jwt.secret'), 'HS256'));
         } catch (Throwable $e) {
             return response('false', 401)->header('Content-Type', 'text/plain');
         }

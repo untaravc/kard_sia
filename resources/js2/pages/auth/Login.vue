@@ -4,12 +4,10 @@
             <div class="grid w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                 <div class="rounded-3xl bg-gradient-to-br from-surface to-ext p-10">
                     <h1 class="mt-3 text-5xl font-semibold tracking-tight text-sky-500 sm:text-6xl">
-                        BLU.
+                        {{ appName }}.
                     </h1>
                     <p class="mt-4 text-sm text-muted leading-relaxed">
-                        <span class="block">Code Blue is a call to act without delay.</span>
-                        <span class="block">BLU prepares cardiology residents for decisive moments.</span>
-                        <span class="block">Because every heartbeat matters.</span>
+                        <span v-for="(line, index) in loginDescLines" :key="index" class="block">{{ line }}</span>
                     </p>
                 </div>
                 <div class="rounded-3xl border border-border bg-panel p-8">
@@ -136,6 +134,7 @@
 <script>
 import { initWebFcm } from '../../firebase/messaging';
 import Repository from '../../repository';
+import { useAppSettingsStore } from '../../stores/appSettings';
 
 export default {
     name: 'Login',
@@ -156,6 +155,8 @@ export default {
             errorMessage: '',
             successMessage: '',
             isDemo: false,
+            appName: 'BLU',
+            loginDesc: 'Code Blue is a call to act without delay.\nBLU prepares cardiology residents for decisive moments.\nBecause every heartbeat matters.',
             // Matches the fixed demo accounts seeded by UsersTableSeeder.
             demoAccounts: {
                 admin: { email: 'admin@blu.test', password: 'password' },
@@ -164,7 +165,27 @@ export default {
             },
         };
     },
+    computed: {
+        loginDescLines() {
+            return this.loginDesc.split('\n').filter((line) => line.trim() !== '');
+        },
+    },
     methods: {
+        fetchAppSettings() {
+            const appSettingsStore = useAppSettingsStore();
+            return Promise.all([
+                appSettingsStore.fetchSetting('app.name').then((value) => {
+                    if (value) {
+                        this.appName = value;
+                    }
+                }),
+                appSettingsStore.fetchSetting('app.login-desc').then((value) => {
+                    if (value) {
+                        this.loginDesc = value;
+                    }
+                }),
+            ]);
+        },
         fetchAppConfig() {
             return Repository.get('/api/app-config')
                 .then((response) => {
@@ -289,6 +310,7 @@ export default {
     },
     mounted() {
         this.fetchAppConfig();
+        this.fetchAppSettings();
 
         const token = this.$route && this.$route.query ? this.$route.query.token : null;
         const error = this.$route && this.$route.query ? this.$route.query.error : null;

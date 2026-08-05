@@ -239,7 +239,7 @@
                             v-model="bulkForm.lecture_id"
                             class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         >
-                            <option value="">Diluar Kardiologi</option>
+                            <option value="">Dosen Lain</option>
                             <option v-for="lecture in lectureOptions" :key="lecture.id" :value="lecture.id">
                                 {{ lecture.name }}
                             </option>
@@ -366,7 +366,7 @@
                             v-model="editForm.lecture_id"
                             class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         >
-                            <option value="">Diluar Kardiologi</option>
+                            <option value="">Dosen Lain</option>
                             <option v-for="lecture in lectureOptions" :key="lecture.id" :value="lecture.id">
                                 {{ lecture.name }}
                             </option>

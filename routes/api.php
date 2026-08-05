@@ -30,6 +30,9 @@ Route::post('reset-password-with-token', [AuthController::class, 'resetPasswordW
 Route::get('firebase-config', [AuthController::class, 'firebaseConfig']);
 Route::get('app-config', [AuthController::class, 'appConfig']);
 
+// SettingController (public, needed before login e.g. app name/logo/description)
+Route::get('settings/label/{label}', [\App\Http\Controllers\Api\SettingController::class, 'showByLabel']);
+
 // RegistrationStudentController
 Route::post('register', [RegistrationStudentController::class, 'register']);
 

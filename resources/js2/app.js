@@ -6,6 +6,7 @@ import VueCompositionApi from '@vue/composition-api';
 import { PiniaVuePlugin, createPinia } from 'pinia';
 import ToastPlugin from './toaster';
 import { initWebFcm } from './firebase/messaging';
+import { useAppSettingsStore } from './stores/appSettings';
 
 //VUE ROUTER
 import VueRouter from 'vue-router'
@@ -31,11 +32,6 @@ const router = new VueRouter({
     routes
 });
 
-router.afterEach((to) => {
-    const pageName = to && to.meta && to.meta.page_name ? to.meta.page_name : null;
-    document.title = pageName ? `BLU | ${pageName}` : 'BLU';
-});
-
 const pinia = createPinia();
 
 const app = new Vue({
@@ -43,6 +39,15 @@ const app = new Vue({
     router,
     pinia,
     template: '<router-view />',
+});
+
+router.afterEach((to) => {
+    const pageName = to && to.meta && to.meta.page_name ? to.meta.page_name : null;
+
+    useAppSettingsStore().fetchSetting('app.name').then((appName) => {
+        const title = appName || 'BLU';
+        document.title = pageName ? `${title} | ${pageName}` : title;
+    });
 });
 
 initWebFcm().catch(() => {

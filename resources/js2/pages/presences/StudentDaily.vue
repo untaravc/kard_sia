@@ -293,7 +293,7 @@ export default {
             this.uploadingPhoto = true;
             try {
                 const compressed = await this.compressImage(file);
-                const prefix = 'KardiologiFkkmk/Student/Presence';
+                const prefix = 'Student/Presence';
                 const url = await uploadFirebaseFile({ file: compressed, prefix });
                 this.photoUrl = url || '';
             } finally {
