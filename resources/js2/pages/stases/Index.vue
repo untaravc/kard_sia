@@ -26,6 +26,18 @@
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
+                <div class="min-w-[200px]">
+                    <label class="text-xs text-muted">Study Program</label>
+                    <select
+                        v-model="filters.study_program_code"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
                 <div class="flex items-end gap-2">
                     <button
                         class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
@@ -95,27 +107,40 @@
                     <div class="text-xs text-muted" v-if="stase.stase_tasks_count !== undefined">
                         {{ stase.stase_tasks_count }} tasks
                     </div>
-                    <div class="flex items-center gap-2">
-                        <router-link
-                            class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
-                            :to="`/blu/stase-tasks/${stase.id}`"
-                        >
-                            Tasks
-                        </router-link>
+                    <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(stase)"
+                            @click.stop="toggleActionMenu(stase.id)"
                         >
-                            Edit
+                            Actions
                         </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteStase(stase)"
+                        <div
+                            v-if="actionMenuOpenId === stase.id"
+                            class="absolute right-0 z-10 mt-2 w-44 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
-                            Delete
-                        </button>
+                            <router-link
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                :to="`/blu/stase-tasks/${stase.id}`"
+                                @click.native="closeActionMenu"
+                            >
+                                Tasks
+                            </router-link>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('edit', stase)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', stase)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,103 +169,178 @@
             :open="modalOpen"
             :title="editMode ? 'Edit Stase' : 'Create Stase'"
             :eyebrow="editMode ? 'Update rotation' : 'New rotation'"
-            size="md"
+            size="xl"
             @close="closeModal"
         >
-            <form class="grid gap-4" @submit.prevent="submitForm">
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Name</span>
-                    <input
-                        v-model.trim="form.name"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Alias</span>
-                    <input
-                        v-model.trim="form.alias"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Color</span>
-                    <input
-                        v-model="form.color"
-                        type="color"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Font Color</span>
-                    <input
-                        v-model="form.font_color"
-                        type="color"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Description</span>
-                    <input
-                        v-model.trim="form.desc"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Order</span>
-                    <input
-                        v-model.number="form.stase_order"
-                        type="number"
-                        min="0"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="flex items-center gap-2 text-sm">
-                    <input
-                        v-model="form.is_mandatory"
-                        type="checkbox"
-                        class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/30"
-                    />
-                    <span class="text-muted">Mandatory</span>
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Lecture Name</span>
-                    <input
-                        v-model.trim="form.lecture_name"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Lecture Names</span>
-                    <input
-                        v-model.trim="form.lecture_names"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Evaluation Link</span>
-                    <input
-                        v-model.trim="form.evaluation_link"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Study Program</span>
-                    <select
-                        v-model="form.study_program_code"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option value="">-</option>
-                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
-                            {{ option.name }}
-                        </option>
-                    </select>
-                </label>
+            <div class="flex gap-1 border-b border-border">
+                <button
+                    type="button"
+                    class="border-b-2 px-4 py-2 text-sm font-medium"
+                    :class="activeTab === 'information' ? 'border-primary text-primary' : 'border-transparent text-muted'"
+                    @click="activeTab = 'information'"
+                >
+                    Information
+                </button>
+                <button
+                    type="button"
+                    class="border-b-2 px-4 py-2 text-sm font-medium"
+                    :class="activeTab === 'attribute' ? 'border-primary text-primary' : 'border-transparent text-muted'"
+                    @click="activeTab = 'attribute'"
+                >
+                    Attribute
+                </button>
+            </div>
+
+            <form class="grid gap-4 pt-4" @submit.prevent="submitForm">
+                <div v-show="activeTab === 'information'" class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Name</span>
+                        <input
+                            v-model.trim="form.name"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Alias</span>
+                        <input
+                            v-model.trim="form.alias"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Description</span>
+                        <input
+                            v-model.trim="form.desc"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Order</span>
+                        <input
+                            v-model.number="form.stase_order"
+                            type="number"
+                            min="0"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">SKS</span>
+                        <input
+                            v-model.number="form.sks"
+                            type="number"
+                            min="0"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Semester</span>
+                        <input
+                            v-model.trim="form.semester"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Duration (week)</span>
+                        <input
+                            v-model.trim="form.duration"
+                            type="number"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Section</span>
+                        <input
+                            v-model.trim="form.section"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Study Program</span>
+                        <select
+                            v-model="form.study_program_code"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        >
+                            <option value="">-</option>
+                            <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                                {{ option.name }}
+                            </option>
+                        </select>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm md:col-span-2">
+                        <input
+                            v-model="form.is_mandatory"
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/30"
+                        />
+                        <span class="text-muted">Mandatory</span>
+                    </label>
+                </div>
+
+                <div v-show="activeTab === 'attribute'" class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Color</span>
+                        <input
+                            v-model="form.color"
+                            type="color"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Font Color</span>
+                        <input
+                            v-model="form.font_color"
+                            type="color"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Lecture in Charge</span>
+                        <select
+                            v-model="form.lecture_name"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        >
+                            <option value="">-</option>
+                            <option v-for="lecture in lectures" :key="lecture.id" :value="lecture.name">
+                                {{ lecture.name }}
+                            </option>
+                        </select>
+                    </label>
+                    <div class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Lecture Names</span>
+                        <div class="grid gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-2">
+                            <span v-if="lectures.length === 0" class="text-xs text-muted">
+                                No lectures found.
+                            </span>
+                            <label
+                                v-for="lecture in lectures"
+                                :key="lecture.id"
+                                class="flex items-center gap-2 text-sm"
+                            >
+                                <input
+                                    type="checkbox"
+                                    class="h-4 w-4 rounded border border-border"
+                                    :checked="isLectureNameSelected(lecture.name)"
+                                    @change="toggleLectureNameSelection(lecture.name, $event.target.checked)"
+                                />
+                                <span class="text-ink">{{ lecture.name }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <label class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Evaluation Link</span>
+                        <input
+                            v-model.trim="form.evaluation_link"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                </div>
+
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
                 </div>
@@ -275,8 +375,10 @@ export default {
             stases: [],
             pagination: {},
             studyPrograms: [],
+            lectures: [],
             filters: {
                 keyword: '',
+                study_program_code: '',
                 page: 1,
             },
             form: {
@@ -289,22 +391,61 @@ export default {
                 stase_order: null,
                 is_mandatory: false,
                 lecture_name: '',
-                lecture_names: '',
+                lecture_names: [],
                 evaluation_link: '',
                 study_program_code: '',
+                section: '',
+                semester: '',
+                sks: null,
+                duration: '',
             },
+            activeTab: 'information',
             editMode: false,
             modalOpen: false,
             loading: false,
             submitting: false,
             errorMessage: '',
+            actionMenuOpenId: null,
         };
     },
     created() {
         this.fetchStudyPrograms();
+        this.fetchLectures();
         this.fetchStases();
     },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
+    },
     methods: {
+        toggleActionMenu(staseId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === staseId ? null : staseId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleAction(action, stase) {
+            this.closeActionMenu();
+            if (action === 'edit') {
+                this.openEdit(stase);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteStase(stase);
+            }
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
+        },
         fetchStudyPrograms() {
             return Repository.get('/api/study-program-list')
                 .then((response) => {
@@ -313,6 +454,16 @@ export default {
                 })
                 .catch(() => {
                     this.studyPrograms = [];
+                });
+        },
+        fetchLectures() {
+            return Repository.get('/api/lecture-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.lectures = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.lectures = [];
                 });
         },
         fetchStases() {
@@ -343,6 +494,7 @@ export default {
         },
         resetFilter() {
             this.filters.keyword = '';
+            this.filters.study_program_code = '';
             this.filters.page = 1;
             this.fetchStases();
         },
@@ -353,6 +505,7 @@ export default {
         openCreate() {
             this.editMode = false;
             this.resetForm();
+            this.activeTab = 'information';
             this.errorMessage = '';
             this.modalOpen = true;
         },
@@ -368,10 +521,15 @@ export default {
                 stase_order: stase.stase_order ?? null,
                 is_mandatory: !!stase.is_mandatory,
                 lecture_name: stase.lecture_name || '',
-                lecture_names: stase.lecture_names || '',
+                lecture_names: this.parseLectureNames(stase.lecture_names),
                 evaluation_link: stase.evaluation_link || '',
                 study_program_code: stase.study_program_code || '',
+                section: stase.section || '',
+                semester: stase.semester || '',
+                sks: stase.sks ?? null,
+                duration: stase.duration || '',
             };
+            this.activeTab = 'information';
             this.errorMessage = '';
             this.modalOpen = true;
         },
@@ -393,9 +551,44 @@ export default {
                 stase_order: null,
                 is_mandatory: false,
                 lecture_name: '',
-                lecture_names: '',
+                lecture_names: [],
                 evaluation_link: '',
                 study_program_code: '',
+                section: '',
+                semester: '',
+                sks: null,
+                duration: '',
+            };
+        },
+        parseLectureNames(value) {
+            if (Array.isArray(value)) {
+                return value;
+            }
+
+            if (!value) {
+                return [];
+            }
+
+            return String(value)
+                .split(',')
+                .map((name) => name.trim())
+                .filter((name) => name.length > 0);
+        },
+        isLectureNameSelected(name) {
+            return Array.isArray(this.form.lecture_names) && this.form.lecture_names.includes(name);
+        },
+        toggleLectureNameSelection(name, checked) {
+            const current = Array.isArray(this.form.lecture_names) ? [...this.form.lecture_names] : [];
+            this.form.lecture_names = checked
+                ? Array.from(new Set([...current, name]))
+                : current.filter((item) => item !== name);
+        },
+        buildPayload() {
+            return {
+                ...this.form,
+                lecture_names: Array.isArray(this.form.lecture_names)
+                    ? this.form.lecture_names.join(', ')
+                    : this.form.lecture_names,
             };
         },
         submitForm() {
@@ -409,7 +602,7 @@ export default {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.post(this.baseUrl, this.form)
+            return Repository.post(this.baseUrl, this.buildPayload())
                 .then(() => {
                     this.closeModal();
                     this.fetchStases();
@@ -429,7 +622,7 @@ export default {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
+            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.buildPayload())
                 .then(() => {
                     this.fetchStases();
                     this.closeModal();

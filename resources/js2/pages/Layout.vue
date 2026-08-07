@@ -1,7 +1,13 @@
 <template>
-    <div class="min-h-screen bg-surface text-ink font-sans flex flex-col lg:flex-row">
-        <Sidebar v-if="showSidebar" :base-path="basePath" :collapsed="collapsed" :is-mobile="isMobile" />
-        <div class="flex flex-1 flex-col">
+    <div class="min-h-screen lg:h-screen lg:overflow-hidden bg-surface text-ink font-sans flex flex-col lg:flex-row">
+        <Sidebar
+            v-if="showSidebar"
+            :base-path="basePath"
+            :collapsed="collapsed"
+            :is-mobile="isMobile"
+            class="lg:h-full lg:overflow-y-auto"
+        />
+        <div class="flex flex-1 flex-col lg:h-full lg:min-h-0">
             <Topbar
                 :title="title"
                 :subtitle="subtitle"
@@ -10,7 +16,7 @@
                 @toggle-sidebar="toggleSidebar"
             />
             <main
-                class="flex flex-col gap-7"
+                class="flex flex-1 flex-col gap-7 lg:overflow-y-auto lg:min-h-0"
                 :class="contentPaddingClass"
             >
                 <router-view />

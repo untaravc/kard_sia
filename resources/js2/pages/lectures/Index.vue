@@ -26,6 +26,18 @@
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
+                <div class="min-w-[200px]">
+                    <label class="text-xs text-muted">Study Program</label>
+                    <select
+                        v-model="filters.study_program_code"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
                 <div class="flex items-end gap-2">
                     <button
                         class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
@@ -151,92 +163,200 @@
             :open="modalOpen"
             :title="editMode ? 'Edit Lecture' : 'Create Lecture'"
             :eyebrow="editMode ? 'Update lecture' : 'New lecture'"
-            size="md"
+            size="xl"
             @close="closeModal"
         >
-            <form class="grid gap-4" @submit.prevent="submitForm">
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Number</span>
-                    <input
-                        v-model.trim="form.number"
-                        type="text"
-                        placeholder="Lecture number"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Name</span>
-                    <input
-                        v-model.trim="form.name"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Email</span>
-                    <input
-                        v-model.trim="form.email"
-                        type="email"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Password</span>
-                    <input
-                        v-model.trim="form.password"
-                        type="password"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Alternate Name</span>
-                    <input
-                        v-model.trim="form.name_alt"
-                        type="text"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </label>
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Status</span>
-                    <select
-                        v-model="form.status"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option value="active">Active</option>
-                        <option value="nonactive">Nonactive</option>
-                    </select>
-                </label>
-                <label class="flex items-center gap-3 text-sm">
-                    <input
-                        v-model.number="form.is_in_house"
-                        type="checkbox"
-                        :true-value="1"
-                        :false-value="0"
-                        class="h-4 w-4 rounded border border-border"
-                    />
-                    <span class="text-muted">In House</span>
-                </label>
-                <div class="grid gap-2 text-sm">
-                    <span class="text-muted">Study Programs</span>
-                    <div class="grid gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-2">
-                        <span v-if="studyPrograms.length === 0" class="text-xs text-muted">
-                            No study programs found.
-                        </span>
-                        <label
-                            v-for="option in studyPrograms"
-                            :key="option.id"
-                            class="flex items-center gap-2 text-sm"
+            <div class="flex gap-1 border-b border-border">
+                <button
+                    type="button"
+                    class="border-b-2 px-4 py-2 text-sm font-medium"
+                    :class="activeTab === 'account' ? 'border-primary text-primary' : 'border-transparent text-muted'"
+                    @click="activeTab = 'account'"
+                >
+                    Account
+                </button>
+                <button
+                    type="button"
+                    class="border-b-2 px-4 py-2 text-sm font-medium"
+                    :class="activeTab === 'information' ? 'border-primary text-primary' : 'border-transparent text-muted'"
+                    @click="activeTab = 'information'"
+                >
+                    Information
+                </button>
+            </div>
+
+            <form class="grid gap-4 pt-4" @submit.prevent="submitForm">
+                <div v-show="activeTab === 'account'" class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Number</span>
+                        <input
+                            v-model.trim="form.number"
+                            type="text"
+                            placeholder="Lecture number"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Name with Title</span>
+                        <input
+                            v-model.trim="form.name_alt"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Name</span>
+                        <input
+                            v-model.trim="form.name"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Email</span>
+                        <input
+                            v-model.trim="form.email"
+                            type="email"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Password</span>
+                        <input
+                            v-model.trim="form.password"
+                            type="password"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Status</span>
+                        <select
+                            v-model="form.status"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         >
-                            <input
-                                type="checkbox"
-                                class="h-4 w-4 rounded border border-border"
-                                :checked="isStudyProgramSelected(option.code)"
-                                @change="toggleStudyProgramSelection(option.code, $event.target.checked)"
-                            />
-                            <span class="text-ink">{{ option.name }}</span>
-                        </label>
+                            <option value="active">Active</option>
+                            <option value="nonactive">Nonactive</option>
+                        </select>
+                    </label>
+                    <label class="flex items-center gap-3 text-sm">
+                        <input
+                            v-model.number="form.is_in_house"
+                            type="checkbox"
+                            :true-value="1"
+                            :false-value="0"
+                            class="h-4 w-4 rounded border border-border"
+                        />
+                        <span class="text-muted">In House</span>
+                    </label>
+                    <div class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Study Programs</span>
+                        <div class="grid gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-2">
+                            <span v-if="studyPrograms.length === 0" class="text-xs text-muted">
+                                No study programs found.
+                            </span>
+                            <label
+                                v-for="option in studyPrograms"
+                                :key="option.id"
+                                class="flex items-center gap-2 text-sm"
+                            >
+                                <input
+                                    type="checkbox"
+                                    class="h-4 w-4 rounded border border-border"
+                                    :checked="isStudyProgramSelected(option.code)"
+                                    @change="toggleStudyProgramSelection(option.code, $event.target.checked)"
+                                />
+                                <span class="text-ink">{{ option.name }}</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
+
+                <div v-show="activeTab === 'information'" class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Code</span>
+                        <input
+                            v-model.trim="form.code"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Degree</span>
+                        <input
+                            v-model.trim="form.degree"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Place of Birth</span>
+                        <input
+                            v-model.trim="form.pob"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Date of Birth</span>
+                        <input
+                            v-model="form.dob"
+                            type="date"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Phone</span>
+                        <input
+                            v-model.trim="form.phone"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Register Date</span>
+                        <input
+                            v-model="form.register_date"
+                            type="date"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Address</span>
+                        <textarea
+                            v-model.trim="form.address"
+                            rows="3"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        ></textarea>
+                    </label>
+                    <div class="grid gap-2 text-sm md:col-span-2">
+                        <span class="text-muted">Photo</span>
+                        <div class="flex items-center gap-4">
+                            <img
+                                v-if="imagePreviewUrl"
+                                :src="imagePreviewUrl"
+                                alt="Preview"
+                                class="h-16 w-16 rounded-xl border border-border object-cover"
+                            />
+                            <div
+                                v-else
+                                class="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-border text-center text-[10px] text-muted"
+                            >
+                                No photo
+                            </div>
+                            <div class="grid gap-1">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    class="text-sm"
+                                    :disabled="uploadingImage"
+                                    @change="handleImageChange"
+                                />
+                                <span v-if="uploadingImage" class="text-xs text-muted">Uploading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
                 </div>
@@ -258,6 +378,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
 import persistFilters from '../../mixins/persistFilters';
+import { uploadFirebaseFile } from '../../upload';
 
 export default {
     components: {
@@ -273,6 +394,7 @@ export default {
             studyPrograms: [],
             filters: {
                 keyword: '',
+                study_program_code: '',
                 page: 1,
             },
             form: {
@@ -286,14 +408,33 @@ export default {
                 status: null,
                 is_in_house: 0,
                 study_program_codes: [],
+                code: '',
+                degree: '',
+                pob: '',
+                dob: '',
+                phone: '',
+                address: '',
+                image: '',
+                register_date: '',
             },
+            activeTab: 'account',
             editMode: false,
             modalOpen: false,
             loading: false,
             submitting: false,
+            uploadingImage: false,
             errorMessage: '',
             actionMenuOpenId: null,
         };
+    },
+    computed: {
+        imagePreviewUrl() {
+            if (!this.form.image) {
+                return '';
+            }
+
+            return this.form.image.startsWith('http') ? this.form.image : `/storage/${this.form.image}`;
+        },
     },
     created() {
         this.fetchStudyPrograms();
@@ -306,6 +447,41 @@ export default {
         document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
+        async handleImageChange(event) {
+            const file = event && event.target ? event.target.files[0] : null;
+            if (!file) {
+                return;
+            }
+
+            if (!file.type || !file.type.startsWith('image/')) {
+                this.errorMessage = 'Please select an image file.';
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 4200000) {
+                this.errorMessage = 'Image must be smaller than 4MB.';
+                event.target.value = '';
+                return;
+            }
+
+            this.uploadingImage = true;
+            this.errorMessage = '';
+
+            try {
+                const url = await uploadFirebaseFile({ file, prefix: 'Lecture/Profile' });
+                if (url) {
+                    this.form.image = url;
+                } else {
+                    this.errorMessage = 'Failed to upload image.';
+                }
+            } catch (error) {
+                this.errorMessage = 'Failed to upload image.';
+            } finally {
+                this.uploadingImage = false;
+                event.target.value = '';
+            }
+        },
         fetchStudyPrograms() {
             return Repository.get('/api/study-program-list')
                 .then((response) => {
@@ -354,6 +530,7 @@ export default {
         },
         resetFilter() {
             this.filters.keyword = '';
+            this.filters.study_program_code = '';
             this.filters.page = 1;
             this.fetchLectures();
         },
@@ -394,6 +571,7 @@ export default {
         openCreate() {
             this.editMode = false;
             this.resetForm();
+            this.activeTab = 'account';
             this.errorMessage = '';
             this.modalOpen = true;
         },
@@ -410,7 +588,16 @@ export default {
                 status: lecture.status ?? null,
                 is_in_house: lecture.is_in_house ? 1 : 0,
                 study_program_codes: Array.isArray(lecture.study_program_codes) ? lecture.study_program_codes : [],
+                code: lecture.code || '',
+                degree: lecture.degree || '',
+                pob: lecture.pob || '',
+                dob: this.formatDateInput(lecture.dob),
+                phone: lecture.phone || '',
+                address: lecture.address || '',
+                image: lecture.image || '',
+                register_date: this.formatDateInput(lecture.register_date),
             };
+            this.activeTab = 'account';
             this.errorMessage = '';
             this.modalOpen = true;
         },
@@ -433,7 +620,22 @@ export default {
                 status: null,
                 is_in_house: 0,
                 study_program_codes: [],
+                code: '',
+                degree: '',
+                pob: '',
+                dob: '',
+                phone: '',
+                address: '',
+                image: '',
+                register_date: '',
             };
+        },
+        formatDateInput(value) {
+            if (!value) {
+                return '';
+            }
+
+            return String(value).slice(0, 10);
         },
         submitForm() {
             if (this.editMode) {

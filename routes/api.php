@@ -59,6 +59,16 @@ Route::middleware('jwt.auth')->group(function () {
 
     // MenuController
     Route::get('menu', [MenuController::class, 'menu']);
+    Route::resource('menus', 'Api\MenuController');
+    Route::get('menu-list', [MenuController::class, 'list']);
+
+    // RoleController
+    Route::resource('roles', 'Api\RoleController');
+    Route::get('role-list', [\App\Http\Controllers\Api\RoleController::class, 'list']);
+
+    // MenuRoleController
+    Route::resource('menu-roles', 'Api\MenuRoleController');
+    Route::post('menu-roles-sync', [\App\Http\Controllers\Api\MenuRoleController::class, 'sync']);
 
     // DashboardController
     Route::get('dashboard-stats', [DashboardController::class, 'stat']);
@@ -115,6 +125,10 @@ Route::middleware('jwt.auth')->group(function () {
 
     // TaskController
     Route::resource('tasks', 'Api\TaskController');
+    Route::get('task-list', [\App\Http\Controllers\Api\TaskController::class, 'list']);
+
+    // TaskDetailController
+    Route::resource('task-details', 'Api\TaskDetailController');
 
     // LectureController
     Route::resource('lectures', 'Api\LectureController');

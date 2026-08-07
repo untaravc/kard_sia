@@ -6,12 +6,146 @@ use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\ActivityLecture;
 use App\Models\ActivityStudent;
+use App\Models\Menu;
+use App\Models\MenuRole;
 use App\Models\StudentLog;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MenuController extends Controller
 {
+    public function index(Request $request)
+    {
+        $dataContent = Menu::orderBy('order')->orderBy('name');
+        $dataContent = $this->withFilterMenu($dataContent, $request);
+        $dataContent = $dataContent->paginate($request->per_page ?? 20);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Menus Success',
+            'result' => $dataContent,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $this->validateMenuData($request);
+
+        $menuItem = Menu::create($data);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Menu Success',
+            'result' => $menuItem,
+        ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $menuItem = Menu::find($id);
+        if (!$menuItem) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Menu not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $data = $this->validateMenuData($request, $id);
+        $menuItem->update($data);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Menu Success',
+            'result' => $menuItem,
+        ]);
+    }
+
+    public function show($id)
+    {
+        $menuItem = Menu::find($id);
+
+        if (!$menuItem) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Menu not found',
+                'result' => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Menu Success',
+            'result' => $menuItem,
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $menuItem = Menu::find($id);
+        if (!$menuItem) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Menu not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $menuItem->delete();
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Delete Menu Success',
+            'result' => null,
+        ]);
+    }
+
+    public function list()
+    {
+        $menus = Menu::where('is_active', 1)
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'title', 'parent_id']);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Menu List Success',
+            'result' => $menus,
+        ]);
+    }
+
+    protected function validateMenuData(Request $request, $id = null)
+    {
+        return $this->validate($request, [
+            'parent_id' => 'nullable|integer',
+            'order' => 'nullable|integer',
+            'type' => 'required|in:menu,title,submenu',
+            'url' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:255', Rule::unique('menus', 'name')->ignore($id)],
+            'title' => 'required|string|max:255',
+            'icon' => 'nullable|string|max:255',
+            'is_active' => 'nullable|boolean',
+        ]);
+    }
+
+    protected function withFilterMenu($dataContent, Request $request)
+    {
+        if ($request->filled('keyword')) {
+            $dataContent = $dataContent->where(function ($query) use ($request) {
+                $query->where('name', 'LIKE', '%' . $request->keyword . '%')
+                    ->orWhere('title', 'LIKE', '%' . $request->keyword . '%')
+                    ->orWhere('url', 'LIKE', '%' . $request->keyword . '%');
+            });
+        }
+
+        if ($request->filled('parent_id')) {
+            $dataContent = $dataContent->where('parent_id', $request->parent_id);
+        }
+
+        return $dataContent;
+    }
     public function menu(Request $request)
     {
         $basePath = $request->get('basePath', '/blu');
@@ -75,72 +209,6 @@ class MenuController extends Controller
         }
 
         $menuByType = [
-            'user' => [
-                ['label' => 'Dashboard', 'icon' => 'dashboard', 'to' => "{$basePath}/dashboard"],
-                [
-                    'label' => 'Lectures',
-                    'icon' => 'dosen',
-                    'children' => [
-                        ['label' => 'Data', 'to' => "{$basePath}/lectures"],
-                    ],
-                ],
-                [
-                    'label' => 'Students',
-                    'icon' => 'resident',
-                    'children' => [
-                        ['label' => 'Data', 'to' => "{$basePath}/students"],
-                        ['label' => 'Stase Log Report', 'to' => "{$basePath}/report/stase-log"],
-                        ['label' => 'Presences', 'to' => "{$basePath}/presences"],
-                        ['label' => 'Presences Daily', 'to' => "{$basePath}/presences/daily"],
-                        ['label' => 'Presences Monthly', 'to' => "{$basePath}/presences/monthly"],
-                        ['label' => 'Log Book', 'to' => "{$basePath}/logbooks"],
-                    ],
-                ],
-                [
-                    'label' => 'Monitoring',
-                    'icon' => 'resident',
-                    'children' => [
-                        ['label' => 'Stase', 'to' => "{$basePath}/students/monitoring"],
-                        ['label' => 'Logbook', 'to' => "{$basePath}/students/monitoring-logbook"],
-                        ['label' => 'Presence', 'to' => "{$basePath}/students/monitoring-presence"],
-                    ],
-                ],
-                [
-                    'label' => 'Registrations',
-                    'icon' => 'resident',
-                    'children' => [
-                        ['label' => 'Administrasi', 'to' => "{$basePath}/registrations"],
-                        ['label' => 'Journal', 'to' => "{$basePath}/registrations?section=journal"],
-                        ['label' => 'Interview', 'to' => "{$basePath}/registrations?section=interview"],
-                        ['label' => 'Score', 'to' => "{$basePath}/registrations/score"],
-                    ],
-                ],
-                [
-                    'label' => 'Add On',
-                    'icon' => 'agenda',
-                    'children' => [
-                        ['label' => 'Activities', 'to' => "{$basePath}/activities"],
-                        ['label' => 'Formulir', 'to' => "{$basePath}/forms"],
-                        ['label' => 'Letters', 'to' => "{$basePath}/letters"],
-                        ['label' => 'Accreditation', 'to' => "{$basePath}/accreditations"],
-                        ['label' => 'Asset', 'to' => "{$basePath}/assets"],
-                    ],
-                ],
-                [
-                    'label' => 'Data Master',
-                    'icon' => 'data-master',
-                    'children' => [
-                        ['label' => 'Form Option', 'to' => "{$basePath}/form-options"],
-                        ['label' => 'Study Program', 'to' => "{$basePath}/study-programs"],
-                        ['label' => 'Post', 'to' => "{$basePath}/posts"],
-                        ['label' => 'Stase', 'to' => "{$basePath}/stases"],
-                        ['label' => 'Task', 'to' => "{$basePath}/tasks"],
-                        ['label' => 'Settings', 'to' => "{$basePath}/settings"],
-                        ['label' => 'Mail Log', 'to' => "{$basePath}/mail-logs"],
-                        ['label' => 'Admin', 'to' => "{$basePath}/users"],
-                    ],
-                ],
-            ],
             'student' => [
                 ['label' => 'Scoring', 'icon' => 'mdi:clipboard-check-outline', 'to' => "{$basePath}/dashboard-student/scoring"],
                 ['label' => 'Agenda', 'icon' => 'mdi:calendar-month-outline', 'to' => "{$basePath}/dashboard-student/agenda", 'counter' => $todayAgendaCount],
@@ -157,7 +225,9 @@ class MenuController extends Controller
             ],
         ];
 
-        $menu = $menuByType[$authType] ?? $menuByType['user'];
+        $menu = $authType === 'user'
+            ? $this->buildUserMenu($authId)
+            : ($menuByType[$authType] ?? []);
 
         $this->response['success'] = true;
         $this->response['text'] = 'Retrieve Menu Success';
@@ -166,5 +236,61 @@ class MenuController extends Controller
         ];
 
         return $this->response;
+    }
+
+    /**
+     * Builds the admin sidebar from the menus the user's role has been
+     * granted the INDEX (method = GET) permission for on, via menu_role.
+     */
+    protected function buildUserMenu($authId)
+    {
+        $user = $authId ? User::find($authId) : null;
+        $roleId = $user ? $user->role_id : null;
+
+        if (!$roleId) {
+            return [];
+        }
+
+        $menuIds = MenuRole::where('role_id', $roleId)
+            ->where('method', 'GET')
+            ->pluck('menu_id');
+
+        if ($menuIds->isEmpty()) {
+            return [];
+        }
+
+        $menus = Menu::whereIn('id', $menuIds)
+            ->where('is_active', 1)
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
+
+        $topLevel = $menus->whereNull('parent_id')->values();
+        $childrenByParent = $menus->whereNotNull('parent_id')->groupBy('parent_id');
+
+        return $topLevel->map(function ($menuItem) use ($childrenByParent) {
+            $children = $childrenByParent->get($menuItem->id, collect())
+                ->map(function ($child) {
+                    return [
+                        'label' => $child->title,
+                        'to' => $child->url,
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $item = [
+                'label' => $menuItem->title,
+                'icon' => $menuItem->icon,
+            ];
+
+            if (count($children)) {
+                $item['children'] = $children;
+            } else {
+                $item['to'] = $menuItem->url;
+            }
+
+            return $item;
+        })->values()->all();
     }
 }

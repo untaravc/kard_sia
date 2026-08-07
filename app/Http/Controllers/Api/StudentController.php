@@ -17,7 +17,23 @@ class StudentController extends Controller
     public function index(Request $request)
     {
         $dataContent = Student::leftJoin('student_profiles', 'student_profiles.student_id', '=', 'students.id')
-            ->select('students.*', 'student_profiles.phone as phone')
+            ->select(
+                'students.*',
+                'student_profiles.code as code',
+                'student_profiles.degree as degree',
+                'student_profiles.pob as pob',
+                'student_profiles.dob as dob',
+                'student_profiles.phone as phone',
+                'student_profiles.address as address',
+                'student_profiles.image as image',
+                'student_profiles.register_date as register_date',
+                'student_profiles.initial as initial',
+                'student_profiles.city as city',
+                'student_profiles.postal_code as postal_code',
+                'student_profiles.undergraduate as undergraduate',
+                'student_profiles.graduated_at as graduated_at',
+                'student_profiles.lecture_id as lecture_id'
+            )
             ->orderBy('students.name');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(15);
@@ -38,6 +54,7 @@ class StudentController extends Controller
         $this->validateData($request);
 
         $student = Student::create($request->all());
+        $this->saveProfile($student->id, $request);
 
         return response()->json([
             'success' => true,
@@ -66,12 +83,32 @@ class StudentController extends Controller
         }
 
         $student->update($request->all());
+        $this->saveProfile($student->id, $request);
 
         return response()->json([
             'success' => true,
             'text' => 'Update Student Success',
             'result' => $student,
         ]);
+    }
+
+    protected function saveProfile($studentId, Request $request)
+    {
+        $fields = [
+            'code', 'degree', 'pob', 'dob', 'phone', 'address', 'image', 'register_date',
+            'initial', 'city', 'postal_code', 'undergraduate', 'graduated_at', 'lecture_id',
+        ];
+        if (!$request->hasAny($fields)) {
+            return;
+        }
+
+        $data = collect($request->only($fields))
+            ->map(function ($value) {
+                return $value === '' ? null : $value;
+            })
+            ->toArray();
+
+        StudentProfile::updateOrCreate(['student_id' => $studentId], $data);
     }
 
     public function show($id)
@@ -203,6 +240,20 @@ class StudentController extends Controller
             'year' => 'nullable',
             'status' => 'nullable',
             'study_program_code' => 'nullable|string|max:50',
+            'code' => 'nullable|string|max:20',
+            'degree' => 'nullable|string|max:100',
+            'pob' => 'nullable|string|max:100',
+            'dob' => 'nullable|date',
+            'phone' => 'nullable|string|max:15',
+            'address' => 'nullable|string|max:255',
+            'image' => 'nullable|string',
+            'register_date' => 'nullable|date',
+            'initial' => 'nullable|string|max:20',
+            'city' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:10',
+            'undergraduate' => 'nullable|string|max:50',
+            'graduated_at' => 'nullable|date',
+            'lecture_id' => 'nullable|integer',
         ]);
     }
 
@@ -214,6 +265,10 @@ class StudentController extends Controller
 
         if ($request->year !== null && $request->year !== '') {
             $dataContent = $dataContent->where('year', $request->year);
+        }
+
+        if ($request->study_program_code != null) {
+            $dataContent = $dataContent->where('students.study_program_code', $request->study_program_code);
         }
 
         if ($request->keyword != null) {

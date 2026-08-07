@@ -65,6 +65,7 @@ class StudyProgramController extends Controller
         }
 
         $data = $this->validateData($request);
+        unset($data['code']);
         $studyProgram->update($data);
 
         return response()->json([

@@ -26,6 +26,18 @@
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
+                <div class="min-w-[200px]">
+                    <label class="text-xs text-muted">Study Program</label>
+                    <select
+                        v-model="filters.study_program_code"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="option in studyPrograms" :key="option.id" :value="option.code">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </div>
                 <div class="flex items-end gap-2">
                     <button
                         class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
@@ -83,21 +95,40 @@
                         </div>
                         <div class="text-xs text-muted" v-if="task.desc">{{ task.desc }}</div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(task)"
+                            @click.stop="toggleActionMenu(task.id)"
                         >
-                            Edit
+                            Actions
                         </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteTask(task)"
+                        <div
+                            v-if="actionMenuOpenId === task.id"
+                            class="absolute right-0 z-10 mt-2 w-44 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
-                            Delete
-                        </button>
+                            <router-link
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                :to="`/blu/tasks/${task.id}/scoring-components`"
+                                @click.native="closeActionMenu"
+                            >
+                                Scoring Components
+                            </router-link>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('edit', task)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', task)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -204,6 +235,7 @@ export default {
             studyPrograms: [],
             filters: {
                 keyword: '',
+                study_program_code: '',
                 page: 1,
             },
             form: {
@@ -218,13 +250,46 @@ export default {
             loading: false,
             submitting: false,
             errorMessage: '',
+            actionMenuOpenId: null,
         };
     },
     created() {
         this.fetchStudyPrograms();
         this.fetchTasks();
     },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
+    },
     methods: {
+        toggleActionMenu(taskId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === taskId ? null : taskId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleAction(action, task) {
+            this.closeActionMenu();
+            if (action === 'edit') {
+                this.openEdit(task);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteTask(task);
+            }
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
+        },
         fetchStudyPrograms() {
             return Repository.get('/api/study-program-list')
                 .then((response) => {
@@ -263,6 +328,7 @@ export default {
         },
         resetFilter() {
             this.filters.keyword = '';
+            this.filters.study_program_code = '';
             this.filters.page = 1;
             this.fetchTasks();
         },

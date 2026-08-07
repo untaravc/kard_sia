@@ -11,5 +11,10 @@ class Setting extends Model
         'label',
         'value',
         'status',
+        'is_native',
+    ];
+
+    protected $casts = [
+        'is_native' => 'boolean',
     ];
 }

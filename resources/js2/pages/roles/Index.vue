@@ -3,14 +3,14 @@
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Data Master</div>
-                <h1 class="text-2xl font-semibold text-ink">Study Programs</h1>
+                <h1 class="text-2xl font-semibold text-ink">Roles</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add Study Program
+                Add Role
             </button>
         </header>
 
@@ -22,7 +22,7 @@
                         v-model.trim="filters.keyword"
                         @keyup.enter="applyFilter"
                         type="text"
-                        placeholder="Search name, code, or head..."
+                        placeholder="Search name or description..."
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
@@ -48,7 +48,7 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Study Programs</div>
+                <div class="font-semibold">Roles</div>
                 <div v-if="pagination.total" class="text-xs text-muted">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -60,11 +60,11 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && studyPrograms.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No study programs found.
+                <div v-if="!loading && roles.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No roles found.
                 </div>
                 <div
-                    v-for="(item, index) in studyPrograms"
+                    v-for="(item, index) in roles"
                     :key="item.id"
                     class="flex flex-wrap items-start gap-3 px-5 py-4"
                 >
@@ -75,18 +75,13 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="font-semibold text-ink">{{ item.name }}</div>
                             <span
-                                v-if="item.code"
-                                class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700"
+                                class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                :class="item.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
                             >
-                                {{ item.code }}
+                                {{ item.is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </div>
-                        <div class="mt-1 text-xs text-muted">
-                            <span v-if="item.head_name">Head: {{ item.head_name }}</span>
-                            <span v-if="item.deputy_head_name"> • Deputy: {{ item.deputy_head_name }}</span>
-                        </div>
-                        <div v-if="item.address" class="mt-1 text-xs text-muted">{{ item.address }}</div>
-                        <div v-if="item.desc" class="mt-2 text-sm text-muted">{{ formatDesc(item.desc) }}</div>
+                        <div v-if="item.description" class="mt-1 text-xs text-muted">{{ item.description }}</div>
                     </div>
                     <div class="relative action-dropdown">
                         <button
@@ -106,6 +101,13 @@
                                 @click="handleAction('edit', item)"
                             >
                                 Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', item)"
+                            >
+                                Delete
                             </button>
                         </div>
                     </div>
@@ -134,66 +136,35 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit Study Program' : 'Create Study Program'"
-            :eyebrow="editMode ? 'Update study program' : 'New study program'"
-            size="lg"
+            :title="editMode ? 'Edit Role' : 'Create Role'"
+            :eyebrow="editMode ? 'Update role' : 'New role'"
+            size="md"
             @close="closeModal"
         >
             <form class="grid gap-4" @submit.prevent="submitForm">
-                <div class="grid gap-4 md:grid-cols-2">
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Code</span>
-                        <input
-                            v-model.trim="form.code"
-                            type="text"
-                            :disabled="editMode"
-                            :class="editMode ? 'cursor-not-allowed bg-slate-100 text-muted' : 'bg-white'"
-                            class="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                        <span v-if="editMode" class="text-xs text-muted">Code cannot be changed after creation.</span>
-                    </label>
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Name</span>
-                        <input
-                            v-model.trim="form.name"
-                            type="text"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                    </label>
-                </div>
-                <div class="grid gap-4 md:grid-cols-2">
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Head Name</span>
-                        <input
-                            v-model.trim="form.head_name"
-                            type="text"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                    </label>
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Deputy Head Name</span>
-                        <input
-                            v-model.trim="form.deputy_head_name"
-                            type="text"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                    </label>
-                </div>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Address</span>
-                    <textarea
-                        v-model.trim="form.address"
-                        rows="3"
+                    <span class="text-muted">Name</span>
+                    <input
+                        v-model.trim="form.name"
+                        type="text"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
+                    />
                 </label>
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Description</span>
                     <textarea
-                        v-model.trim="form.desc"
-                        rows="5"
+                        v-model.trim="form.description"
+                        rows="3"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     ></textarea>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input
+                        v-model="form.is_active"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/30"
+                    />
+                    <span class="text-muted">Active</span>
                 </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
@@ -203,7 +174,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update Study Program' : 'Create Study Program' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Role' : 'Create Role' }}
                 </button>
             </form>
         </Modal>
@@ -222,11 +193,11 @@ export default {
         Loading,
         Modal,
     },
-    mixins: [persistFilters('study-programs')],
+    mixins: [persistFilters('roles')],
     data() {
         return {
-            baseUrl: '/api/study-programs',
-            studyPrograms: [],
+            baseUrl: '/api/roles',
+            roles: [],
             pagination: {},
             filters: {
                 keyword: '',
@@ -234,12 +205,9 @@ export default {
             },
             form: {
                 id: null,
-                code: '',
                 name: '',
-                desc: '',
-                address: '',
-                head_name: '',
-                deputy_head_name: '',
+                description: '',
+                is_active: true,
             },
             editMode: false,
             modalOpen: false,
@@ -250,7 +218,7 @@ export default {
         };
     },
     created() {
-        this.fetchStudyPrograms();
+        this.fetchRoles();
     },
     mounted() {
         document.addEventListener('click', this.handleDocumentClick);
@@ -269,6 +237,10 @@ export default {
             this.closeActionMenu();
             if (action === 'edit') {
                 this.openEdit(item);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteRole(item);
             }
         },
         handleDocumentClick(event) {
@@ -281,7 +253,7 @@ export default {
             }
             this.closeActionMenu();
         },
-        fetchStudyPrograms() {
+        fetchRoles() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -292,13 +264,13 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.studyPrograms = data;
+                    this.roles = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.studyPrograms = [];
+                    this.roles = [];
                     this.pagination = {};
-                    this.errorMessage = 'Failed to load study programs.';
+                    this.errorMessage = 'Failed to load roles.';
                 })
                 .finally(() => {
                     this.loading = false;
@@ -306,16 +278,16 @@ export default {
         },
         applyFilter() {
             this.filters.page = 1;
-            this.fetchStudyPrograms();
+            this.fetchRoles();
         },
         resetFilter() {
             this.filters.keyword = '';
             this.filters.page = 1;
-            this.fetchStudyPrograms();
+            this.fetchRoles();
         },
         changePage(page) {
             this.filters.page = page;
-            this.fetchStudyPrograms();
+            this.fetchRoles();
         },
         openCreate() {
             this.editMode = false;
@@ -327,12 +299,9 @@ export default {
             this.editMode = true;
             this.form = {
                 id: item.id,
-                code: item.code || '',
                 name: item.name || '',
-                desc: item.desc || '',
-                address: item.address || '',
-                head_name: item.head_name || '',
-                deputy_head_name: item.deputy_head_name || '',
+                description: item.description || '',
+                is_active: item.is_active === undefined ? true : !!item.is_active,
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -347,82 +316,71 @@ export default {
         resetForm() {
             this.form = {
                 id: null,
-                code: '',
                 name: '',
-                desc: '',
-                address: '',
-                head_name: '',
-                deputy_head_name: '',
+                description: '',
+                is_active: true,
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateStudyProgram();
+                return this.updateRole();
             }
 
-            return this.createStudyProgram();
+            return this.createRole();
         },
-        createStudyProgram() {
+        createRole() {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.post(this.baseUrl, this.buildPayload())
+            return Repository.post(this.baseUrl, this.form)
                 .then(() => {
                     this.closeModal();
-                    this.fetchStudyPrograms();
-                    this.$showToast('Study program created successfully.');
+                    this.fetchRoles();
+                    this.$showToast('Role created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create study program.';
+                        : 'Failed to create role.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateStudyProgram() {
+        updateRole() {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.buildPayload())
+            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
                 .then(() => {
-                    this.fetchStudyPrograms();
+                    this.fetchRoles();
                     this.closeModal();
-                    this.$showToast('Study program updated successfully.');
+                    this.$showToast('Role updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update study program.';
+                        : 'Failed to update role.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        buildPayload() {
-            return {
-                code: this.form.code || null,
-                name: this.form.name,
-                desc: this.form.desc || null,
-                address: this.form.address || null,
-                head_name: this.form.head_name || null,
-                deputy_head_name: this.form.deputy_head_name || null,
-            };
-        },
-        formatDesc(value) {
-            if (!value) {
-                return '';
+        deleteRole(item) {
+            if (!window.confirm(`Delete role ${item.name}?`)) {
+                return;
             }
 
-            const normalized = String(value).replace(/\s+/g, ' ').trim();
-            if (normalized.length <= 140) {
-                return normalized;
-            }
-
-            return `${normalized.slice(0, 140)}...`;
+            Repository.delete(`${this.baseUrl}/${item.id}`)
+                .then(() => {
+                    this.fetchRoles();
+                    this.$showToast('Role deleted successfully.');
+                })
+                .catch(() => {
+                    this.errorMessage = 'Failed to delete role.';
+                });
         },
     },
 };

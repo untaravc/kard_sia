@@ -435,6 +435,10 @@ class StaseController extends Controller
             'color' => 'required',
             'is_mandatory' => 'nullable|boolean',
             'study_program_code' => 'nullable|string|max:50',
+            'section' => 'nullable|string|max:100',
+            'semester' => 'nullable|string|max:20',
+            'sks' => 'nullable|integer',
+            'duration' => 'nullable|string|max:50',
         ]);
     }
 
@@ -445,6 +449,10 @@ class StaseController extends Controller
                 $q->where('name', 'LIKE', '%' . $request->keyword . '%');
                 $q->orWhere('desc', 'LIKE', '%' . $request->keyword . '%');
             });
+        }
+
+        if ($request->study_program_code != null) {
+            $dataContent = $dataContent->where('study_program_code', $request->study_program_code);
         }
 
         return $dataContent;

@@ -72,24 +72,44 @@
                         {{ (pagination.from ? pagination.from - 1 : 0) + index + 1 }}
                     </div>
                     <div class="flex-1">
-                        <div class="font-semibold text-ink">{{ user.name }}</div>
+                        <div class="flex items-center gap-2">
+                            <div class="font-semibold text-ink">{{ user.name }}</div>
+                            <span
+                                v-if="roleName(user.role_id)"
+                                class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700"
+                            >
+                                {{ roleName(user.role_id) }}
+                            </span>
+                        </div>
                         <div class="text-xs text-muted">{{ user.email }}</div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
                             type="button"
-                            @click="openEdit(user)"
+                            @click.stop="toggleActionMenu(user.id)"
                         >
-                            Edit
+                            Actions
                         </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteUser(user)"
+                        <div
+                            v-if="actionMenuOpenId === user.id"
+                            class="absolute right-0 z-10 mt-2 w-36 rounded-xl border border-border bg-white p-1 shadow-lg"
                         >
-                            Delete
-                        </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                type="button"
+                                @click="handleAction('edit', user)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', user)"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -150,6 +170,18 @@
                         Leave blank to keep the current password.
                     </span>
                 </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Role</span>
+                    <select
+                        v-model="form.role_id"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option :value="null">-</option>
+                        <option v-for="option in roles" :key="option.id" :value="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
+                </label>
                 <div class="grid gap-2 text-sm">
                     <span class="text-muted">Study Programs</span>
                     <div class="grid gap-2 rounded-xl border border-border bg-white p-3 sm:grid-cols-2">
@@ -205,6 +237,7 @@ export default {
             users: [],
             pagination: {},
             studyPrograms: [],
+            roles: [],
             filters: {
                 keyword: '',
                 page: 1,
@@ -214,6 +247,7 @@ export default {
                 name: '',
                 email: '',
                 password: '',
+                role_id: null,
                 study_program_codes: [],
             },
             editMode: false,
@@ -221,13 +255,47 @@ export default {
             loading: false,
             submitting: false,
             errorMessage: '',
+            actionMenuOpenId: null,
         };
     },
     created() {
         this.fetchStudyPrograms();
+        this.fetchRoles();
         this.fetchUsers();
     },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
+    },
     methods: {
+        toggleActionMenu(userId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === userId ? null : userId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleAction(action, user) {
+            this.closeActionMenu();
+            if (action === 'edit') {
+                this.openEdit(user);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteUser(user);
+            }
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
+        },
         fetchStudyPrograms() {
             return Repository.get('/api/study-program-list')
                 .then((response) => {
@@ -237,6 +305,23 @@ export default {
                 .catch(() => {
                     this.studyPrograms = [];
                 });
+        },
+        fetchRoles() {
+            return Repository.get('/api/role-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.roles = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.roles = [];
+                });
+        },
+        roleName(roleId) {
+            if (!roleId) {
+                return '';
+            }
+            const role = this.roles.find((option) => option.id === roleId);
+            return role ? role.name : '';
         },
         isStudyProgramSelected(code) {
             const codes = Array.isArray(this.form.study_program_codes) ? this.form.study_program_codes : [];
@@ -296,6 +381,7 @@ export default {
                 name: user.name || '',
                 email: user.email || '',
                 password: '',
+                role_id: user.role_id ?? null,
                 study_program_codes: Array.isArray(user.study_program_codes) ? user.study_program_codes : [],
             };
             this.errorMessage = '';
@@ -314,6 +400,7 @@ export default {
                 name: '',
                 email: '',
                 password: '',
+                role_id: null,
                 study_program_codes: [],
             };
         },

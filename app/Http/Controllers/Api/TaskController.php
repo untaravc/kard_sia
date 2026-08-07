@@ -95,6 +95,23 @@ class TaskController extends Controller
         ]);
     }
 
+    public function list(Request $request)
+    {
+        $dataContent = Task::orderBy('name');
+
+        if ($request->study_program_code != null) {
+            $dataContent = $dataContent->where('study_program_code', $request->study_program_code);
+        }
+
+        $tasks = $dataContent->get(['id', 'name', 'study_program_code']);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Task List Success',
+            'result' => $tasks,
+        ]);
+    }
+
     public function validateData($request)
     {
         $this->validate($request, [
@@ -112,6 +129,10 @@ class TaskController extends Controller
                 $q->where('name', 'LIKE', '%' . $request->keyword . '%');
                 $q->orWhere('desc', 'LIKE', '%' . $request->keyword . '%');
             });
+        }
+
+        if ($request->study_program_code != null) {
+            $dataContent = $dataContent->where('study_program_code', $request->study_program_code);
         }
 
         return $dataContent;

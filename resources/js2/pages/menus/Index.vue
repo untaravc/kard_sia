@@ -3,14 +3,14 @@
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Data Master</div>
-                <h1 class="text-2xl font-semibold text-ink">Study Programs</h1>
+                <h1 class="text-2xl font-semibold text-ink">Menus</h1>
             </div>
             <button
                 class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                 type="button"
                 @click="openCreate"
             >
-                Add Study Program
+                Add Menu
             </button>
         </header>
 
@@ -22,7 +22,7 @@
                         v-model.trim="filters.keyword"
                         @keyup.enter="applyFilter"
                         type="text"
-                        placeholder="Search name, code, or head..."
+                        placeholder="Search name, title, or url..."
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
@@ -48,7 +48,7 @@
         <section class="relative rounded-2xl border border-border bg-panel">
             <Loading :active="loading" :is-full-page="false" />
             <div class="flex items-center justify-between border-b border-border px-5 py-4">
-                <div class="font-semibold">Study Programs</div>
+                <div class="font-semibold">Menus</div>
                 <div v-if="pagination.total" class="text-xs text-muted">
                     {{ pagination.from }}-{{ pagination.to }} of {{ pagination.total }}
                 </div>
@@ -60,11 +60,11 @@
                 {{ errorMessage }}
             </div>
             <div class="divide-y divide-border">
-                <div v-if="!loading && studyPrograms.length === 0" class="px-5 py-6 text-sm text-muted">
-                    No study programs found.
+                <div v-if="!loading && menus.length === 0" class="px-5 py-6 text-sm text-muted">
+                    No menus found.
                 </div>
                 <div
-                    v-for="(item, index) in studyPrograms"
+                    v-for="(item, index) in menus"
                     :key="item.id"
                     class="flex flex-wrap items-start gap-3 px-5 py-4"
                 >
@@ -73,20 +73,22 @@
                     </div>
                     <div class="flex-1">
                         <div class="flex flex-wrap items-center gap-2">
-                            <div class="font-semibold text-ink">{{ item.name }}</div>
+                            <div class="font-semibold text-ink">{{ item.title }}</div>
+                            <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                                {{ item.type }}
+                            </span>
                             <span
-                                v-if="item.code"
-                                class="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700"
+                                class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                :class="item.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'"
                             >
-                                {{ item.code }}
+                                {{ item.is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </div>
                         <div class="mt-1 text-xs text-muted">
-                            <span v-if="item.head_name">Head: {{ item.head_name }}</span>
-                            <span v-if="item.deputy_head_name"> • Deputy: {{ item.deputy_head_name }}</span>
+                            <span>{{ item.url }}</span>
+                            <span v-if="parentName(item.parent_id)"> • Parent: {{ parentName(item.parent_id) }}</span>
+                            <span v-if="item.order !== null && item.order !== undefined"> • Order: {{ item.order }}</span>
                         </div>
-                        <div v-if="item.address" class="mt-1 text-xs text-muted">{{ item.address }}</div>
-                        <div v-if="item.desc" class="mt-2 text-sm text-muted">{{ formatDesc(item.desc) }}</div>
                     </div>
                     <div class="relative action-dropdown">
                         <button
@@ -106,6 +108,13 @@
                                 @click="handleAction('edit', item)"
                             >
                                 Edit
+                            </button>
+                            <button
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
+                                type="button"
+                                @click="handleAction('delete', item)"
+                            >
+                                Delete
                             </button>
                         </div>
                     </div>
@@ -134,66 +143,93 @@
 
         <Modal
             :open="modalOpen"
-            :title="editMode ? 'Edit Study Program' : 'Create Study Program'"
-            :eyebrow="editMode ? 'Update study program' : 'New study program'"
+            :title="editMode ? 'Edit Menu' : 'Create Menu'"
+            :eyebrow="editMode ? 'Update menu' : 'New menu'"
             size="lg"
             @close="closeModal"
         >
             <form class="grid gap-4" @submit.prevent="submitForm">
                 <div class="grid gap-4 md:grid-cols-2">
                     <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Code</span>
-                        <input
-                            v-model.trim="form.code"
-                            type="text"
-                            :disabled="editMode"
-                            :class="editMode ? 'cursor-not-allowed bg-slate-100 text-muted' : 'bg-white'"
-                            class="w-full rounded-xl border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                        <span v-if="editMode" class="text-xs text-muted">Code cannot be changed after creation.</span>
-                    </label>
-                    <label class="grid gap-2 text-sm">
                         <span class="text-muted">Name</span>
                         <input
                             v-model.trim="form.name"
                             type="text"
-                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                    </label>
-                </div>
-                <div class="grid gap-4 md:grid-cols-2">
-                    <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Head Name</span>
-                        <input
-                            v-model.trim="form.head_name"
-                            type="text"
+                            placeholder="unique-slug"
                             class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />
                     </label>
                     <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Deputy Head Name</span>
+                        <span class="text-muted">Title</span>
                         <input
-                            v-model.trim="form.deputy_head_name"
+                            v-model.trim="form.title"
                             type="text"
                             class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />
                     </label>
                 </div>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Address</span>
-                    <textarea
-                        v-model.trim="form.address"
-                        rows="3"
+                    <span class="text-muted">URL</span>
+                    <input
+                        v-model.trim="form.url"
+                        type="text"
+                        placeholder="/blu/example"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
+                    />
                 </label>
+                <div class="grid gap-4 md:grid-cols-3">
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Type</span>
+                        <select
+                            v-model="form.type"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        >
+                            <option value="menu">Menu</option>
+                            <option value="title">Title</option>
+                            <option value="submenu">Submenu</option>
+                        </select>
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Order</span>
+                        <input
+                            v-model.number="form.order"
+                            type="number"
+                            min="0"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                    <label class="grid gap-2 text-sm">
+                        <span class="text-muted">Icon</span>
+                        <input
+                            v-model.trim="form.icon"
+                            type="text"
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </label>
+                </div>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Description</span>
-                    <textarea
-                        v-model.trim="form.desc"
-                        rows="5"
+                    <span class="text-muted">Parent Menu</span>
+                    <select
+                        v-model="form.parent_id"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
+                    >
+                        <option :value="null">-</option>
+                        <option
+                            v-for="option in parentOptions"
+                            :key="option.id"
+                            :value="option.id"
+                        >
+                            {{ option.title }}
+                        </option>
+                    </select>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input
+                        v-model="form.is_active"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/30"
+                    />
+                    <span class="text-muted">Active</span>
                 </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
@@ -203,7 +239,7 @@
                     type="submit"
                     :disabled="submitting"
                 >
-                    {{ submitting ? 'Saving...' : editMode ? 'Update Study Program' : 'Create Study Program' }}
+                    {{ submitting ? 'Saving...' : editMode ? 'Update Menu' : 'Create Menu' }}
                 </button>
             </form>
         </Modal>
@@ -222,11 +258,12 @@ export default {
         Loading,
         Modal,
     },
-    mixins: [persistFilters('study-programs')],
+    mixins: [persistFilters('menus')],
     data() {
         return {
-            baseUrl: '/api/study-programs',
-            studyPrograms: [],
+            baseUrl: '/api/menus',
+            menus: [],
+            allMenus: [],
             pagination: {},
             filters: {
                 keyword: '',
@@ -234,12 +271,14 @@ export default {
             },
             form: {
                 id: null,
-                code: '',
+                parent_id: null,
+                order: null,
+                type: 'menu',
+                url: '',
                 name: '',
-                desc: '',
-                address: '',
-                head_name: '',
-                deputy_head_name: '',
+                title: '',
+                icon: '',
+                is_active: true,
             },
             editMode: false,
             modalOpen: false,
@@ -249,8 +288,14 @@ export default {
             actionMenuOpenId: null,
         };
     },
+    computed: {
+        parentOptions() {
+            return this.allMenus.filter((item) => !this.form.id || item.id !== this.form.id);
+        },
+    },
     created() {
-        this.fetchStudyPrograms();
+        this.fetchAllMenus();
+        this.fetchMenus();
     },
     mounted() {
         document.addEventListener('click', this.handleDocumentClick);
@@ -269,6 +314,10 @@ export default {
             this.closeActionMenu();
             if (action === 'edit') {
                 this.openEdit(item);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteMenu(item);
             }
         },
         handleDocumentClick(event) {
@@ -281,7 +330,24 @@ export default {
             }
             this.closeActionMenu();
         },
-        fetchStudyPrograms() {
+        parentName(parentId) {
+            if (!parentId) {
+                return '';
+            }
+            const parent = this.allMenus.find((item) => item.id === parentId);
+            return parent ? parent.title : '';
+        },
+        fetchAllMenus() {
+            return Repository.get('/api/menu-list')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.allMenus = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.allMenus = [];
+                });
+        },
+        fetchMenus() {
             this.loading = true;
             this.errorMessage = '';
 
@@ -292,13 +358,13 @@ export default {
                     const result = response && response.data ? response.data.result : null;
                     const data = result && Array.isArray(result.data) ? result.data : [];
 
-                    this.studyPrograms = data;
+                    this.menus = data;
                     this.pagination = result || {};
                 })
                 .catch(() => {
-                    this.studyPrograms = [];
+                    this.menus = [];
                     this.pagination = {};
-                    this.errorMessage = 'Failed to load study programs.';
+                    this.errorMessage = 'Failed to load menus.';
                 })
                 .finally(() => {
                     this.loading = false;
@@ -306,16 +372,16 @@ export default {
         },
         applyFilter() {
             this.filters.page = 1;
-            this.fetchStudyPrograms();
+            this.fetchMenus();
         },
         resetFilter() {
             this.filters.keyword = '';
             this.filters.page = 1;
-            this.fetchStudyPrograms();
+            this.fetchMenus();
         },
         changePage(page) {
             this.filters.page = page;
-            this.fetchStudyPrograms();
+            this.fetchMenus();
         },
         openCreate() {
             this.editMode = false;
@@ -327,12 +393,14 @@ export default {
             this.editMode = true;
             this.form = {
                 id: item.id,
-                code: item.code || '',
+                parent_id: item.parent_id ?? null,
+                order: item.order ?? null,
+                type: item.type || 'menu',
+                url: item.url || '',
                 name: item.name || '',
-                desc: item.desc || '',
-                address: item.address || '',
-                head_name: item.head_name || '',
-                deputy_head_name: item.deputy_head_name || '',
+                title: item.title || '',
+                icon: item.icon || '',
+                is_active: item.is_active === undefined ? true : !!item.is_active,
             };
             this.errorMessage = '';
             this.modalOpen = true;
@@ -347,82 +415,79 @@ export default {
         resetForm() {
             this.form = {
                 id: null,
-                code: '',
+                parent_id: null,
+                order: null,
+                type: 'menu',
+                url: '',
                 name: '',
-                desc: '',
-                address: '',
-                head_name: '',
-                deputy_head_name: '',
+                title: '',
+                icon: '',
+                is_active: true,
             };
         },
         submitForm() {
             if (this.editMode) {
-                return this.updateStudyProgram();
+                return this.updateMenu();
             }
 
-            return this.createStudyProgram();
+            return this.createMenu();
         },
-        createStudyProgram() {
+        createMenu() {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.post(this.baseUrl, this.buildPayload())
+            return Repository.post(this.baseUrl, this.form)
                 .then(() => {
                     this.closeModal();
-                    this.fetchStudyPrograms();
-                    this.$showToast('Study program created successfully.');
+                    this.fetchAllMenus();
+                    this.fetchMenus();
+                    this.$showToast('Menu created successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to create study program.';
+                        : 'Failed to create menu.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        updateStudyProgram() {
+        updateMenu() {
             this.submitting = true;
             this.errorMessage = '';
 
-            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.buildPayload())
+            return Repository.put(`${this.baseUrl}/${this.form.id}`, this.form)
                 .then(() => {
-                    this.fetchStudyPrograms();
+                    this.fetchAllMenus();
+                    this.fetchMenus();
                     this.closeModal();
-                    this.$showToast('Study program updated successfully.');
+                    this.$showToast('Menu updated successfully.');
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data
                         ? error.response.data.text
-                        : 'Failed to update study program.';
+                        : 'Failed to update menu.';
                     this.errorMessage = message;
                 })
                 .finally(() => {
                     this.submitting = false;
                 });
         },
-        buildPayload() {
-            return {
-                code: this.form.code || null,
-                name: this.form.name,
-                desc: this.form.desc || null,
-                address: this.form.address || null,
-                head_name: this.form.head_name || null,
-                deputy_head_name: this.form.deputy_head_name || null,
-            };
-        },
-        formatDesc(value) {
-            if (!value) {
-                return '';
+        deleteMenu(item) {
+            if (!window.confirm(`Delete menu ${item.title}?`)) {
+                return;
             }
 
-            const normalized = String(value).replace(/\s+/g, ' ').trim();
-            if (normalized.length <= 140) {
-                return normalized;
-            }
-
-            return `${normalized.slice(0, 140)}...`;
+            Repository.delete(`${this.baseUrl}/${item.id}`)
+                .then(() => {
+                    this.fetchAllMenus();
+                    this.fetchMenus();
+                    this.$showToast('Menu deleted successfully.');
+                })
+                .catch(() => {
+                    this.errorMessage = 'Failed to delete menu.';
+                });
         },
     },
 };

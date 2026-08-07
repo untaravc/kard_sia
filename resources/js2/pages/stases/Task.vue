@@ -82,13 +82,6 @@
                         >
                             Edit
                         </button>
-                        <button
-                            class="rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs text-rose-600"
-                            type="button"
-                            @click="deleteStaseTask(staseTask)"
-                        >
-                            Delete
-                        </button>
                     </div>
                 </div>
             </div>
@@ -140,22 +133,28 @@
                     </select>
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Task ID</span>
-                    <input
+                    <span class="text-muted">Task</span>
+                    <select
                         v-model.number="form.task_id"
-                        type="number"
-                        min="1"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+                    >
+                        <option :value="null">-</option>
+                        <option v-for="option in tasks" :key="option.id" :value="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Lecture ID</span>
-                    <input
+                    <span class="text-muted">Lecture</span>
+                    <select
                         v-model.number="form.lecture_id"
-                        type="number"
-                        min="1"
                         class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
+                    >
+                        <option :value="null">-</option>
+                        <option v-for="option in lectures" :key="option.id" :value="option.id">
+                            {{ option.name }}
+                        </option>
+                    </select>
                 </label>
                 <div v-if="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
                     {{ errorMessage }}
@@ -190,6 +189,8 @@ export default {
             baseUrl: '/api/stase-tasks',
             staseTasks: [],
             stase: {},
+            tasks: [],
+            lectures: [],
             pagination: {},
             filters: {
                 keyword: '',
@@ -226,6 +227,8 @@ export default {
             const staseId = this.$route.params.stase_id;
             if (!staseId) {
                 this.stase = {};
+                this.tasks = [];
+                this.lectures = [];
                 return;
             }
 
@@ -236,6 +239,38 @@ export default {
                 })
                 .catch(() => {
                     this.stase = {};
+                })
+                .finally(() => {
+                    this.fetchTasks();
+                    this.fetchLectures();
+                });
+        },
+        fetchTasks() {
+            return Repository.get('/api/task-list', {
+                params: {
+                    study_program_code: this.stase.study_program_code || undefined,
+                },
+            })
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.tasks = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.tasks = [];
+                });
+        },
+        fetchLectures() {
+            return Repository.get('/api/lecture-list', {
+                params: {
+                    study_program_code: this.stase.study_program_code || undefined,
+                },
+            })
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.lectures = Array.isArray(result) ? result : [];
+                })
+                .catch(() => {
+                    this.lectures = [];
                 });
         },
         fetchStaseTasks() {
@@ -372,20 +407,6 @@ export default {
                 })
                 .finally(() => {
                     this.submitting = false;
-                });
-        },
-        deleteStaseTask(staseTask) {
-            if (!window.confirm(`Delete stase task ${staseTask.name}?`)) {
-                return;
-            }
-
-            Repository.delete(`${this.baseUrl}/${staseTask.id}`)
-                .then(() => {
-                    this.fetchStaseTasks();
-                    this.$showToast('Stase task deleted successfully.');
-                })
-                .catch(() => {
-                    this.errorMessage = 'Failed to delete stase task.';
                 });
         },
         normalizeStatus(status) {

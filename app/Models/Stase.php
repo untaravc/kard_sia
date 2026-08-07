@@ -22,6 +22,10 @@ class Stase extends Model
         "lecture_name",
         "is_mandatory",
         "study_program_code",
+        "section",
+        "semester",
+        "sks",
+        "duration",
     ];
 
     protected $casts = [

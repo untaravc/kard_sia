@@ -16,7 +16,17 @@ class LectureController extends Controller
     public function index(Request $request)
     {
         $dataContent = Lecture::leftJoin('lecture_profiles', 'lecture_profiles.lecture_id', '=', 'lectures.id')
-            ->select('lectures.*', 'lecture_profiles.phone as phone')
+            ->select(
+                'lectures.*',
+                'lecture_profiles.code as code',
+                'lecture_profiles.degree as degree',
+                'lecture_profiles.pob as pob',
+                'lecture_profiles.dob as dob',
+                'lecture_profiles.phone as phone',
+                'lecture_profiles.address as address',
+                'lecture_profiles.image as image',
+                'lecture_profiles.register_date as register_date'
+            )
             ->orderBy('lectures.name');
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);
@@ -37,6 +47,7 @@ class LectureController extends Controller
         $this->validateData($request);
 
         $lecture = Lecture::create($request->all());
+        $this->saveProfile($lecture->id, $request);
 
         return response()->json([
             'success' => true,
@@ -65,12 +76,29 @@ class LectureController extends Controller
         }
 
         $lecture->update($request->all());
+        $this->saveProfile($lecture->id, $request);
 
         return response()->json([
             'success' => true,
             'text' => 'Update Lecture Success',
             'result' => $lecture,
         ]);
+    }
+
+    protected function saveProfile($lectureId, Request $request)
+    {
+        $fields = ['code', 'degree', 'pob', 'dob', 'phone', 'address', 'image', 'register_date'];
+        if (!$request->hasAny($fields)) {
+            return;
+        }
+
+        $data = collect($request->only($fields))
+            ->map(function ($value) {
+                return $value === '' ? null : $value;
+            })
+            ->toArray();
+
+        LectureProfile::updateOrCreate(['lecture_id' => $lectureId], $data);
     }
 
     public function show($id)
@@ -112,10 +140,19 @@ class LectureController extends Controller
         ]);
     }
 
-    public function list()
+    public function list(Request $request)
     {
-        $lectures = Lecture::whereStatus(1)
-            ->select('id', 'name')
+        $dataContent = Lecture::whereStatus(1);
+
+        if ($request->study_program_code != null) {
+            $code = $request->study_program_code;
+            $dataContent = $dataContent->where(function ($q) use ($code) {
+                $q->whereJsonContains('study_program_codes', $code)
+                    ->orWhereNull('study_program_codes');
+            });
+        }
+
+        $lectures = $dataContent->select('id', 'name')
             ->orderBy('name')
             ->get();
 
@@ -138,6 +175,14 @@ class LectureController extends Controller
             'status' => 'nullable',
             'is_in_house' => 'nullable|boolean',
             'study_program_codes' => 'nullable|array',
+            'code' => 'nullable|string',
+            'degree' => 'nullable|string|max:100',
+            'pob' => 'nullable|string|max:100',
+            'dob' => 'nullable|date',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string|max:255',
+            'image' => 'nullable|string',
+            'register_date' => 'nullable|date',
         ]);
     }
 
@@ -149,6 +194,10 @@ class LectureController extends Controller
                 $q->orWhere('lectures.email', 'LIKE', '%' . $request->keyword . '%');
                 $q->orWhere('lectures.number', 'LIKE', '%' . $request->keyword . '%');
             });
+        }
+
+        if ($request->study_program_code != null) {
+            $dataContent = $dataContent->whereJsonContains('lectures.study_program_codes', $request->study_program_code);
         }
 
         return $dataContent;
