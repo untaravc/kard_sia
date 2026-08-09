@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\BaseTrait;
 use App\Http\Traits\ImageThumbnailTrait;
 use App\Models\Lecture;
 use App\Models\LectureProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class LectureController extends Controller
 {
+    use BaseTrait;
     use ImageThumbnailTrait;
 
     public function index(Request $request)
@@ -81,6 +84,56 @@ class LectureController extends Controller
         return response()->json([
             'success' => true,
             'text' => 'Update Lecture Success',
+            'result' => $lecture,
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $this->validate($request, [
+            'status' => 'required|in:active,nonactive',
+            'send_email' => 'nullable|boolean',
+        ]);
+
+        $lecture = Lecture::find($id);
+        if (!$lecture) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Lecture not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $lecture->status = $request->status;
+
+        if ($request->status === 'active' && !$lecture->link_token) {
+            $lecture->link_token = $this->generateRandomString(17);
+        }
+
+        $lecture->save();
+
+        if ($request->status === 'active' && $request->boolean('send_email') && $lecture->email) {
+            $lecture->reset_password_token = $lecture->link_token;
+            $lecture->save();
+
+            $link = env('APP_URL') . "/blu/login-email?token={$lecture->link_token}";
+
+            Mail::send('mails.login_email', ['link' => $link], function ($message) use ($lecture) {
+                $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
+                $fromName = config('mail.from.name') ?: config('app.name');
+
+                if ($fromAddress) {
+                    $message->from($fromAddress, $fromName);
+                }
+
+                $message->to($lecture->email)
+                    ->subject('Login Link');
+            });
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Lecture Status Success',
             'result' => $lecture,
         ]);
     }

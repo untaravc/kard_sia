@@ -8,6 +8,7 @@ export const ICONS = {
     'open-exam': 'mdi:door-open',
     agenda: 'mdi:calendar-month-outline',
     'data-master': 'mdi:database-outline',
+    config: 'mdi:cog-outline',
 };
 
 export { Icon };

@@ -86,9 +86,6 @@
                 <div class="flex-1">
                     <div class="flex items-center gap-2">
                         <div class="font-semibold text-ink">{{ lecture.name }}</div>
-                        <span v-if="lecture.status !== null && lecture.status !== undefined" class="text-xs text-muted">
-                            Status: {{ lecture.status }}
-                        </span>
                         <span v-if="lecture.is_in_house" class="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
                             In House
                         </span>
@@ -101,6 +98,25 @@
                         <span v-if="lecture.name_alt">• {{ lecture.name_alt }}</span>
                     </div>
                 </div>
+                    <div class="flex w-24 flex-col items-center gap-1">
+                        <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="lecture.status === 'active'"
+                            :disabled="statusUpdating"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition disabled:opacity-50"
+                            :class="lecture.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'"
+                            @click.stop="handleStatusToggle(lecture)"
+                        >
+                            <span
+                                class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
+                                :class="lecture.status === 'active' ? 'translate-x-6' : 'translate-x-1'"
+                            ></span>
+                        </button>
+                        <span class="text-[11px] text-muted">
+                            {{ lecture.status === 'active' ? 'Active' : 'Nonactive' }}
+                        </span>
+                    </div>
                     <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
@@ -369,6 +385,46 @@
                 </button>
             </form>
         </Modal>
+
+        <Modal
+            :open="statusModalOpen"
+            title="Aktifkan Akun?"
+            size="sm"
+            @close="closeStatusModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <p class="text-muted">
+                    Akun
+                    <span class="font-semibold text-ink">{{ statusTargetLecture ? statusTargetLecture.name : '' }}</span>
+                    akan diaktifkan.
+                </p>
+                <label class="flex items-center gap-3 text-sm">
+                    <input
+                        v-model="sendActivationEmail"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border border-border"
+                    />
+                    <span class="text-muted">Kirim notifikasi email ke pengguna</span>
+                </label>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closeStatusModal"
+                >
+                    Batal
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="statusUpdating"
+                    @click="confirmActivation"
+                >
+                    {{ statusUpdating ? 'Processing...' : 'Ya' }}
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -425,6 +481,10 @@ export default {
             uploadingImage: false,
             errorMessage: '',
             actionMenuOpenId: null,
+            statusModalOpen: false,
+            statusTargetLecture: null,
+            sendActivationEmail: true,
+            statusUpdating: false,
         };
     },
     computed: {
@@ -696,6 +756,57 @@ export default {
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete lecture.';
+                });
+        },
+        handleStatusToggle(lecture) {
+            if (this.statusUpdating) {
+                return;
+            }
+
+            if (lecture.status === 'active') {
+                this.updateLectureStatus(lecture, 'nonactive');
+                return;
+            }
+
+            this.statusTargetLecture = lecture;
+            this.sendActivationEmail = true;
+            this.statusModalOpen = true;
+        },
+        closeStatusModal() {
+            this.statusModalOpen = false;
+            this.statusTargetLecture = null;
+            this.sendActivationEmail = true;
+        },
+        confirmActivation() {
+            if (!this.statusTargetLecture) {
+                return;
+            }
+
+            this.updateLectureStatus(this.statusTargetLecture, 'active', this.sendActivationEmail)
+                .then(() => {
+                    this.closeStatusModal();
+                });
+        },
+        updateLectureStatus(lecture, status, sendEmail = false) {
+            this.statusUpdating = true;
+            this.errorMessage = '';
+
+            return Repository.patch(`${this.baseUrl}/${lecture.id}/status`, {
+                status,
+                send_email: sendEmail,
+            })
+                .then(() => {
+                    lecture.status = status;
+                    this.$showToast(status === 'active' ? 'Lecture activated successfully.' : 'Lecture deactivated successfully.');
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to update lecture status.';
+                    this.errorMessage = message;
+                })
+                .finally(() => {
+                    this.statusUpdating = false;
                 });
         },
         logAs(lecture) {

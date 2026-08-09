@@ -15,11 +15,10 @@
                 :show-toggle="!isStudent && !isLecture"
                 @toggle-sidebar="toggleSidebar"
             />
-            <main
-                class="flex flex-1 flex-col gap-7 lg:overflow-y-auto lg:min-h-0"
-                :class="contentPaddingClass"
-            >
-                <router-view />
+            <main class="flex flex-1 flex-col lg:overflow-y-auto lg:min-h-0">
+                <div class="flex flex-1 flex-col gap-7" :class="contentPaddingClass">
+                    <router-view />
+                </div>
             </main>
         </div>
         <BottomNav v-if="hasBottomNav" :base-path="basePath" :auth-type="authType" />

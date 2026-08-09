@@ -2,7 +2,7 @@
     <div class="grid gap-6">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Data Master</div>
+                <div class="text-xs uppercase tracking-[0.2em] text-muted">Config</div>
                 <h1 class="text-2xl font-semibold text-ink">Menu Roles</h1>
             </div>
             <button

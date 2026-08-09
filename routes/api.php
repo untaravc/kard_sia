@@ -97,6 +97,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // FormOptionController
     Route::resource('form-options', 'Api\FormOptionController');
+    Route::get('form-option-list', [\App\Http\Controllers\Api\FormOptionController::class, 'list']);
 
     // StudyProgramController
     Route::resource('study-programs', 'Api\StudyProgramController');
@@ -121,6 +122,9 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('student-logs/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'studentLog']);
     Route::post('logbooks/bulk', [\App\Http\Controllers\Api\LogbookController::class, 'bulk']);
     Route::post('logbooks/approve', [\App\Http\Controllers\Api\LogbookController::class, 'approve']);
+    Route::post('logbook-student-add', [\App\Http\Controllers\Api\LogbookController::class, 'storeDaily']);
+    Route::put('logbook-student-add/{id}', [\App\Http\Controllers\Api\LogbookController::class, 'updateDaily']);
+    Route::get('logbook-student-competence', [\App\Http\Controllers\Api\LogbookController::class, 'competenceOptions']);
     Route::resource('logbooks', 'Api\LogbookController');
 
     // TaskController
@@ -132,6 +136,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // LectureController
     Route::resource('lectures', 'Api\LectureController');
+    Route::patch('lectures/{id}/status', [LectureController::class, 'updateStatus']);
     Route::get('lecture-list', [\App\Http\Controllers\Api\LectureController::class, 'list']);
     Route::get('lecture-profile', [LectureController::class, 'profile']);
     Route::patch('lecture-profile', [LectureController::class, 'updateProfile']);

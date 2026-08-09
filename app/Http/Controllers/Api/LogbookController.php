@@ -115,6 +115,118 @@ class LogbookController extends Controller
         ]);
     }
 
+    public function storeDaily(Request $request)
+    {
+        $studentId = $this->resolveStudentId($request);
+
+        $this->validate($request, [
+            'date' => 'required|date',
+            'no_catatan_medik' => 'required|string',
+            'rawat_inap' => 'nullable|string',
+            'rawat_jalan' => 'nullable|string',
+            'lecture_id' => 'nullable|integer',
+            'competence_ids' => 'nullable|array',
+            'competence_ids.*' => 'integer',
+        ]);
+
+        $logbook = StudentLog::create([
+            'student_id' => $studentId,
+            'lecture_id' => $request->lecture_id,
+            'type' => 'logbook-daily',
+            'date' => $request->date,
+            'status' => 0,
+            'field_1' => $request->no_catatan_medik,
+            'field_2' => $request->rawat_inap,
+            'field_3' => $request->rawat_jalan,
+        ]);
+
+        foreach (array_unique($request->competence_ids ?? []) as $formOptionId) {
+            StudentLogSkill::create([
+                'student_id' => $studentId,
+                'student_log_id' => $logbook->id,
+                'form_option_id' => $formOptionId,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Create Logbook Success',
+            'result' => $logbook,
+        ]);
+    }
+
+    public function updateDaily(Request $request, $id)
+    {
+        $logbook = StudentLog::find($id);
+        if (!$logbook) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Logbook not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $this->validate($request, [
+            'date' => 'required|date',
+            'no_catatan_medik' => 'required|string',
+            'rawat_inap' => 'nullable|string',
+            'rawat_jalan' => 'nullable|string',
+            'lecture_id' => 'nullable|integer',
+            'competence_ids' => 'nullable|array',
+            'competence_ids.*' => 'integer',
+        ]);
+
+        $logbook->update([
+            'lecture_id' => $request->lecture_id,
+            'date' => $request->date,
+            'field_1' => $request->no_catatan_medik,
+            'field_2' => $request->rawat_inap,
+            'field_3' => $request->rawat_jalan,
+        ]);
+
+        StudentLogSkill::where('student_log_id', $id)->delete();
+        foreach (array_unique($request->competence_ids ?? []) as $formOptionId) {
+            StudentLogSkill::create([
+                'student_id' => $logbook->student_id,
+                'student_log_id' => $logbook->id,
+                'form_option_id' => $formOptionId,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Logbook Success',
+            'result' => $logbook,
+        ]);
+    }
+
+    public function competenceOptions(Request $request)
+    {
+        $studentId = $this->resolveStudentId($request);
+
+        $options = FormOption::whereStatus(1)
+            ->whereType('sp1ipd-logbook-competence')
+            ->orderBy('name')
+            ->get();
+
+        $counts = StudentLogSkill::whereStudentId($studentId)
+            ->select(DB::raw('count(*) as count, form_option_id'))
+            ->groupBy('form_option_id')
+            ->whereIn('form_option_id', $options->pluck('id')->toArray())
+            ->get();
+
+        foreach ($options as $option) {
+            $matched = $counts->where('form_option_id', $option->id)->first();
+            $option->setAttribute('count', $matched ? (int) $matched['count'] : 0);
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Competence Options Success',
+            'result' => $options,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $studentId = $this->resolveStudentId($request);
@@ -201,7 +313,7 @@ class LogbookController extends Controller
 
     public function show($id)
     {
-        $logbook = StudentLog::with(['lecture', 'stase'])->find($id);
+        $logbook = StudentLog::with(['lecture', 'stase', 'stase_log_skills'])->find($id);
 
         if (!$logbook) {
             return response()->json([

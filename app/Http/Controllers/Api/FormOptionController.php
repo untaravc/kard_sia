@@ -21,6 +21,20 @@ class FormOptionController extends Controller
         ]);
     }
 
+    public function list(Request $request)
+    {
+        $dataContent = FormOption::query()->where('status', 1);
+        $dataContent = $this->withFilter($dataContent, $request);
+
+        $options = $dataContent->orderBy('name')->get(['id', 'type', 'relation_id', 'value', 'name', 'desc', 'status']);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Form Option List Success',
+            'result' => $options,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $data = $this->validateData($request);

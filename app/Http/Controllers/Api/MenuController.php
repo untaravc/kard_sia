@@ -8,6 +8,7 @@ use App\Models\ActivityLecture;
 use App\Models\ActivityStudent;
 use App\Models\Menu;
 use App\Models\MenuRole;
+use App\Models\Setting;
 use App\Models\StudentLog;
 use App\User;
 use Carbon\Carbon;
@@ -208,11 +209,14 @@ class MenuController extends Controller
                 ->count();
         }
 
+        $appName = Setting::where('label', 'app.name')->value('value');
+        $logbooksUrl = $appName === 'IPD' ? "{$basePath}/logbook-student-daily" : "{$basePath}/logbook-student";
+
         $menuByType = [
             'student' => [
                 ['label' => 'Scoring', 'icon' => 'mdi:clipboard-check-outline', 'to' => "{$basePath}/dashboard-student/scoring"],
                 ['label' => 'Agenda', 'icon' => 'mdi:calendar-month-outline', 'to' => "{$basePath}/dashboard-student/agenda", 'counter' => $todayAgendaCount],
-                ['label' => 'Logbooks', 'icon' => 'mdi:notebook-outline', 'to' => "{$basePath}/logbook-student"],
+                ['label' => 'Logbooks', 'icon' => 'mdi:notebook-outline', 'to' => $logbooksUrl],
                 ['label' => 'Checklist', 'icon' => 'mdi:format-list-checks', 'to' => "{$basePath}/dashboard-student/checklist"],
                 ['label' => 'Profile', 'icon' => 'mdi:account-outline', 'to' => "{$basePath}/dashboard-student/profile"],
             ],
