@@ -207,7 +207,9 @@ class StudentController extends Controller
                         $log->setAttribute('openStaseTasks', collect());
                         continue;
                     }
-                    $matchedOpenTasks = $openTasks->where('lecture_id', $log->lecture_id)->values();
+                    $matchedOpenTasks = $openTasks->where('lecture_id', $log->lecture_id)
+                        ->whereNotIn('id', $usedOpenTaskIds)
+                        ->values();
                     $log->setAttribute('openStaseTasks', $matchedOpenTasks);
                     if ($matchedOpenTasks->count()) {
                         $usedOpenTaskIds = $usedOpenTaskIds->merge($matchedOpenTasks->pluck('id'));
