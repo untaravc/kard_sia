@@ -148,6 +148,7 @@ const routes = [
             { path: 'roles', component: require('./pages/roles/Index.vue').default, meta: { page_name: 'Roles' } },
             { path: 'menus', component: require('./pages/menus/Index.vue').default, meta: { page_name: 'Menus' } },
             { path: 'menu-roles', component: require('./pages/menu-roles/Index.vue').default, meta: { page_name: 'Menu Roles' } },
+            { path: 'action-logs', component: require('./pages/action-logs/Index.vue').default, meta: { page_name: 'Action Logs' } },
             { path: 'settings', component: require('./pages/settings/Index.vue').default, meta: { page_name: 'Settings' } },
             { path: 'form-options', component: require('./pages/form-options/Index.vue').default, meta: { page_name: 'Form Options' } },
             { path: 'study-programs', component: require('./pages/study_program/Index.vue').default, meta: { page_name: 'Study Programs' } },

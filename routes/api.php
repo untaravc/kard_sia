@@ -143,6 +143,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // StudentController
     Route::resource('students', 'Api\StudentController');
+    Route::patch('students/{id}/status', [\App\Http\Controllers\Api\StudentController::class, 'updateStatus']);
     Route::get('student-list', [\App\Http\Controllers\Api\StudentController::class, 'studentList']);
     Route::get('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'profile']);
     Route::patch('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'updateProfile']);
@@ -250,6 +251,10 @@ Route::middleware('jwt.auth')->group(function () {
 
     // MailLogController
     Route::resource('mail-logs', 'Api\MailLogController');
+
+    // ActionLogController
+    Route::get('action-logs', [\App\Http\Controllers\Api\ActionLogController::class, 'index']);
+    Route::delete('action-logs-cleanup', [\App\Http\Controllers\Api\ActionLogController::class, 'cleanup']);
 
     // LetterController
     Route::resource('letters', 'Api\LetterController');

@@ -37,12 +37,13 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\AppLogMiddleware::class,
+            // \App\Http\Middleware\AppLogMiddleware::class, // deactivated: access_point logging superseded by ActionLogMiddleware
         ],
 
         'api' => [
             'throttle:60,1',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\ActionLogMiddleware::class,
         ],
     ];
 

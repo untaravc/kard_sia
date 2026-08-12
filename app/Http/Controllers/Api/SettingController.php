@@ -10,7 +10,7 @@ class SettingController extends Controller
 {
     public function index(Request $request)
     {
-        $dataContent = Setting::query()->latest();
+        $dataContent = Setting::query()->where('is_native', 1)->latest();
         $dataContent = $this->withFilter($dataContent, $request);
         $dataContent = $dataContent->paginate(10);
 

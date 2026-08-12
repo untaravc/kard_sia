@@ -85,6 +85,13 @@
                             </div>
                             <div class="ml-auto flex shrink-0 items-center gap-2">
                                 <button
+                                    class="rounded-lg border border-sky-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-sky-700"
+                                    type="button"
+                                    @click="openNotifyModal(openTask)"
+                                >
+                                    Notify Lecture
+                                </button>
+                                <button
                                     class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
                                     type="button"
                                     @click="openUploadModal(openTask, 'score')"
@@ -358,6 +365,35 @@
             </template>
         </Modal>
         <Modal
+            :open="notifyModalOpen"
+            title="Notify Lecture"
+            eyebrow="Send notification"
+            size="sm"
+            @close="closeNotifyModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <p class="text-muted">
+                    Send notification a link to Lecture: <span class="font-semibold text-ink">{{ notifyLectureName }}</span>
+                </p>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="sendNotifyEmail"
+                >
+                    Send to Email
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    @click="sendNotifyWhatsapp"
+                >
+                    Send to Whatsapp
+                </button>
+            </template>
+        </Modal>
+        <Modal
             :open="previewModalOpen"
             :title="previewTitle"
             eyebrow="Document preview"
@@ -427,6 +463,8 @@ export default {
             previewModalOpen: false,
             previewType: '',
             previewSrc: '',
+            notifyModalOpen: false,
+            notifyTarget: null,
         };
     },
     computed: {
@@ -483,6 +521,13 @@ export default {
         },
         uploadModalTitle() {
             return this.uploadForm.type === 'task' ? 'Upload Task Document' : 'Upload Score Document';
+        },
+        notifyLectureName() {
+            if (!this.notifyTarget) {
+                return '';
+            }
+            return this.notifyTarget.lecture_name
+                || (this.notifyTarget.lecture_id ? `Lecture #${this.notifyTarget.lecture_id}` : 'Lecture');
         },
     },
     created() {
@@ -716,6 +761,18 @@ export default {
                 .finally(() => {
                     this.uploadSubmitting = false;
                 });
+        },
+        openNotifyModal(openTask) {
+            this.notifyTarget = openTask || null;
+            this.notifyModalOpen = true;
+        },
+        closeNotifyModal() {
+            this.notifyModalOpen = false;
+            this.notifyTarget = null;
+        },
+        sendNotifyEmail() {
+        },
+        sendNotifyWhatsapp() {
         },
         fetchLectures() {
             this.lecturesLoading = true;

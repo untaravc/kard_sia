@@ -123,6 +123,7 @@ class MenuTableSeeder extends Seeder
                     ['name' => 'data-master-role', 'title' => 'Role', 'url' => "{$basePath}/roles"],
                     ['name' => 'data-master-menu', 'title' => 'Menu', 'url' => "{$basePath}/menus"],
                     ['name' => 'data-master-menu-role', 'title' => 'Menu Role', 'url' => "{$basePath}/menu-roles"],
+                    ['name' => 'data-master-action-log', 'title' => 'Action Log', 'url' => "{$basePath}/action-logs"],
                 ],
             ],
         ];

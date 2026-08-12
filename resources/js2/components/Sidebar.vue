@@ -4,10 +4,9 @@
         :class="collapsed ? 'lg:w-20' : 'lg:w-64'"
     >
         <div class="flex items-center gap-3 justify-center">
-            <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent text-lg font-bold text-ink">K</span>
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-accent text-lg font-bold text-ink">{{ appInitial }}</span>
             <div v-if="!collapsed" class="leading-tight">
                 <div class="font-semibold tracking-wide">{{ appName }}</div>
-                <div class="text-xs text-sidebar-text/70">Admin Suite</div>
             </div>
         </div>
         <nav class="flex flex-col gap-2.5" v-show="!isMobile || !collapsed">
@@ -102,6 +101,11 @@ export default {
             menuItems: [],
             appName: 'Kardio',
         };
+    },
+    computed: {
+        appInitial() {
+            return this.appName ? this.appName.trim().charAt(0).toUpperCase() : '';
+        },
     },
     created() {
         this.fetchMenu();

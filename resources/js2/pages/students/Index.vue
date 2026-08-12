@@ -112,7 +112,7 @@
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <div class="font-semibold text-ink">{{ student.name }}</div>
-                            <span v-if="student.status !== null && student.status !== undefined" class="text-xs text-muted">
+                            <span v-if="student.status === 'graduate'" class="text-xs text-muted">
                                 Status: {{ student.status }}
                             </span>
                         </div>
@@ -121,6 +121,25 @@
                             <span v-if="student.phone">• {{ student.phone }}</span>
                             <span v-if="student.year">• Year: {{ student.year }}</span>
                         </div>
+                    </div>
+                    <div class="flex w-24 flex-col items-center gap-1">
+                        <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="student.status === 'active'"
+                            :disabled="statusUpdating"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition disabled:opacity-50"
+                            :class="student.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'"
+                            @click.stop="handleStatusToggle(student)"
+                        >
+                            <span
+                                class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
+                                :class="student.status === 'active' ? 'translate-x-6' : 'translate-x-1'"
+                            ></span>
+                        </button>
+                        <span class="text-[11px] text-muted">
+                            {{ student.status === 'active' ? 'Active' : 'Nonactive' }}
+                        </span>
                     </div>
                     <div class="relative action-dropdown">
                         <button
@@ -283,6 +302,7 @@
                         >
                             <option value="active">Active</option>
                             <option value="nonactive">Nonactive</option>
+                            <option value="graduate">Graduate</option>
                         </select>
                     </label>
                     <label class="grid gap-2 text-sm">
@@ -451,6 +471,46 @@
         </Modal>
 
         <Modal
+            :open="statusModalOpen"
+            title="Aktifkan Akun?"
+            size="sm"
+            @close="closeStatusModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <p class="text-muted">
+                    Akun
+                    <span class="font-semibold text-ink">{{ statusTargetStudent ? statusTargetStudent.name : '' }}</span>
+                    akan diaktifkan.
+                </p>
+                <label class="flex items-center gap-3 text-sm">
+                    <input
+                        v-model="sendActivationEmail"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border border-border"
+                    />
+                    <span class="text-muted">Kirim notifikasi email ke pengguna</span>
+                </label>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closeStatusModal"
+                >
+                    Batal
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="statusUpdating"
+                    @click="confirmActivation"
+                >
+                    {{ statusUpdating ? 'Processing...' : 'Ya' }}
+                </button>
+            </template>
+        </Modal>
+
+        <Modal
             :open="presenceModalOpen"
             title="Print Presence"
             eyebrow="Pilih rentang tanggal"
@@ -568,6 +628,10 @@ export default {
             errorMessage: '',
             yearOptions: [],
             actionMenuOpenId: null,
+            statusModalOpen: false,
+            statusTargetStudent: null,
+            sendActivationEmail: true,
+            statusUpdating: false,
             presenceModalOpen: false,
             presenceStudent: null,
             presenceRange: {
@@ -936,6 +1000,57 @@ export default {
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete student.';
+                });
+        },
+        handleStatusToggle(student) {
+            if (this.statusUpdating) {
+                return;
+            }
+
+            if (student.status === 'active') {
+                this.updateStudentStatus(student, 'nonactive');
+                return;
+            }
+
+            this.statusTargetStudent = student;
+            this.sendActivationEmail = true;
+            this.statusModalOpen = true;
+        },
+        closeStatusModal() {
+            this.statusModalOpen = false;
+            this.statusTargetStudent = null;
+            this.sendActivationEmail = true;
+        },
+        confirmActivation() {
+            if (!this.statusTargetStudent) {
+                return;
+            }
+
+            this.updateStudentStatus(this.statusTargetStudent, 'active', this.sendActivationEmail)
+                .then(() => {
+                    this.closeStatusModal();
+                });
+        },
+        updateStudentStatus(student, status, sendEmail = false) {
+            this.statusUpdating = true;
+            this.errorMessage = '';
+
+            return Repository.patch(`${this.baseUrl}/${student.id}/status`, {
+                status,
+                send_email: sendEmail,
+            })
+                .then(() => {
+                    student.status = status;
+                    this.$showToast(status === 'active' ? 'Student activated successfully.' : 'Student deactivated successfully.');
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to update student status.';
+                    this.errorMessage = message;
+                })
+                .finally(() => {
+                    this.statusUpdating = false;
                 });
         },
         logAs(student) {

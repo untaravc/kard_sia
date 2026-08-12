@@ -35,12 +35,18 @@ class StaseLogController extends Controller
 
     public function staseLogCheck()
     {
-        $today = now()->toDateString();
+        $endDateThreshold = now()->subMonths(3)->toDateString();
+        $startDateThreshold = now()->subMonths(6)->toDateString();
 
         $students = Student::where('status', 'active')
-            ->whereDoesntHave('staseLogs', function ($query) use ($today) {
-                $query->whereDate('start_date', '<=', $today)
-                    ->whereDate('end_date', '>=', $today);
+            ->whereDoesntHave('staseLogs', function ($query) use ($endDateThreshold, $startDateThreshold) {
+                $query->where(function ($q) use ($endDateThreshold, $startDateThreshold) {
+                    $q->whereDate('end_date', '>=', $endDateThreshold)
+                        ->orWhere(function ($q2) use ($startDateThreshold) {
+                            $q2->whereNull('end_date')
+                                ->whereDate('start_date', '>=', $startDateThreshold);
+                        });
+                });
             })
             ->select('id', 'name', 'email', 'year', 'status')
             ->orderBy('year')

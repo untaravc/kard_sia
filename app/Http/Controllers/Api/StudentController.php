@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Traits\BaseTrait;
 use App\Models\OpenStaseTask;
 use App\Models\StaseLog;
 use App\Models\StaseTask;
@@ -11,9 +12,12 @@ use App\Models\Student;
 use App\Models\StudentProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class StudentController extends Controller
 {
+    use BaseTrait;
+
     public function index(Request $request)
     {
         $dataContent = Student::leftJoin('student_profiles', 'student_profiles.student_id', '=', 'students.id')
@@ -88,6 +92,56 @@ class StudentController extends Controller
         return response()->json([
             'success' => true,
             'text' => 'Update Student Success',
+            'result' => $student,
+        ]);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $this->validate($request, [
+            'status' => 'required|in:active,nonactive',
+            'send_email' => 'nullable|boolean',
+        ]);
+
+        $student = Student::find($id);
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $student->status = $request->status;
+
+        if ($request->status === 'active' && !$student->link_token) {
+            $student->link_token = $this->generateRandomString(17);
+        }
+
+        $student->save();
+
+        if ($request->status === 'active' && $request->boolean('send_email') && $student->email) {
+            $student->reset_password_token = $student->link_token;
+            $student->save();
+
+            $link = env('APP_URL') . "/blu/login-email?token={$student->link_token}";
+
+            Mail::send('mails.login_email', ['link' => $link], function ($message) use ($student) {
+                $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
+                $fromName = config('mail.from.name') ?: config('app.name');
+
+                if ($fromAddress) {
+                    $message->from($fromAddress, $fromName);
+                }
+
+                $message->to($student->email)
+                    ->subject('Login Link');
+            });
+        }
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Update Student Status Success',
             'result' => $student,
         ]);
     }

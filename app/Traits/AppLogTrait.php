@@ -54,6 +54,7 @@ trait AppLogTrait {
                 'type' => 'admin',
                 'name' => Auth::guard()->user()->name,
                 'id' => Auth::guard()->id(),
+                'email' => Auth::guard()->user()->email,
             ];
         }
 
@@ -62,6 +63,7 @@ trait AppLogTrait {
                 'type' => 'dosen',
                 'name' => Auth::guard('lecture')->user()->name,
                 'id' => Auth::guard('lecture')->id(),
+                'email' => Auth::guard('lecture')->user()->email,
             ];
         }
 
@@ -70,6 +72,7 @@ trait AppLogTrait {
                 'type' => 'residen',
                 'name' => Auth::guard('student')->user()->name,
                 'id' => Auth::guard('student')->id(),
+                'email' => Auth::guard('student')->user()->email,
             ];
         }
 
@@ -89,6 +92,7 @@ trait AppLogTrait {
                 'type' => $typeMap[$authType] ?? 'guest',
                 'name' => data_get($payload, 'name') ?: 'anonymous',
                 'id' => $authId,
+                'email' => data_get($payload, 'email'),
             ];
         }
 
@@ -96,6 +100,7 @@ trait AppLogTrait {
             'type' => 'guest',
             'name' => 'anonymous',
             'id' => null,
+            'email' => null,
         ];
     }
 

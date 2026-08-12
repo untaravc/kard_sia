@@ -31,6 +31,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Menghapus action log lebih dari 30 hari.
+        $schedule->command('logs:clean-actions', ['--days' => 30])->daily();
+
         // Menghapus form penilain lebih dari 2 bulan.
         $schedule->call(function () {
             OpenStaseTask::whereDate('created_at', '<', date('Y-m-d H:i:s', strtotime(now() . ' -6 month')))
