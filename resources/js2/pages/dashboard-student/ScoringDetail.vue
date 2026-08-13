@@ -83,44 +83,56 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="ml-auto flex shrink-0 items-center gap-2">
+                            <div class="relative action-dropdown ml-auto shrink-0">
                                 <button
-                                    class="rounded-lg border border-sky-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-sky-700"
+                                    class="rounded-lg border border-border bg-white px-3 py-1 text-[11px] font-semibold text-muted"
                                     type="button"
-                                    @click="openNotifyModal(openTask)"
+                                    @click.stop="toggleActionMenu(openTask.id)"
                                 >
-                                    Notify Lecture
+                                    Actions
                                 </button>
-                                <button
-                                    class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                    type="button"
-                                    @click="openUploadModal(openTask, 'score')"
+                                <div
+                                    v-if="actionMenuOpenId === openTask.id"
+                                    class="absolute right-0 z-10 mt-2 w-40 rounded-xl border border-border bg-white p-1 shadow-lg"
                                 >
-                                    Upload Score
-                                </button>
-                                <button
-                                    class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                    type="button"
-                                    @click="openUploadModal(openTask, 'task')"
-                                >
-                                    Upload Task
-                                </button>
-                                <button
-                                    class="rounded-lg border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
-                                    type="button"
-                                    :disabled="Boolean(openTask.score)"
-                                    @click="openUpdateModal(openTask, task)"
-                                >
-                                    Update
-                                </button>
-                                <button
-                                    class="rounded-lg border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-rose-600"
-                                    type="button"
-                                    :disabled="Boolean(openTask.score)"
-                                    @click="deleteOpenTask(openTask)"
-                                >
-                                    Delete
-                                </button>
+                                    <button
+                                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                        type="button"
+                                        @click="handleOpenTaskAction('notify', openTask, task)"
+                                    >
+                                        Notify Lecture
+                                    </button>
+                                    <button
+                                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                        type="button"
+                                        @click="handleOpenTaskAction('uploadScore', openTask, task)"
+                                    >
+                                        Upload Score
+                                    </button>
+                                    <button
+                                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                        type="button"
+                                        @click="handleOpenTaskAction('uploadTask', openTask, task)"
+                                    >
+                                        Upload Task
+                                    </button>
+                                    <button
+                                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                        type="button"
+                                        :disabled="Boolean(openTask.score)"
+                                        @click="handleOpenTaskAction('update', openTask, task)"
+                                    >
+                                        Update
+                                    </button>
+                                    <button
+                                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                        type="button"
+                                        :disabled="Boolean(openTask.score)"
+                                        @click="handleOpenTaskAction('delete', openTask, task)"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -205,12 +217,17 @@
                     />
                 </label>
                 <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Plan date</span>
+                    <span class="text-muted">Plan date <span class="text-rose-600">*</span></span>
                     <input
                         v-model="scoringForm.plan_date"
                         type="date"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        class="w-full rounded-xl border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        :class="scoringFormErrors.plan_date ? 'border-rose-300' : 'border-border'"
+                        @change="scoringFormErrors.plan_date = ''"
                     />
+                    <span v-if="scoringFormErrors.plan_date" class="text-xs text-rose-600">
+                        {{ scoringFormErrors.plan_date }}
+                    </span>
                 </label>
                 <div class="grid gap-2">
                     <span class="text-muted text-xs">Lectures</span>
@@ -375,21 +392,26 @@
                 <p class="text-muted">
                     Send notification a link to Lecture: <span class="font-semibold text-ink">{{ notifyLectureName }}</span>
                 </p>
+                <div v-if="notifyError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ notifyError }}
+                </div>
             </div>
             <template #footer>
                 <button
                     class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
                     type="button"
+                    :disabled="notifySubmitting"
                     @click="sendNotifyEmail"
                 >
-                    Send to Email
+                    {{ notifySubmitting ? 'Sending...' : 'Send to Email' }}
                 </button>
                 <button
                     class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
                     type="button"
+                    :disabled="notifySubmitting"
                     @click="sendNotifyWhatsapp"
                 >
-                    Send to Whatsapp
+                    {{ notifySubmitting ? 'Sending...' : 'Send to Whatsapp' }}
                 </button>
             </template>
         </Modal>
@@ -443,6 +465,9 @@ export default {
                 plan_date: '',
                 lecture_ids: [],
             },
+            scoringFormErrors: {
+                plan_date: '',
+            },
             lectures: [],
             lecturesLoading: false,
             updateModalOpen: false,
@@ -465,6 +490,9 @@ export default {
             previewSrc: '',
             notifyModalOpen: false,
             notifyTarget: null,
+            notifySubmitting: false,
+            notifyError: '',
+            actionMenuOpenId: null,
         };
     },
     computed: {
@@ -533,7 +561,51 @@ export default {
     created() {
         this.loadStaseTasks();
     },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
+    },
     methods: {
+        toggleActionMenu(openTaskId) {
+            this.actionMenuOpenId = this.actionMenuOpenId === openTaskId ? null : openTaskId;
+        },
+        closeActionMenu() {
+            this.actionMenuOpenId = null;
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (!target) {
+                return;
+            }
+            if (target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.closeActionMenu();
+        },
+        handleOpenTaskAction(action, openTask, parentTask) {
+            this.closeActionMenu();
+            if (action === 'notify') {
+                this.openNotifyModal(openTask);
+                return;
+            }
+            if (action === 'uploadScore') {
+                this.openUploadModal(openTask, 'score');
+                return;
+            }
+            if (action === 'uploadTask') {
+                this.openUploadModal(openTask, 'task');
+                return;
+            }
+            if (action === 'update') {
+                this.openUpdateModal(openTask, parentTask);
+                return;
+            }
+            if (action === 'delete') {
+                this.deleteOpenTask(openTask);
+            }
+        },
         isImageUrl(url) {
             if (!url || typeof url !== 'string') {
                 return false;
@@ -595,6 +667,7 @@ export default {
                 plan_date: '',
                 lecture_ids: [],
             };
+            this.scoringFormErrors = { plan_date: '' };
             this.scoringModalOpen = true;
             if (!this.lectures.length) {
                 this.fetchLectures();
@@ -608,9 +681,14 @@ export default {
                 plan_date: '',
                 lecture_ids: [],
             };
+            this.scoringFormErrors = { plan_date: '' };
         },
         submitScoring() {
             if (!this.selectedTask) {
+                return;
+            }
+            if (!this.scoringForm.plan_date) {
+                this.scoringFormErrors.plan_date = 'Plan date is required.';
                 return;
             }
             const payload = {
@@ -764,15 +842,61 @@ export default {
         },
         openNotifyModal(openTask) {
             this.notifyTarget = openTask || null;
+            this.notifyError = '';
             this.notifyModalOpen = true;
         },
         closeNotifyModal() {
             this.notifyModalOpen = false;
             this.notifyTarget = null;
+            this.notifyError = '';
         },
         sendNotifyEmail() {
+            if (!this.notifyTarget || this.notifySubmitting) {
+                return;
+            }
+
+            this.notifySubmitting = true;
+            this.notifyError = '';
+
+            return Repository.post(`/api/open-stase-task/${this.notifyTarget.id}/notify-email`)
+                .then(() => {
+                    if (this.$showToast) {
+                        this.$showToast('Notification email sent.');
+                    }
+                    this.closeNotifyModal();
+                })
+                .catch((error) => {
+                    this.notifyError = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to send notification email.';
+                })
+                .finally(() => {
+                    this.notifySubmitting = false;
+                });
         },
         sendNotifyWhatsapp() {
+            if (!this.notifyTarget || this.notifySubmitting) {
+                return;
+            }
+
+            this.notifySubmitting = true;
+            this.notifyError = '';
+
+            return Repository.post(`/api/open-stase-task/${this.notifyTarget.id}/notify-whatsapp`)
+                .then(() => {
+                    if (this.$showToast) {
+                        this.$showToast('Notification WhatsApp message sent.');
+                    }
+                    this.closeNotifyModal();
+                })
+                .catch((error) => {
+                    this.notifyError = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to send WhatsApp notification.';
+                })
+                .finally(() => {
+                    this.notifySubmitting = false;
+                });
         },
         fetchLectures() {
             this.lecturesLoading = true;

@@ -83,6 +83,25 @@
                         </div>
                         <div class="text-xs text-muted">{{ user.email }}</div>
                     </div>
+                    <div class="flex w-24 flex-col items-center gap-1">
+                        <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="user.status === 'active'"
+                            :disabled="statusUpdating"
+                            class="relative inline-flex h-6 w-11 items-center rounded-full transition disabled:opacity-50"
+                            :class="user.status === 'active' ? 'bg-emerald-500' : 'bg-slate-300'"
+                            @click.stop="handleStatusToggle(user)"
+                        >
+                            <span
+                                class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
+                                :class="user.status === 'active' ? 'translate-x-6' : 'translate-x-1'"
+                            ></span>
+                        </button>
+                        <span class="text-[11px] text-muted">
+                            {{ user.status === 'active' ? 'Active' : 'Nonactive' }}
+                        </span>
+                    </div>
                     <div class="relative action-dropdown">
                         <button
                             class="rounded-lg border border-border px-3 py-1.5 text-xs text-muted"
@@ -215,6 +234,46 @@
                 </button>
             </form>
         </Modal>
+
+        <Modal
+            :open="statusModalOpen"
+            title="Aktifkan Akun?"
+            size="sm"
+            @close="closeStatusModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <p class="text-muted">
+                    Akun
+                    <span class="font-semibold text-ink">{{ statusTargetUser ? statusTargetUser.name : '' }}</span>
+                    akan diaktifkan.
+                </p>
+                <label class="flex items-center gap-3 text-sm">
+                    <input
+                        v-model="sendActivationEmail"
+                        type="checkbox"
+                        class="h-4 w-4 rounded border border-border"
+                    />
+                    <span class="text-muted">Kirim notifikasi email ke pengguna</span>
+                </label>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closeStatusModal"
+                >
+                    Batal
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    :disabled="statusUpdating"
+                    @click="confirmActivation"
+                >
+                    {{ statusUpdating ? 'Processing...' : 'Ya' }}
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -256,6 +315,10 @@ export default {
             submitting: false,
             errorMessage: '',
             actionMenuOpenId: null,
+            statusModalOpen: false,
+            statusTargetUser: null,
+            sendActivationEmail: true,
+            statusUpdating: false,
         };
     },
     created() {
@@ -467,6 +530,57 @@ export default {
                 })
                 .catch(() => {
                     this.errorMessage = 'Failed to delete user.';
+                });
+        },
+        handleStatusToggle(user) {
+            if (this.statusUpdating) {
+                return;
+            }
+
+            if (user.status === 'active') {
+                this.updateUserStatus(user, 'nonactive');
+                return;
+            }
+
+            this.statusTargetUser = user;
+            this.sendActivationEmail = true;
+            this.statusModalOpen = true;
+        },
+        closeStatusModal() {
+            this.statusModalOpen = false;
+            this.statusTargetUser = null;
+            this.sendActivationEmail = true;
+        },
+        confirmActivation() {
+            if (!this.statusTargetUser) {
+                return;
+            }
+
+            this.updateUserStatus(this.statusTargetUser, 'active', this.sendActivationEmail)
+                .then(() => {
+                    this.closeStatusModal();
+                });
+        },
+        updateUserStatus(user, status, sendEmail = false) {
+            this.statusUpdating = true;
+            this.errorMessage = '';
+
+            return Repository.patch(`${this.baseUrl}/${user.id}/status`, {
+                status,
+                send_email: sendEmail,
+            })
+                .then(() => {
+                    user.status = status;
+                    this.$showToast(status === 'active' ? 'User activated successfully.' : 'User deactivated successfully.');
+                })
+                .catch((error) => {
+                    const message = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Failed to update user status.';
+                    this.errorMessage = message;
+                })
+                .finally(() => {
+                    this.statusUpdating = false;
                 });
         },
     },

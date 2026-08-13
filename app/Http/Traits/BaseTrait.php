@@ -13,4 +13,17 @@ trait BaseTrait {
         return $randomString;
     }
 
+    /**
+     * In the local environment, notification emails are redirected to a
+     * fixed testing inbox instead of the real recipient, so local
+     * development never sends mail to actual students/lecturers.
+     */
+    function notificationRecipient($email) {
+        if (config('app.env') === 'local') {
+            return 'vyvy1777@gmail.com';
+        }
+
+        return $email;
+    }
+
 }

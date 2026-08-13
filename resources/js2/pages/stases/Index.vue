@@ -38,6 +38,30 @@
                         </option>
                     </select>
                 </div>
+                <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">Section</label>
+                    <select
+                        v-model="filters.section"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="option in sectionOptions" :key="option" :value="option">
+                            {{ option }}
+                        </option>
+                    </select>
+                </div>
+                <div class="min-w-[140px]">
+                    <label class="text-xs text-muted">Semester</label>
+                    <select
+                        v-model="filters.semester"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="option in semesterOptions" :key="option" :value="option">
+                            {{ option }}
+                        </option>
+                    </select>
+                </div>
                 <div class="flex items-end gap-2">
                     <button
                         class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
@@ -379,8 +403,12 @@ export default {
             filters: {
                 keyword: '',
                 study_program_code: '',
+                section: '',
+                semester: '',
                 page: 1,
             },
+            sectionOptions: ['Tahap I', 'Tahap II', 'Tahap III'],
+            semesterOptions: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
             form: {
                 id: null,
                 name: '',
@@ -495,6 +523,8 @@ export default {
         resetFilter() {
             this.filters.keyword = '';
             this.filters.study_program_code = '';
+            this.filters.section = '';
+            this.filters.semester = '';
             this.filters.page = 1;
             this.fetchStases();
         },

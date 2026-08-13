@@ -5,23 +5,36 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Audit Trail</div>
                 <h1 class="text-2xl font-semibold text-ink">Action Logs</h1>
             </div>
-            <div class="flex items-end gap-2">
+            <div class="relative action-dropdown flex items-end gap-2">
                 <button
                     class="rounded-xl border border-rose-200 px-4 py-2 text-sm text-rose-600"
                     type="button"
                     :disabled="cleaning"
-                    @click="cleanup(7)"
+                    @click.stop="toggleDeleteMenu"
                 >
-                    Delete logs older than 7 days
+                    Delete
                 </button>
-                <button
-                    class="rounded-xl border border-rose-200 px-4 py-2 text-sm text-rose-600"
-                    type="button"
-                    :disabled="cleaning"
-                    @click="cleanup(30)"
+                <div
+                    v-if="deleteMenuOpen"
+                    class="absolute right-0 top-full z-10 mt-2 w-48 rounded-xl border border-border bg-white p-1 shadow-lg"
                 >
-                    Delete logs older than 30 days
-                </button>
+                    <button
+                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                        type="button"
+                        :disabled="cleaning"
+                        @click="cleanup(7)"
+                    >
+                        Older than 7 days
+                    </button>
+                    <button
+                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                        type="button"
+                        :disabled="cleaning"
+                        @click="cleanup(30)"
+                    >
+                        Older than 30 days
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -151,6 +164,7 @@ export default {
             loading: false,
             cleaning: false,
             errorMessage: '',
+            deleteMenuOpen: false,
         };
     },
     computed: {
@@ -189,7 +203,23 @@ export default {
         }
         this.fetchLogs();
     },
+    mounted() {
+        document.addEventListener('click', this.handleDocumentClick);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.handleDocumentClick);
+    },
     methods: {
+        toggleDeleteMenu() {
+            this.deleteMenuOpen = !this.deleteMenuOpen;
+        },
+        handleDocumentClick(event) {
+            const target = event && event.target ? event.target : null;
+            if (target && target.closest && target.closest('.action-dropdown')) {
+                return;
+            }
+            this.deleteMenuOpen = false;
+        },
         getToday() {
             const now = new Date();
             const year = now.getFullYear();
@@ -249,6 +279,8 @@ export default {
             return 'bg-slate-100 text-slate-600';
         },
         cleanup(days) {
+            this.deleteMenuOpen = false;
+
             if (!window.confirm(`Delete action logs older than ${days} days?`)) {
                 return;
             }

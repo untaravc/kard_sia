@@ -121,6 +121,11 @@ const routes = [
         meta: { page_name: 'Login Phone' },
     },
     {
+        path: admin_prefix + '/pub/scoring',
+        component: require('./pages/public/Scoring.vue').default,
+        meta: { page_name: 'Scoring Link' },
+    },
+    {
         path: admin_prefix,
         component: require('./pages/Layout.vue').default,
         beforeEnter: requireAuth,

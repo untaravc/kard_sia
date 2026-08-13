@@ -49,6 +49,9 @@ Route::get('cmd-action-accreditation', [\App\Http\Controllers\Api\AccreditationC
 // LetterController
 Route::post('letters/{letter_token}/process-approval/{letter_participant_token}', [LetterController::class, 'processApproval']);
 
+// AuthController (public magic-link scoring auth)
+Route::post('pub-scoring-auth', [AuthController::class, 'pubScoringAuth']);
+
 Route::middleware('jwt.auth')->group(function () {
     // AuthController
     Route::get('auth', [AuthController::class, 'auth']);
@@ -90,6 +93,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // UserController
     Route::resource('users', 'Api\UserController');
+    Route::patch('users/{id}/status', [UserController::class, 'updateStatus']);
     Route::get('user-list', [UserController::class, 'list']);
 
     // SettingController
@@ -144,6 +148,8 @@ Route::middleware('jwt.auth')->group(function () {
     // StudentController
     Route::resource('students', 'Api\StudentController');
     Route::patch('students/{id}/status', [\App\Http\Controllers\Api\StudentController::class, 'updateStatus']);
+    Route::get('student-status-counts', [\App\Http\Controllers\Api\StudentController::class, 'statusCounts']);
+    Route::get('student-oldest-year', [\App\Http\Controllers\Api\StudentController::class, 'oldestYear']);
     Route::get('student-list', [\App\Http\Controllers\Api\StudentController::class, 'studentList']);
     Route::get('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'profile']);
     Route::patch('student-profile', [\App\Http\Controllers\Api\StudentController::class, 'updateProfile']);
@@ -177,6 +183,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('open-stase-task/{id}', [OpenStaseTaskController::class, 'update']);
     Route::delete('open-stase-task/{id}', [OpenStaseTaskController::class, 'destroy']);
     Route::get('open-stase-task/{id}', [OpenStaseTaskController::class, 'show']);
+    Route::post('open-stase-task/{id}/notify-email', [OpenStaseTaskController::class, 'notifyEmail']);
+    Route::post('open-stase-task/{id}/notify-whatsapp', [OpenStaseTaskController::class, 'notifyWhatsapp']);
 
     // FileController
     Route::post('files', [\App\Http\Controllers\Api\FileController::class, 'create']);

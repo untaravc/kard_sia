@@ -14,6 +14,20 @@
             </button>
         </header>
 
+        <section class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <button
+                v-for="card in statusCards"
+                :key="card.key"
+                type="button"
+                class="rounded-2xl border p-4 text-left transition"
+                :class="filters.status === card.value ? 'border-primary bg-primary/5' : 'border-border bg-panel hover:border-primary/40'"
+                @click="selectStatusFilter(card.value)"
+            >
+                <div class="text-xs uppercase tracking-wide text-muted">{{ card.label }}</div>
+                <div class="mt-1 text-2xl font-semibold text-ink">{{ statusCounts[card.key] }}</div>
+            </button>
+        </section>
+
         <section class="rounded-2xl border border-border bg-panel p-5">
             <div class="flex flex-wrap items-end gap-3">
                 <div class="flex-1 min-w-[220px]">
@@ -25,18 +39,6 @@
                         @keyup.enter="applyFilter"
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
-                </div>
-                <div class="flex-1 min-w-[180px]">
-                    <label class="text-xs text-muted">Status</label>
-                    <select
-                        v-model="filters.status"
-                        @change="applyFilter"
-                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option :value="null">All</option>
-                        <option value="active">Active</option>
-                        <option value="nonactive">Nonactive</option>
-                    </select>
                 </div>
                 <div class="flex-1 min-w-[180px]">
                     <label class="text-xs text-muted">Year</label>
@@ -627,6 +629,18 @@ export default {
             uploadingImage: false,
             errorMessage: '',
             yearOptions: [],
+            statusCards: [
+                { key: 'active', label: 'Active', value: 'active' },
+                { key: 'nonactive', label: 'Nonactive', value: 'nonactive' },
+                { key: 'graduate', label: 'Graduate', value: 'graduate' },
+                { key: 'all', label: 'All', value: '' },
+            ],
+            statusCounts: {
+                active: 0,
+                nonactive: 0,
+                graduate: 0,
+                all: 0,
+            },
             actionMenuOpenId: null,
             statusModalOpen: false,
             statusTargetStudent: null,
@@ -652,9 +666,11 @@ export default {
     },
     created() {
         this.yearOptions = this.buildYearOptions();
+        this.fetchOldestYear();
         this.fetchStudyPrograms();
         this.fetchLectures();
         this.fetchStudents();
+        this.fetchStatusCounts();
     },
     mounted() {
         document.addEventListener('click', this.handleDocumentClick);
@@ -698,14 +714,15 @@ export default {
                 event.target.value = '';
             }
         },
-        buildYearOptions() {
+        buildYearOptions(startYear) {
             const options = [];
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
             const availableMonths = [1, 7];
+            const oldestYear = startYear && startYear <= currentYear ? startYear : currentYear;
 
-            for (let year = 2016; year <= currentYear; year += 1) {
+            for (let year = oldestYear; year <= currentYear; year += 1) {
                 availableMonths.forEach((month) => {
                     if (year < currentYear || month <= currentMonth) {
                         const monthLabel = String(month).padStart(2, '0');
@@ -715,6 +732,17 @@ export default {
             }
 
             return options;
+        },
+        fetchOldestYear() {
+            return Repository.get('/api/student-oldest-year')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    const oldestYear = result && result.year ? parseInt(String(result.year).slice(0, 4), 10) : null;
+                    if (oldestYear) {
+                        this.yearOptions = this.buildYearOptions(oldestYear);
+                    }
+                })
+                .catch(() => {});
         },
         fetchStudyPrograms() {
             return Repository.get('/api/study-program-list')
@@ -757,6 +785,32 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        fetchStatusCounts() {
+            return Repository.get('/api/student-status-counts', {
+                params: {
+                    keyword: this.filters.keyword,
+                    year: this.filters.year,
+                    study_program_code: this.filters.study_program_code,
+                },
+            })
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.statusCounts = {
+                        active: (result && result.active) || 0,
+                        nonactive: (result && result.nonactive) || 0,
+                        graduate: (result && result.graduate) || 0,
+                        all: (result && result.all) || 0,
+                    };
+                })
+                .catch(() => {
+                    this.statusCounts = { active: 0, nonactive: 0, graduate: 0, all: 0 };
+                });
+        },
+        selectStatusFilter(status) {
+            this.filters.status = status;
+            this.filters.page = 1;
+            this.fetchStudents();
         },
         toggleActionMenu(studentId) {
             this.actionMenuOpenId = this.actionMenuOpenId === studentId ? null : studentId;
@@ -853,6 +907,7 @@ export default {
         applyFilter() {
             this.filters.page = 1;
             this.fetchStudents();
+            this.fetchStatusCounts();
         },
         resetFilter() {
             this.filters.keyword = '';
@@ -861,6 +916,7 @@ export default {
             this.filters.study_program_code = '';
             this.filters.page = 1;
             this.fetchStudents();
+            this.fetchStatusCounts();
         },
         changePage(page) {
             this.filters.page = page;

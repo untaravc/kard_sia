@@ -8,6 +8,7 @@ use App\Models\OpenStaseTask;
 use App\Models\StaseTaskLog;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Mail;
 
 class OpenStaseTaskController extends Controller
 {
@@ -298,5 +299,166 @@ class OpenStaseTaskController extends Controller
             'text' => 'Retrieve Open Stase Task Success',
             'result' => $task,
         ]);
+    }
+
+    public function notifyEmail(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $task = OpenStaseTask::with(['lecture', 'student', 'staseTask.task'])
+            ->whereStudentId($authId)
+            ->find($id);
+
+        if (!$task) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Open stase task not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $lecture = $task->lecture;
+        if (!$lecture || !$lecture->email) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Lecture email not available',
+                'result' => null,
+            ], 422);
+        }
+
+        $link = $this->ensureNotifyLink($task);
+        $studentName = $task->student ? $task->student->name : null;
+        $taskTitle = $task->title ?: ($task->staseTask && $task->staseTask->task ? $task->staseTask->task->name : null);
+
+        Mail::send('mails.scoring_notification', [
+            'link' => $link,
+            'student' => $studentName,
+            'taskTitle' => $taskTitle,
+        ], function ($message) use ($lecture) {
+            $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
+            $fromName = config('mail.from.name') ?: config('app.name');
+
+            if ($fromAddress) {
+                $message->from($fromAddress, $fromName);
+            }
+
+            $message->to($this->notificationRecipient($lecture->email))
+                ->subject('Scoring Notification');
+        });
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Notification email sent',
+            'result' => null,
+        ]);
+    }
+
+    public function notifyWhatsapp(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
+        if (!$authType) {
+            $authType = $payload ? data_get($payload, 'auth_type') : null;
+        }
+
+        $authId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$authId) {
+            $authId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType !== 'student') {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 403);
+        }
+
+        $task = OpenStaseTask::with(['lecture.lectureProfile', 'student'])
+            ->whereStudentId($authId)
+            ->find($id);
+
+        if (!$task) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Open stase task not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $lecture = $task->lecture;
+        $rawPhone = $lecture && $lecture->lectureProfile ? $lecture->lectureProfile->phone : null;
+        $phone = $this->normalizeWhatsappNumber($rawPhone);
+
+        if (!$lecture || !$phone) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Lecture phone number not available',
+                'result' => null,
+            ], 422);
+        }
+
+        $link = $this->ensureNotifyLink($task);
+        $studentName = $task->student ? $task->student->name : 'A student';
+        $message = "Halo, {$studentName} meminta penilaian tugas.\nBuka link berikut untuk mengisi nilai:\n{$link}";
+
+        app(WhatsAppController::class)->sendMessage($phone, $message);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Notification WhatsApp message sent',
+            'result' => null,
+        ]);
+    }
+
+    protected function ensureNotifyLink(OpenStaseTask $task)
+    {
+        $lecture = $task->lecture;
+        if (!$lecture) {
+            return null;
+        }
+
+        if (!$lecture->link_token) {
+            $lecture->link_token = $this->generateRandomString(17);
+            $lecture->save();
+        }
+
+        if (!$task->link_token) {
+            $task->link_token = $this->generateRandomString(17);
+            $task->save();
+        }
+
+        return env('APP_URL') . "/blu/pub/scoring?llt={$lecture->link_token}&ostt={$task->link_token}";
+    }
+
+    protected function normalizeWhatsappNumber($phone)
+    {
+        $raw = preg_replace('/\D+/', '', (string) $phone);
+        if (!$raw) {
+            return null;
+        }
+
+        if (str_starts_with($raw, '0')) {
+            return '62' . substr($raw, 1);
+        }
+
+        return $raw;
     }
 }

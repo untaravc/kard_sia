@@ -432,7 +432,7 @@ class StaseController extends Controller
         $this->validate($request, [
             'name' => 'required',
             'alias' => 'required',
-            'color' => 'required',
+            // 'color' => 'required',
             'is_mandatory' => 'nullable|boolean',
             'study_program_code' => 'nullable|string|max:50',
             'section' => 'nullable|string|max:100',
@@ -453,6 +453,17 @@ class StaseController extends Controller
 
         if ($request->study_program_code != null) {
             $dataContent = $dataContent->where('study_program_code', $request->study_program_code);
+        }
+
+        if ($request->filled('section')) {
+            $dataContent = $dataContent->where('section', $request->section);
+        }
+
+        if ($request->filled('semester')) {
+            $dataContent = $dataContent->whereRaw(
+                "FIND_IN_SET(?, REPLACE(semester, ' ', ''))",
+                [$request->semester]
+            );
         }
 
         return $dataContent;

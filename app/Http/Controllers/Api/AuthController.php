@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Lecture;
 use App\Models\LectureProfile;
+use App\Models\OpenStaseTask;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\StudentProfile;
@@ -627,6 +628,49 @@ class AuthController extends Controller
         $this->response['success'] = false;
         $this->response['text'] = 'Token invalid';
         $this->response['result'] = null;
+
+        return $this->response;
+    }
+
+    public function pubScoringAuth(Request $request)
+    {
+        $this->validate($request, [
+            'llt' => 'required|string',
+            'ostt' => 'required|string',
+        ]);
+
+        $lecture = Lecture::where('link_token', $request->llt)->first();
+        if (!$lecture) {
+            $this->response['success'] = false;
+            $this->response['text'] = 'Link invalid';
+            $this->response['result'] = null;
+            return $this->response;
+        }
+
+        $openStaseTask = OpenStaseTask::where('link_token', $request->ostt)
+            ->where('lecture_id', $lecture->id)
+            ->first();
+
+        if (!$openStaseTask) {
+            $this->response['success'] = false;
+            $this->response['text'] = 'Link invalid';
+            $this->response['result'] = null;
+            return $this->response;
+        }
+
+        $token = $this->buildToken([
+            'email' => $lecture->email,
+            'auth_type' => 'lecture',
+            'auth_id' => $lecture->id,
+            'name' => $lecture->name,
+        ]);
+
+        $this->response['success'] = true;
+        $this->response['text'] = 'Login Success';
+        $this->response['result'] = [
+            'token' => $token,
+            'open_stase_task_id' => $openStaseTask->id,
+        ];
 
         return $this->response;
     }

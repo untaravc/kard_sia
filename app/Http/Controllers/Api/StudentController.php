@@ -204,6 +204,56 @@ class StudentController extends Controller
         ]);
     }
 
+    public function statusCounts(Request $request)
+    {
+        $dataContent = Student::query();
+
+        if ($request->year !== null && $request->year !== '') {
+            $dataContent = $dataContent->where('year', $request->year);
+        }
+
+        if ($request->study_program_code != null) {
+            $dataContent = $dataContent->where('study_program_code', $request->study_program_code);
+        }
+
+        if ($request->keyword != null) {
+            $dataContent = $dataContent->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->keyword . '%');
+                $q->orWhere('email', 'LIKE', '%' . $request->keyword . '%');
+            });
+        }
+
+        $counts = $dataContent->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Student Status Counts Success',
+            'result' => [
+                'active' => (int) ($counts['active'] ?? 0),
+                'nonactive' => (int) ($counts['nonactive'] ?? 0),
+                'graduate' => (int) ($counts['graduate'] ?? 0),
+                'all' => (int) $counts->sum(),
+            ],
+        ]);
+    }
+
+    public function oldestYear()
+    {
+        $oldestYear = Student::whereNotNull('year')
+            ->where('year', '!=', '')
+            ->min('year');
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Oldest Student Year Success',
+            'result' => [
+                'year' => $oldestYear,
+            ],
+        ]);
+    }
+
     public function studentList()
     {
         $students = Student::where('status', 'active')
