@@ -71,6 +71,12 @@ if (!function_exists('letter_number')) {
     }
 }
 
+if (!function_exists('setting')) {
+    function setting($label, $default = null) {
+        return \App\Models\Setting::where('label', $label)->value('value') ?: $default;
+    }
+}
+
 if (!function_exists('markah')) {
     function markah($score) {
         switch (true){

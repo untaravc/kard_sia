@@ -152,7 +152,7 @@
         </div>
         <h3>Eli Sugigi</h3>
         <small>eli@sugigi.com</small>
-        <p>Presensi Harian Residen Kardiologi<br/> 26 Feb 2021</p>
+        <p>Presensi Harian {{ setting('app.department-name', 'Department') }}<br/> 26 Feb 2021</p>
         <form action="" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="buttons">

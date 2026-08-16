@@ -17,7 +17,7 @@
                     sebelum <span class="font-semibold text-ink">7 April 2026</span>.
                 </li>
                 <li>
-                    Isi dan lengkapi dokumen tambahan di ugm.id/RegistrasiPPDSKardiologiUGM sebelum
+                    Isi dan lengkapi dokumen tambahan di ugm.id/RegistrasiPPDS---UGM sebelum
                     <span class="font-semibold text-ink">14 April 2025</span>.
                 </li>
             </ul>

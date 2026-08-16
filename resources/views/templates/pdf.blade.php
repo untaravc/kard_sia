@@ -42,9 +42,9 @@
 </head>
 <body>
 <div class="title">
-    <h4>Departemen Kardiologi dan Kedokteran Vaskular</h4>
+    <h4>DEPARTEMEN</h4>
     <h5>Fakultas Kedokteran dan Kesehatan Masyarakat</h5>
-    <h5>Universitas Gadjah Mada</h5>
+    <h5>UNIVERSITAS</h5>
     <h3>Penilaian Stase</h3>
 </div>
 

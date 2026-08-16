@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
           integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
     @include('home.lamptkes.style')
-    <title>Lamptkes Kardiologi</title>
+    <title>Lamptkes</title>
 </head>
 <body class="p-3">
 <div class="container border p-4" style="background-color: #fff">

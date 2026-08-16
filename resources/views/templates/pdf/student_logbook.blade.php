@@ -64,8 +64,8 @@
                 JANTUNG DAN PEMBULUH DARAH
             </div>
             <div style="font-weight: bold; font-size: 11px;">
-                DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR <br>
-                FKKMK UNIVERSITAS GADJAH MADA
+                {{ setting('app.department-name', 'DEPARTEMEN') }} <br>
+                FKKMK {{ setting('app.university-name', 'UNIVERSITAS') }}
             </div>
         </td>
         <td style="width: 120px; vertical-align: middle; text-align: center; padding: 10px;">

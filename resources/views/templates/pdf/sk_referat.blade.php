@@ -19,9 +19,9 @@
                 <img src="data:image/jpg;base64, {{$logo}}" style="width: 85px">
             </td>
             <td style="width: 85%">
-                UNIVERSITAS GADJAH MADA <br>
-                FAKULTAS KEDOKTERAN, KESEHATAN MASYARAKAT, DAN KEPERAWATAN <br>
-                DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR <br>
+                {{ setting('app.university-name', 'UNIVERSITAS') }} <br>
+                {{ setting('app.faculty-name', 'FAKULTAS') }} <br>
+                {{ setting('app.department-name', 'DEPARTEMEN') }} <br>
                 <b>PROGRAM SPESIALIS JANTUNG DAN PEMBULUH DARAH</b> <br>
                 <small>Gedung Radioputro Lt 2 Sayap Barat Fakultas Kedokteran Kesehatan Masyarakat dan Keperawatan UGM
                     Jl. Farmako Sekip Utara Sleman</small>
@@ -40,7 +40,7 @@
         <div>
             <p>
                 Yang bertanda tangan dibawah ini Ketua Program Studi Jantung dan Pembuluh Darah Fakultas Kedokteran,
-                Kesehatan Masyarakat, dan Keperawatan Universitas Gadjah Mada, dengan ini menerangkan bahwa telah
+                Kesehatan Masyarakat, dan Keperawatan UNIVERSITAS, dengan ini menerangkan bahwa telah
                 dilaksanakan bimbingan {{$data['type']}} terhadap PPDS Program Studi Jantung dan Pembuluh Darah :
             </p>
             <div style="margin-left: 40px">

@@ -12,7 +12,7 @@
 <body class="hold-transition login-page">
 <div class="login-box">
     <div class="login-logo">
-        <a href="../../index2.html"><b>SIA </b>Kardiologi</a>
+        <a href="../../index2.html"><b>{{ setting('app.name', 'App - Name') }}</b></a>
     </div>
     <!-- /.login-logo -->
     <div class="card">

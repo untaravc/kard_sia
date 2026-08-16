@@ -184,7 +184,7 @@
         </div>
         <h3>{{$user['name']}}</h3>
         <small>{{$user['email']}}</small>
-        <p>Presensi Harian Residen Kardiologi<br/> {{date('d M Y')}}</p>
+        <p>Presensi Harian {{ setting('app.department-name', 'Department') }}<br/> {{date('d M Y')}}</p>
             <div class="buttons">
                 - Can only be accessed on Android OS and iOS -
             </div>

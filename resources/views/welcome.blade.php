@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Sia Kardiologi</title>
+        <title>{{ setting('app.name', 'App - Name') }}</title>
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
@@ -84,7 +84,7 @@
 {{--                    Sistem Aplikasi Akademik--}}
 {{--                    <br>--}}
 {{--                </div>--}}
-                <p>Departemen Kardiologi dan Kedokteran Vaskular</p>
+                <p>DEPARTEMEN</p>
 
                 <div class="links">
                     <a href="/cmss">Admin</a>

@@ -40,12 +40,12 @@
             JANTUNG DAN PEMBULUH DARAH
         </div>
         <div>
-            DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR <br>
-            FKKMK UNIVERSITAS GADJAH MADA
+            {{ setting('app.department-name', 'DEPARTEMEN') }} <br>
+            FKKMK {{ setting('app.university-name', 'UNIVERSITAS') }}
         </div>
         <div>
             Sekretariat : RSUP Dr. Sardjito, Jl. Kesehatan No.1 Yogyakarta <br>
-            Telp. 0274 – 587333, ext. 364 Fax. 0274– 547783 e-mail : kardiologi_fkugm@yahoo.co.id
+            Telp. {{ setting('app.contact-phone', '0274 – 587333, ext. 364') }} Fax. 0274– 547783 e-mail : {{ setting('app.contact-email', 'contact-email') }}
         </div>
     </div>
 </div>

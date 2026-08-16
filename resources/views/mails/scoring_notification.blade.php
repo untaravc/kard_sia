@@ -12,7 +12,7 @@
                 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:18px; overflow:hidden; border:1px solid #e5e2dc;">
                     <tr>
                         <td style="padding:28px 32px; background:linear-gradient(120deg,#fef6e9 0%,#f7eadb 100%);">
-                            <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:#666b78;">Kardio Admin</div>
+                            <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:#666b78;">{{ setting('app.name', 'app-name') }}</div>
                             <h1 style="margin:12px 0 0; font-size:24px;">Scoring request</h1>
                         </td>
                     </tr>

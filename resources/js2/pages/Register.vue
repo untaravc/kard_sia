@@ -35,7 +35,7 @@
 
                         <label class="grid gap-2 text-sm">
                             <span class="text-muted">Email</span>
-                            <input type="email" placeholder="admin@kardio.id" v-model.trim="form.email"
+                            <input type="email" v-model.trim="form.email"
                                 class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                                 :class="fieldErrors.email ? 'border-red-300 focus:ring-red-500/20' : ''" />
                             <span v-if="fieldErrors.email" class="text-xs text-red-600">{{ fieldErrors.email }}</span>

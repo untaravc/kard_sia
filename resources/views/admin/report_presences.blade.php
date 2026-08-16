@@ -65,9 +65,9 @@
     </div>
     <div style="text-align: center; margin-bottom: 5px; width: 100%">
         <h3>Laporan Presensi Program Pendidikan Dokter Spesialis</h3>
-        <h4>Departemen Kardiologi dan Kedokteran Vaskular</h4>
-        <h4>Fakultas Kedokteran, Kesehatan Masyarakat, dan Keperawatan</h4>
-        <h4>Universitas Gadjah Mada</h4>
+        <h4>DEPARTEMEN</h4>
+        <h4>FAKULTAS</h4>
+        <h4>UNIVERSITAS</h4>
     </div>
 </div>
 <div class="line"></div>

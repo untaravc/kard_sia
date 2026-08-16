@@ -186,7 +186,7 @@
         </div>
         <h3 class="m-2">{{$user['name']}}</h3>
         <small>{{$user['email']}}</small>
-        <p>Presensi Harian Residen Kardiologi<br/> {{date('d M Y')}}</p>
+        <p>Presensi Harian {{ setting('app.department-name', 'Department') }}<br/> {{date('d M Y')}}</p>
         <form action="/daily_beta" id="presence-form" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="desc-container">

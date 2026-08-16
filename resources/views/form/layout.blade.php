@@ -183,7 +183,7 @@
 <body>
 <div class="fw">
     @yield('content')
-    <div class="note">Powered by SIA Kardiologi &middot; Formulir</div>
+    <div class="note">Powered by {{ setting('app.name', 'App - Name') }} &middot; Formulir</div>
 </div>
 </body>
 </html>

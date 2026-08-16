@@ -129,7 +129,7 @@
 <footer>
     <div style="display: flex; justify-content: space-between">
         <span>
-            <i>Program Studi Jantung dan Pembuluh Darah, Departemen Kardiologi dan Kedokteran Vaskular, FKKMK, UGM</i>
+            <i>Program Studi Jantung dan Pembuluh Darah, DEPARTEMEN, FKKMK, UGM</i>
         </span>
         <span class="pagenum" style="float: right"></span>
     </div>

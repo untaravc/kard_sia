@@ -35,7 +35,7 @@
             <li><strong>Tipe</strong> — terisi otomatis sesuai jenis logbook.</li>
             <li>
                 <strong>Supervisor</strong> — pilih dosen pembimbing, atau
-                <em>Diluar Kardiologi</em> bila supervisor bukan dari Kardiologi.
+                <em>Departmen Lain</em> bila supervisor bukan dari Departemen.
             </li>
             <li><strong>Kategori</strong> — pilih kategori logbook.</li>
         </ul>

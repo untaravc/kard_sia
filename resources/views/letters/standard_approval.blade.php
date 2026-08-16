@@ -208,15 +208,15 @@
             />
             <div class="header-text">
                 <div class="top" style="margin-bottom: 0">
-                    UNIVERSITAS GADJAH MADA<br />
-                    FAKULTAS KEDOKTERAN, KESEHATAN MASYARAKAT, DANKEPERAWATAN
+                    {{ setting('app.university-name', 'UNIVERSITAS') }}<br />
+                    {{ setting('app.faculty-name', 'FAKULTAS') }}
                 </div>
                 <div class="dept" style="margin-top: 0">
-                    DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR
+                    {{ setting('app.department-name', 'DEPARTEMEN') }}
                 </div>
                 <div class="addr" style="margin-top: 0">
                     Gedung Radioputro Lt 2 Sayap Barat, Fakultas Kedokteran Kesehatan Masyarakat dan Keperawatan
-                    <br>Jl. Farmako Sekip Utara, Sleman. Telp.0274-588688 ext 17230, Fax.0274-631011, Email : kardiologi@ugm.co.id
+                    <br>Jl. Farmako Sekip Utara, Sleman. Telp.{{ setting('app.contact-phone', '0274-588688 ext 17230') }}, Fax.0274-631011, Email : {{ setting('app.contact-email', 'contact-email') }}
                 </div>
             </div>
         </div>
@@ -333,15 +333,15 @@
                 />
                 <div class="header-text">
                     <div class="top" style="margin-bottom: 0">
-                        UNIVERSITAS GADJAH MADA<br />
-                        FAKULTAS KEDOKTERAN, KESEHATAN MASYARAKAT, DANKEPERAWATAN
+                        {{ setting('app.university-name', 'UNIVERSITAS') }}<br />
+                        {{ setting('app.faculty-name', 'FAKULTAS') }}
                     </div>
                     <div class="dept" style="margin-top: 0">
-                        DEPARTEMEN KARDIOLOGI DAN KEDOKTERAN VASKULAR
+                        {{ setting('app.department-name', 'DEPARTEMEN') }}
                     </div>
                     <div class="addr" style="margin-top: 0">
                         Gedung Radioputro Lt 2 Sayap Barat, Fakultas Kedokteran Kesehatan Masyarakat dan Keperawatan
-                        <br>Jl. Farmako Sekip Utara, Sleman. Telp.0274-588688 ext 17230, Fax.0274-631011, Email : kardiologi@ugm.co.id
+                        <br>Jl. Farmako Sekip Utara, Sleman. Telp.{{ setting('app.contact-phone', '0274-588688 ext 17230') }}, Fax.0274-631011, Email : {{ setting('app.contact-email', 'contact-email') }}
                     </div>
                 </div>
             </div>

@@ -31,7 +31,7 @@
 <div style="text-align: center">
     <div>Program Pendidikan Dokter Spesialis</div>
     <div>Ilmu Penyakit Jantung Pembuluh Darah</div>
-    <div>Fakultas Kedokteran Universitas Gadjah Mada</div>
+    <div>Fakultas Kedokteran UNIVERSITAS</div>
     <div>Yogyakarta</div>
     <div>2015</div>
 </div>
@@ -40,10 +40,10 @@
     <div>ProgramPendidikan Dokterspesialis</div>
     <div>Ilmu PenyakitJantung dan Pembuluh Darah</div>
     <div>Bagian Kardiologi dan Kedokteran Vaskular</div>
-    <div>Fakultas Kedokteran Universitas Gadjah Mada</div>
+    <div>Fakultas Kedokteran UNIVERSITAS</div>
     <div>RSUP Dr. Sardjito</div>
     <div>Jl. Kesehatan No.1 Yogyakarta</div>
-    <div>Telp. (0274) 587333 pswt.364, Fax. 631011</div>
+    <div>Telp. {{ setting('app.contact-phone', '(0274) 587333 pswt.364') }}, Fax. 631011</div>
     <div>Tanggal : 15 Desember 2015</div>
 </div>
 

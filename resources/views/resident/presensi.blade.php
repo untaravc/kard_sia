@@ -206,7 +206,7 @@
         {{--                 style="background-image: url({{$user['image_link']}});"></div>--}}
         {{--        </div>--}}
         <h4 class="m-3 mt-5 font-weight-bolder name">{{$user['name']}}</h4>
-        <p>Presensi Harian Residen Kardiologi<br/> {{date('d M Y')}}</p>
+        <p>Presensi Harian {{ setting('app.department-name', 'Department') }}<br/> {{date('d M Y')}}</p>
         <form action="" id="presence-form" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="desc-container">

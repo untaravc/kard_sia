@@ -118,7 +118,7 @@
         <p class="mb-0">FORMULIR PENDAFTARAN</p>
         <p class="mb-0">PROGRAM PENDIDIKAN DOKTER SPESIALIS I</p>
         <p class="mb-0">Program Studi Jantung dan Pembuluh Darah, Fakultas Kedokteran, Kesehatan Masyarakat, dan
-            Keperawatan, Universitas Gadjah Mada</p>
+            Keperawatan, UNIVERSITAS</p>
     </div>
 </div>
 <div style="border-top: 1px solid gray; border-bottom: 2px solid gray; height: 4px; margin-top: 10px"></div>

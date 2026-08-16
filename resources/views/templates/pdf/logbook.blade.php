@@ -32,7 +32,7 @@
             </div>
             <div style="border-left: 1px solid; padding: 5px">
                 <h4 style="margin: 0">Logbook Resident</h4>
-                <h5 style="margin: 0">Departemen Kardiologi dan Kedokteran Vaskular</h5>
+                <h5 style="margin: 0">DEPARTEMEN</h5>
                 <h5 style="margin: 0">FKKMK UGM</h5>
             </div>
         </div>

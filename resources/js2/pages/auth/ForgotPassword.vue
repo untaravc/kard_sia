@@ -12,7 +12,6 @@
                         <span class="text-muted">Email or phone</span>
                         <input
                             type="text"
-                            placeholder="admin@kardio.id or +62..."
                             class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                         />
                     </label>
