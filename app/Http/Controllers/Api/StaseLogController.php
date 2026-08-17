@@ -18,8 +18,12 @@ class StaseLogController extends Controller
                 'students.name as student_name',
                 'students.email as student_email',
                 'students.status as student_status',
+                'students.year as student_year',
                 'stases.name as stase_name',
-                'stases.alias as stase_alias'
+                'stases.alias as stase_alias',
+                'stases.desc as stase_desc',
+                'stases.color as stase_color',
+                'stases.font_color as stase_font_color'
             )
             ->orderByDesc('stase_logs.start_date');
 
@@ -76,6 +80,14 @@ class StaseLogController extends Controller
             $dataContent = $dataContent
                 ->whereDate('stase_logs.start_date', '<=', $request->date)
                 ->whereDate('stase_logs.end_date', '>=', $request->date);
+        }
+
+        if ($request->date_from != null) {
+            $dataContent = $dataContent->whereDate('stase_logs.end_date', '>=', $request->date_from);
+        }
+
+        if ($request->date_to != null) {
+            $dataContent = $dataContent->whereDate('stase_logs.start_date', '<=', $request->date_to);
         }
 
         return $dataContent;

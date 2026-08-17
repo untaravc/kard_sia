@@ -167,6 +167,7 @@ const routes = [
             { path: 'logbook-student-add/:id', component: require('./pages/logbooks/Add.vue').default, meta: { page_name: 'Edit Logbook' } },
             { path: 'logbook-student-daily', component: require('./pages/logbooks/IndexV2.vue').default, meta: { page_name: 'Logbook Daily' } },
             { path: 'stases', component: require('./pages/stases/Index.vue').default, meta: { page_name: 'Stases' } },
+            { path: 'stases/calendar', component: require('./pages/stases/Student.vue').default, meta: { page_name: 'Stase Calendar' } },
             { path: 'tasks', component: require('./pages/tasks/Index.vue').default, meta: { page_name: 'Tasks' } },
             { path: 'tasks/:task_id/scoring-components', component: require('./pages/tasks/ScoringComponents.vue').default, meta: { page_name: 'Scoring Components' } },
             { path: 'accreditations', component: require('./pages/accreditations/Index.vue').default, meta: { page_name: 'Accreditations' } },

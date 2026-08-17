@@ -116,7 +116,7 @@ class SettingController extends Controller
         return $this->validate($request, [
             'name' => 'nullable|string|max:100',
             'label' => 'nullable|string|max:100',
-            'value' => 'nullable|string|max:100',
+            'value' => 'nullable|string|max:1000',
             'status' => 'nullable|boolean',
         ]);
     }

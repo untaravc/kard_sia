@@ -209,8 +209,8 @@ class MenuController extends Controller
                 ->count();
         }
 
-        $appName = Setting::where('label', 'app.name')->value('value');
-        $logbooksUrl = $appName === 'IPD' ? "{$basePath}/logbook-student-daily" : "{$basePath}/logbook-student";
+        $logbookVersion = Setting::where('label', 'app.version-logbook')->value('value');
+        $logbooksUrl = $logbookVersion == 2 ? "{$basePath}/logbook-student-daily" : "{$basePath}/logbook-student";
 
         $menuByType = [
             'student' => [

@@ -61,6 +61,7 @@ class MenuTableSeeder extends Seeder
                 'order' => 4,
                 'children' => [
                     ['name' => 'monitoring-stase', 'title' => 'Stase', 'url' => "{$basePath}/students/monitoring"],
+                    ['name' => 'monitoring-stase-calendar', 'title' => 'Stase Calendar', 'url' => "{$basePath}/stases/calendar"],
                     ['name' => 'monitoring-logbook', 'title' => 'Logbook', 'url' => "{$basePath}/students/monitoring-logbook"],
                     ['name' => 'monitoring-presence', 'title' => 'Presence', 'url' => "{$basePath}/students/monitoring-presence"],
                 ],
