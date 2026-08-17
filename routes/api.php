@@ -75,6 +75,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // DashboardController
     Route::get('dashboard-stats', [DashboardController::class, 'stat']);
+    Route::get('dashboard-open-stase-task-matric', [DashboardController::class, 'openStaseTaskScoreMatric']);
 
     // RegistrationStudentController
     Route::post('process-copy', [RegistrationStudentController::class, 'processCopy']);

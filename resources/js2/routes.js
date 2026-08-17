@@ -131,6 +131,7 @@ const routes = [
         beforeEnter: requireAuth,
         children: [
             { path: 'dashboard', component: require('./pages/dashboard/Index.vue').default, meta: { page_name: 'Dashboard' } },
+            { path: 'dashboard/matric', component: require('./pages/dashboard/Matric.vue').default, meta: { page_name: 'Matric' } },
             { path: 'dashboard-student', redirect: 'dashboard-student/profile', meta: { page_name: 'Student Dashboard' } },
             { path: 'dashboard-student/scoring', component: require('./pages/dashboard-student/Scoring.vue').default, meta: { page_name: 'Student Scoring' } },
             { path: 'dashboard-student/checklist', component: require('./pages/dashboard-student/Checklist.vue').default, meta: { page_name: 'Student Checklist' } },
