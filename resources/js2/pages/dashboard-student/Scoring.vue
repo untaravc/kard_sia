@@ -15,8 +15,14 @@
         <div class="mt-5 grid gap-6 lg:grid-cols-2">
             <div>
                 <div class="text-sm font-semibold text-ink">Available Stase</div>
+                <input
+                    v-model.trim="availableSearch"
+                    type="text"
+                    placeholder="Search name..."
+                    class="mt-3 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
                 <div class="mt-3 grid max-h-[60vh] gap-3 overflow-y-auto pr-1">
-                    <div v-for="stase in availableStase" :key="stase.id"
+                    <div v-for="stase in filteredAvailableStase" :key="stase.id"
                         class="rounded-xl border border-border/60 bg-white px-4 py-3">
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2">
@@ -25,22 +31,28 @@
                                 <div class="text-sm font-semibold text-ink">{{ stase.name }}</div>
                             </div>
                             <button
-                                class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
+                                class="inline-flex min-h-[34px] items-center rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold text-muted active:bg-slate-100"
                                 type="button" @click="openTakeModal(stase)">
                                 Take Stase
                             </button>
                         </div>
                         <div v-if="stase.alias" class="mt-1 text-xs text-muted">{{ stase.alias }}</div>
                     </div>
-                    <div v-if="!loading && availableStase.length === 0" class="text-xs text-muted">
-                        No available stase.
+                    <div v-if="!loading && filteredAvailableStase.length === 0" class="text-xs text-muted">
+                        {{ availableSearch ? 'No matching stase.' : 'No available stase.' }}
                     </div>
                 </div>
             </div>
             <div>
                 <div class="text-sm font-semibold text-ink">Taken Stase</div>
+                <input
+                    v-model.trim="takenSearch"
+                    type="text"
+                    placeholder="Search name..."
+                    class="mt-3 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
                 <div class="mt-3 grid max-h-[60vh] gap-3 overflow-y-auto pr-1">
-                    <div v-for="log in takenStase" :key="log.id"
+                    <div v-for="log in filteredTakenStase" :key="log.id"
                         class="rounded-xl border border-border/60 bg-white px-4 py-3">
                         <div class="flex items-center justify-between gap-2">
                             <div class="text-sm font-semibold text-ink">
@@ -48,14 +60,14 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <button
-                                    class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
+                                    class="inline-flex min-h-[34px] items-center rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold text-muted active:bg-slate-100"
                                     type="button"
                                     @click="openEditModal(log)"
                                 >
                                     Edit
                                 </button>
                                 <router-link
-                                    class="rounded-lg border border-border px-2 py-1 text-[11px] font-semibold text-muted"
+                                    class="inline-flex min-h-[34px] items-center rounded-lg border border-border px-3 py-1.5 text-[11px] font-semibold text-muted active:bg-slate-100"
                                     :to="`/blu/dashboard-student/scoring/${log.id}`"
                                 >
                                     Detail
@@ -67,8 +79,8 @@
                             <span v-if="log.end_date"> - End: {{ log.end_date }}</span>
                         </div>
                     </div>
-                    <div v-if="!loading && takenStase.length === 0" class="text-xs text-muted">
-                        No taken stase.
+                    <div v-if="!loading && filteredTakenStase.length === 0" class="text-xs text-muted">
+                        {{ takenSearch ? 'No matching stase.' : 'No taken stase.' }}
                     </div>
                 </div>
             </div>
@@ -160,6 +172,8 @@ export default {
         return {
             availableStase: [],
             takenStase: [],
+            availableSearch: '',
+            takenSearch: '',
             loading: false,
             errorMessage: '',
             takeModalOpen: false,
@@ -179,6 +193,25 @@ export default {
                 end_date: '',
             },
         };
+    },
+    computed: {
+        filteredAvailableStase() {
+            const query = this.availableSearch.toLowerCase();
+            if (!query) {
+                return this.availableStase;
+            }
+            return this.availableStase.filter((stase) => (stase.name || '').toLowerCase().includes(query));
+        },
+        filteredTakenStase() {
+            const query = this.takenSearch.toLowerCase();
+            if (!query) {
+                return this.takenStase;
+            }
+            return this.takenStase.filter((log) => {
+                const name = log.stase && log.stase.name ? log.stase.name : '';
+                return name.toLowerCase().includes(query);
+            });
+        },
     },
     created() {
         this.fetchStudentStase();

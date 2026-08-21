@@ -191,6 +191,7 @@
                                 v-for="log in laneLogs(student)"
                                 :key="log.id"
                                 class="stase-box absolute rounded-lg px-2 py-1 text-xs font-medium shadow-sm"
+                                :class="{ 'justify-between': isMultiWeek(log) }"
                                 :style="boxStyle(log)"
                                 :title="boxTitle(log)"
                                 @click.stop
@@ -200,6 +201,7 @@
                                     @mousedown.stop.prevent="startResize(log, 'start', $event)"
                                 ></span>
                                 <span class="truncate">{{ boxLabel(log) }}</span>
+                                <span v-if="isMultiWeek(log)" class="truncate">{{ boxLabel(log) }}</span>
                                 <span
                                     class="resize-handle resize-handle-right"
                                     @mousedown.stop.prevent="startResize(log, 'end', $event)"
@@ -624,6 +626,12 @@ export default {
         },
         boxLabel(log) {
             return log.stase_alias || log.stase_name || 'Stase';
+        },
+        isMultiWeek(log) {
+            const start = this.parseDateStr(log.start_date);
+            const end = this.parseDateStr(log.end_date);
+            const durationDays = ((end - start) / 86400000) + 1;
+            return durationDays > 7;
         },
         boxTitle(log) {
             const name = log.stase_name || 'Stase';

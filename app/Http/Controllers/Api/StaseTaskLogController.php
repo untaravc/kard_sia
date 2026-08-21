@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exports\LectureScoringExport;
 use App\Http\Controllers\Controller;
+use App\Models\Lecture;
 use App\Models\StaseLog;
 use App\Models\StaseTaskLog;
 use App\Models\StaseTask;
 use Illuminate\Http\Request;
-
-use function PHPSTORM_META\map;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StaseTaskLogController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * [auth_type, auth_id] of the caller, preferring the "log as" identity
+     * when impersonating (matches the rest of this controller).
+     */
+    private function authContext(Request $request): array
     {
         $payload = $request->attributes->get('jwt_payload');
         $authType = $payload ? data_get($payload, 'log_as_auth_type') : null;
@@ -25,7 +30,19 @@ class StaseTaskLogController extends Controller
             $authId = $payload ? data_get($payload, 'auth_id') : null;
         }
 
-//        return $authType;
+        return [$authType, $authId];
+    }
+
+    /**
+     * Shared, filtered base query for both index() and exportExcel(). A
+     * lecture/student is always scoped to their own logs; only an admin
+     * ('user') may browse a specific lecture's history via lecture_id
+     * (e.g. the Lectures > Scoring page).
+     */
+    private function scopedQuery(Request $request)
+    {
+        [$authType, $authId] = $this->authContext($request);
+
         $dataContent = StaseTaskLog::with([
             'student',
             'lecture',
@@ -38,6 +55,20 @@ class StaseTaskLogController extends Controller
             $dataContent = $dataContent->whereLectureId($authId);
         } elseif ($authType === 'student') {
             $dataContent = $dataContent->whereStudentId($authId);
+        } elseif ($authType === 'user' && $request->filled('lecture_id')) {
+            $dataContent = $dataContent->whereLectureId($request->lecture_id);
+        }
+
+        if ($request->filled('task_id')) {
+            $dataContent = $dataContent->where('task_id', $request->task_id);
+        }
+
+        if ($request->filled('date_from')) {
+            $dataContent = $dataContent->whereDate('date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $dataContent = $dataContent->whereDate('date', '<=', $request->date_to);
         }
 
         if ($request->keyword != null) {
@@ -61,13 +92,52 @@ class StaseTaskLogController extends Controller
             });
         }
 
-        $dataContent = $dataContent->paginate($request->per_page ?? 10);
+        return $dataContent;
+    }
+
+    public function index(Request $request)
+    {
+        $dataContent = $this->scopedQuery($request)->paginate($request->per_page ?? 10);
 
         return response()->json([
             'success' => true,
             'text' => 'Retrieve Stase Task Logs Success',
             'result' => $dataContent,
         ]);
+    }
+
+    /**
+     * Excel export of a lecture's scoring history, using the same filters
+     * (lecture_id / task_id / date_from / date_to) as index().
+     */
+    public function exportExcel(Request $request)
+    {
+        [$authType, $authId] = $this->authContext($request);
+        $lectureId = $authType === 'lecture' ? $authId : $request->lecture_id;
+        $lecture = $lectureId ? Lecture::find($lectureId) : null;
+
+        $logs = $this->scopedQuery($request)->get();
+
+        $rows = $logs->map(function ($log) {
+            return [
+                'date' => $log->date,
+                'student' => $log->student ? $log->student->name : '',
+                'stase' => $log->staseTask && $log->staseTask->stase ? $log->staseTask->stase->name : '',
+                'task' => $log->staseTask
+                    ? ($log->staseTask->task ? $log->staseTask->task->name : $log->staseTask->name)
+                    : '',
+                'point_average' => $log->point_average,
+                'symbol' => $log->symbol,
+                'status' => $log->status,
+            ];
+        });
+
+        $lectureName = $lecture ? $lecture->name : 'Lecture';
+
+        return Excel::download(
+            new LectureScoringExport(['rows' => $rows, 'lecture_name' => $lectureName]),
+            'Scoring History - ' . $lectureName . '.xlsx'
+        );
     }
 
     public function updateScore(Request $request)

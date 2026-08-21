@@ -136,6 +136,13 @@
                             >
                                 Log As
                             </button>
+                            <router-link
+                                class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                :to="`/blu/lectures/${lecture.id}/scoring`"
+                                @click.native="closeActionMenu"
+                            >
+                                Scoring
+                            </router-link>
                             <button
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"

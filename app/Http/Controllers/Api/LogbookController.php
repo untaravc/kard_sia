@@ -58,7 +58,7 @@ class LogbookController extends Controller
                     ->whereColumn('form_options.relation_id', '=', 'student_logs.stase_id');
             })
             ->leftJoin('students', 'students.id', '=', 'student_logs.student_id')
-            ->with(['lecture', 'stase'])
+            ->with(['lecture', 'stase', 'stase_log_skills.formOption'])
             ->when($studentId, function ($query) use ($studentId) {
                 $query->where('student_id', $studentId);
             })
@@ -122,8 +122,10 @@ class LogbookController extends Controller
         $this->validate($request, [
             'date' => 'required|date',
             'no_catatan_medik' => 'required|string',
-            'rawat_inap' => 'nullable|string',
-            'rawat_jalan' => 'nullable|string',
+            'rawat_inap' => 'nullable|boolean',
+            'rawat_jalan' => 'nullable|boolean',
+            'igd' => 'nullable|boolean',
+            'note' => 'nullable|string',
             'lecture_id' => 'nullable|integer',
             'competence_ids' => 'nullable|array',
             'competence_ids.*' => 'integer',
@@ -136,8 +138,10 @@ class LogbookController extends Controller
             'date' => $request->date,
             'status' => 0,
             'field_1' => $request->no_catatan_medik,
-            'field_2' => $request->rawat_inap,
-            'field_3' => $request->rawat_jalan,
+            'field_2' => $request->boolean('rawat_inap') ? '1' : '0',
+            'field_3' => $request->boolean('rawat_jalan') ? '1' : '0',
+            'field_4' => $request->boolean('igd') ? '1' : '0',
+            'field_5' => $request->note,
         ]);
 
         foreach (array_unique($request->competence_ids ?? []) as $formOptionId) {
@@ -169,8 +173,10 @@ class LogbookController extends Controller
         $this->validate($request, [
             'date' => 'required|date',
             'no_catatan_medik' => 'required|string',
-            'rawat_inap' => 'nullable|string',
-            'rawat_jalan' => 'nullable|string',
+            'rawat_inap' => 'nullable|boolean',
+            'rawat_jalan' => 'nullable|boolean',
+            'igd' => 'nullable|boolean',
+            'note' => 'nullable|string',
             'lecture_id' => 'nullable|integer',
             'competence_ids' => 'nullable|array',
             'competence_ids.*' => 'integer',
@@ -180,8 +186,10 @@ class LogbookController extends Controller
             'lecture_id' => $request->lecture_id,
             'date' => $request->date,
             'field_1' => $request->no_catatan_medik,
-            'field_2' => $request->rawat_inap,
-            'field_3' => $request->rawat_jalan,
+            'field_2' => $request->boolean('rawat_inap') ? '1' : '0',
+            'field_3' => $request->boolean('rawat_jalan') ? '1' : '0',
+            'field_4' => $request->boolean('igd') ? '1' : '0',
+            'field_5' => $request->note,
         ]);
 
         StudentLogSkill::where('student_log_id', $id)->delete();

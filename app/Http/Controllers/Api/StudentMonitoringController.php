@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\Concerns\CalculatesAttendance;
 use App\Models\Activity;
 use App\Models\ActivityStudent;
+use App\Models\FormOption;
 use App\Models\Presence;
 use App\Models\Stase;
 use App\Models\StaseLog;
@@ -22,10 +23,10 @@ class StudentMonitoringController extends Controller
 
     public function index(Request $request)
     {
-        // Columns: stases (optionally filtered by phase), ordered as on the board.
+        // Columns: stases (optionally filtered by phase = stases.section), ordered as on the board.
         $staseQuery = Stase::orderByDesc('stase_order')->orderBy('name');
-        if ($request->stase_desc !== null && $request->stase_desc !== '') {
-            $staseQuery->where('desc', $request->stase_desc);
+        if ($request->stase_section !== null && $request->stase_section !== '') {
+            $staseQuery->where('section', $request->stase_section);
         }
         $stases = $staseQuery->get(['id', 'name', 'alias']);
 
@@ -34,9 +35,17 @@ class StudentMonitoringController extends Controller
         $totalByStase = $activeTasks->groupBy('stase_id')->map->count();
         $activeTaskIds = $activeTasks->pluck('id')->flip();
 
-        // Students matching the current filters (status / year / name).
+        // Students matching the current filters (year / name); this page only
+        // ever shows active students, regardless of any status param passed.
         $studentQuery = Student::query()->orderBy('name');
         $studentQuery = $this->withFilter($studentQuery, $request);
+        $studentQuery->where('status', 'active');
+
+        if ($request->filled('current_stase_id')) {
+            $candidateIds = (clone $studentQuery)->pluck('id')->all();
+            $matchingIds = $this->studentsCurrentlyInStase($candidateIds, (int) $request->current_stase_id);
+            $studentQuery->whereIn('id', $matchingIds);
+        }
 
         // All filtered ids drive the overall aggregate; the page drives the table.
         $allStudentIds = (clone $studentQuery)->pluck('id')->all();
@@ -190,10 +199,56 @@ class StudentMonitoringController extends Controller
 
         $studentIds = collect($students->items())->pluck('id')->all();
 
-        $logs = StudentLog::whereIn('student_id', $studentIds)
+        $staseId = $request->filled('stase_id') ? (int) $request->stase_id : null;
+        $competenceIds = array_filter((array) $request->input('competence_ids', []));
+
+        $logsQuery = StudentLog::whereIn('student_id', $studentIds)
             ->whereDate('date', '>=', $dateFrom->toDateString())
-            ->whereDate('date', '<=', $dateTo->toDateString())
-            ->get(['id', 'student_id', 'date']);
+            ->whereDate('date', '<=', $dateTo->toDateString());
+
+        // When one or more competencies are checked, only count entries that
+        // have a matching student_log_skills row (form_options type
+        // 'sp1ipd-logbook-competence').
+        if (!empty($competenceIds)) {
+            $logsQuery->whereHas('stase_log_skills', function ($query) use ($competenceIds) {
+                $query->whereIn('form_option_id', $competenceIds);
+            });
+        }
+
+        // When a stase is selected, only count entries logged under that
+        // stase and whose date falls within the student's own enrollment
+        // window (stase_logs.start_date - end_date) for it.
+        $staseLogRangesByStudent = collect();
+        if ($staseId) {
+            $logsQuery->where('stase_id', $staseId);
+            $staseLogRangesByStudent = StaseLog::whereIn('student_id', $studentIds)
+                ->where('stase_id', $staseId)
+                ->get(['student_id', 'start_date', 'end_date'])
+                ->groupBy('student_id');
+        }
+
+        $logs = $logsQuery->get(['id', 'student_id', 'date']);
+
+        if ($staseId) {
+            $logs = $logs->filter(function ($log) use ($staseLogRangesByStudent) {
+                $ranges = $staseLogRangesByStudent->get($log->student_id);
+                if (!$ranges) {
+                    return false;
+                }
+
+                $date = substr($log->date, 0, 10);
+
+                return $ranges->contains(function ($range) use ($date) {
+                    if ($range->start_date && $date < $range->start_date) {
+                        return false;
+                    }
+                    if ($range->end_date && $date > $range->end_date) {
+                        return false;
+                    }
+                    return true;
+                });
+            })->values();
+        }
 
         $logsByStudentDate = $logs->groupBy(function ($log) {
             return $log->student_id . '_' . substr($log->date, 0, 10);
@@ -237,6 +292,11 @@ class StudentMonitoringController extends Controller
             'weekdays' => $weekdays,
             'date_from' => $dateFrom->toDateString(),
             'date_to' => $dateTo->toDateString(),
+            'stases' => Stase::orderByDesc('stase_order')->orderBy('name')->get(['id', 'name', 'alias']),
+            'competence_options' => FormOption::whereStatus(1)
+                ->whereType('sp1ipd-logbook-competence')
+                ->orderBy('name')
+                ->get(['id', 'name', 'desc']),
         ]);
     }
 
@@ -708,6 +768,30 @@ class StudentMonitoringController extends Controller
         $current = $pool->sortByDesc('start_date')->first();
 
         return $current ? $current->stase_id : null;
+    }
+
+    /**
+     * Of the given student ids, which ones are currently in the given
+     * stase (per the same "current stase" rule as currentStaseId()).
+     */
+    private function studentsCurrentlyInStase(array $studentIds, int $staseId): array
+    {
+        if (empty($studentIds)) {
+            return [];
+        }
+
+        $logsByStudent = StaseLog::whereIn('student_id', $studentIds)
+            ->get(['student_id', 'stase_id', 'start_date', 'end_date'])
+            ->groupBy('student_id');
+
+        $matching = [];
+        foreach ($logsByStudent as $studentId => $logs) {
+            if ($this->currentStaseId($logs) === $staseId) {
+                $matching[] = $studentId;
+            }
+        }
+
+        return $matching;
     }
 
     private function cellStatus($done, $total, $hasLog = true)

@@ -70,6 +70,19 @@
                                     <span v-if="openTask.score" class="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
                                         Avg: {{ openTask.score }}
                                     </span>
+                                    <span
+                                        v-if="openTask.validated_at"
+                                        class="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700"
+                                    >
+                                        <Icon icon="mdi:check-decagram" class="h-3 w-3" />
+                                        Terkonfirmasi
+                                    </span>
+                                    <span
+                                        v-else
+                                        class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                                    >
+                                        Belum dikonfirmasi
+                                    </span>
                                 </div>
                                 <div v-if="openTask.files && openTask.files.length" class="mt-2 flex flex-wrap gap-2">
                                     <button
@@ -95,6 +108,14 @@
                                     v-if="actionMenuOpenId === openTask.id"
                                     class="absolute right-0 z-10 mt-2 w-40 rounded-xl border border-border bg-white p-1 shadow-lg"
                                 >
+                                    <button
+                                        v-if="!openTask.validated_at"
+                                        class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs font-semibold text-primary hover:bg-slate-50"
+                                        type="button"
+                                        @click="handleOpenTaskAction('confirmAttendance', openTask, task)"
+                                    >
+                                        Konfirmasi Agenda
+                                    </button>
                                     <button
                                         class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                         type="button"
@@ -232,24 +253,32 @@
                 <div class="grid gap-2">
                     <span class="text-muted text-xs">Lectures</span>
                     <div v-if="lecturesLoading" class="text-xs text-muted">Loading lectures...</div>
-                    <div v-else class="grid max-h-56 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
-                        <label
-                            v-for="lecture in lectures"
-                            :key="lecture.id"
-                            class="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-xs text-muted shadow-sm"
-                        >
-                            <input
-                                v-model="scoringForm.lecture_ids"
-                                type="checkbox"
-                                class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
-                                :value="lecture.id"
-                            />
-                            <span class="text-ink">{{ lecture.name }}</span>
-                        </label>
-                        <div v-if="lectures.length === 0" class="text-xs text-muted">
-                            No lectures available.
+                    <template v-else>
+                        <input
+                            v-model.trim="lectureSearch"
+                            type="text"
+                            placeholder="Search lecture..."
+                            class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                        <div class="grid max-h-56 gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
+                            <label
+                                v-for="lecture in filteredLectures"
+                                :key="lecture.id"
+                                class="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 text-xs text-muted shadow-sm"
+                            >
+                                <input
+                                    v-model="scoringForm.lecture_ids"
+                                    type="checkbox"
+                                    class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                                    :value="lecture.id"
+                                />
+                                <span class="text-ink">{{ lecture.name }}</span>
+                            </label>
+                            <div v-if="filteredLectures.length === 0" class="text-xs text-muted">
+                                {{ lectureSearch ? 'No matching lectures.' : 'No lectures available.' }}
+                            </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
             <template #footer>
@@ -416,6 +445,64 @@
             </template>
         </Modal>
         <Modal
+            :open="confirmModalOpen"
+            title="Konfirmasi Agenda"
+            eyebrow="Bukti kehadiran"
+            size="sm"
+            @close="closeConfirmModal"
+        >
+            <div class="grid gap-4 text-sm">
+                <div class="rounded-xl border border-border bg-white px-4 py-3">
+                    <div class="text-sm font-semibold text-ink">{{ selectedOpenTaskTitle }}</div>
+                    <div v-if="selectedOpenTaskLectureName" class="mt-1 text-xs text-muted">
+                        Dosen: {{ selectedOpenTaskLectureName }}
+                    </div>
+                </div>
+
+                <p class="text-xs text-muted">
+                    Scan QR pada layar dosen dengan kamera HP, atau masukkan 6 digit kode
+                    yang ditampilkan.
+                </p>
+
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Kode dari dosen</span>
+                    <input
+                        v-model.trim="confirmCode"
+                        type="tel"
+                        inputmode="numeric"
+                        maxlength="6"
+                        placeholder="000000"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-center font-mono text-2xl tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        @keyup.enter="submitConfirm"
+                    />
+                </label>
+
+                <div v-if="confirmError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ confirmError }}
+                </div>
+                <div v-if="confirmInfo" class="text-xs text-muted">
+                    {{ confirmInfo }}
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closeConfirmModal"
+                >
+                    Batal
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+                    type="button"
+                    :disabled="confirmSubmitting || confirmCode.length !== 6"
+                    @click="submitConfirm"
+                >
+                    {{ confirmSubmitting ? 'Memproses...' : 'Konfirmasi' }}
+                </button>
+            </template>
+        </Modal>
+        <Modal
             :open="previewModalOpen"
             :title="previewTitle"
             eyebrow="Document preview"
@@ -446,11 +533,13 @@ import Loading from 'vue-loading-overlay';
 import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import { uploadFirebaseFile } from '../../upload';
+import { Icon } from '../../icons';
 
 export default {
     components: {
         Loading,
         Modal,
+        Icon,
     },
     data() {
         return {
@@ -470,6 +559,7 @@ export default {
             },
             lectures: [],
             lecturesLoading: false,
+            lectureSearch: '',
             updateModalOpen: false,
             updateSubmitting: false,
             selectedOpenTask: null,
@@ -493,6 +583,12 @@ export default {
             notifySubmitting: false,
             notifyError: '',
             actionMenuOpenId: null,
+            confirmModalOpen: false,
+            confirmSubmitting: false,
+            confirmCode: '',
+            confirmError: '',
+            confirmInfo: '',
+            confirmCoords: { lat: null, lng: null },
         };
     },
     computed: {
@@ -557,6 +653,23 @@ export default {
             return this.notifyTarget.lecture_name
                 || (this.notifyTarget.lecture_id ? `Lecture #${this.notifyTarget.lecture_id}` : 'Lecture');
         },
+        filteredLectures() {
+            const query = this.lectureSearch.toLowerCase();
+            if (!query) {
+                return this.lectures;
+            }
+            return this.lectures.filter((lecture) => (lecture.name || '').toLowerCase().includes(query));
+        },
+        // The open-task list arrives with a joined `lecture_name` column
+        // rather than a nested relation, so fall back across both shapes.
+        selectedOpenTaskLectureName() {
+            if (!this.selectedOpenTask) {
+                return '';
+            }
+            return this.selectedOpenTask.lecture_name
+                || this.selectedOpenTaskLecture
+                || '';
+        },
     },
     created() {
         this.loadStaseTasks();
@@ -586,6 +699,10 @@ export default {
         },
         handleOpenTaskAction(action, openTask, parentTask) {
             this.closeActionMenu();
+            if (action === 'confirmAttendance') {
+                this.openConfirmModal(openTask);
+                return;
+            }
             if (action === 'notify') {
                 this.openNotifyModal(openTask);
                 return;
@@ -668,6 +785,7 @@ export default {
                 lecture_ids: [],
             };
             this.scoringFormErrors = { plan_date: '' };
+            this.lectureSearch = '';
             this.scoringModalOpen = true;
             if (!this.lectures.length) {
                 this.fetchLectures();
@@ -682,6 +800,7 @@ export default {
                 lecture_ids: [],
             };
             this.scoringFormErrors = { plan_date: '' };
+            this.lectureSearch = '';
         },
         submitScoring() {
             if (!this.selectedTask) {
@@ -838,6 +957,68 @@ export default {
                 })
                 .finally(() => {
                     this.uploadSubmitting = false;
+                });
+        },
+        openConfirmModal(openTask) {
+            this.selectedOpenTask = openTask || null;
+            this.confirmCode = '';
+            this.confirmError = '';
+            this.confirmInfo = '';
+            this.confirmCoords = { lat: null, lng: null };
+            this.confirmModalOpen = true;
+
+            // Location is captured opportunistically for the audit trail; a
+            // denied or slow GPS must never block the confirmation itself.
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        this.confirmCoords = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                        };
+                    },
+                    () => {},
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            }
+        },
+        closeConfirmModal() {
+            this.confirmModalOpen = false;
+            this.confirmSubmitting = false;
+            this.confirmCode = '';
+            this.confirmError = '';
+            this.confirmInfo = '';
+            this.selectedOpenTask = null;
+        },
+        submitConfirm() {
+            if (!this.selectedOpenTask || this.confirmSubmitting || this.confirmCode.length !== 6) {
+                return;
+            }
+
+            this.confirmSubmitting = true;
+            this.confirmError = '';
+
+            return Repository.post('/api/attendance-confirm', {
+                open_stase_task_id: this.selectedOpenTask.id,
+                code: this.confirmCode,
+                method: 'code',
+                lat: this.confirmCoords.lat,
+                lng: this.confirmCoords.lng,
+            })
+                .then(() => {
+                    this.closeConfirmModal();
+                    if (this.$showToast) {
+                        this.$showToast('Agenda berhasil dikonfirmasi.');
+                    }
+                    this.loadStaseTasks();
+                })
+                .catch((error) => {
+                    this.confirmError = error && error.response && error.response.data
+                        ? error.response.data.text
+                        : 'Gagal mengonfirmasi agenda.';
+                })
+                .finally(() => {
+                    this.confirmSubmitting = false;
                 });
         },
         openNotifyModal(openTask) {

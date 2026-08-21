@@ -1,20 +1,22 @@
 <template>
     <div class="flex flex-col gap-6">
-        <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-2xl border border-border bg-white p-4">
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Tunda</div>
-                <div class="mt-2 text-2xl font-semibold text-ink">{{ scoreStats.pending }}</div>
-                <div class="text-xs text-muted">belum dinilai</div>
-            </div>
-            <div class="rounded-2xl border border-border bg-white p-4">
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Selesai</div>
-                <div class="mt-2 text-2xl font-semibold text-emerald-600">{{ scoreStats.done_this_month }}</div>
-                <div class="text-xs text-muted">dinilai bulan ini</div>
-            </div>
-            <div class="rounded-2xl border border-border bg-white p-4">
-                <div class="text-xs uppercase tracking-[0.2em] text-muted">Riwayat</div>
-                <div class="mt-2 text-2xl font-semibold text-slate-700">{{ scoreStats.total }}</div>
-                <div class="text-xs text-muted">riwayat seluruh penilaian</div>
+        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+            <div
+                v-for="stat in statCards"
+                :key="stat.label"
+                class="rounded-2xl border border-border bg-white p-3 sm:p-4"
+            >
+                <div class="truncate text-[10px] uppercase tracking-[0.15em] text-muted sm:text-xs sm:tracking-[0.2em]">
+                    {{ stat.label }}
+                </div>
+                <div
+                    v-if="loadingStats"
+                    class="mt-2 h-7 w-10 animate-pulse rounded-md bg-slate-100 sm:h-8"
+                ></div>
+                <div v-else class="mt-2 text-xl font-semibold sm:text-2xl" :class="stat.tone">
+                    {{ stat.value }}
+                </div>
+                <div class="mt-0.5 text-[10px] leading-tight text-muted sm:text-xs">{{ stat.hint }}</div>
             </div>
         </div>
         <ScoringCard
@@ -26,7 +28,7 @@
             @open-direct-score="openDirectScoreModal"
         />
         <div
-            v-if="dataContentPagination && dataContentPagination.total"
+            v-if="dataContentPagination && dataContentPagination.last_page > 1"
             class="flex items-center justify-between rounded-2xl border border-border bg-panel px-5 py-3 text-xs text-muted"
         >
             <button
@@ -149,6 +151,7 @@ export default {
             },
             loadingOpenTasks: false,
             loadingOpenTasksAll: false,
+            loadingStats: false,
             scoreFilter: '',
             scoreFilterTimer: null,
             scoreStats: {
@@ -157,6 +160,30 @@ export default {
                 total: 0,
             },
         };
+    },
+    computed: {
+        statCards() {
+            return [
+                {
+                    label: 'Tunda',
+                    value: this.scoreStats.pending,
+                    hint: 'belum dinilai',
+                    tone: 'text-ink',
+                },
+                {
+                    label: 'Selesai',
+                    value: this.scoreStats.done_this_month,
+                    hint: 'dinilai bulan ini',
+                    tone: 'text-emerald-600',
+                },
+                {
+                    label: 'Riwayat',
+                    value: this.scoreStats.total,
+                    hint: 'seluruh penilaian',
+                    tone: 'text-slate-700',
+                },
+            ];
+        },
     },
     created() {
         this.loadData();
@@ -215,6 +242,7 @@ export default {
                 });
         },
         loadScoreStats() {
+            this.loadingStats = true;
             return Repository.get('/api/scoring-stat')
                 .then((response) => {
                     const result = response && response.data ? response.data.result : null;
@@ -230,6 +258,9 @@ export default {
                         done_this_month: 0,
                         total: 0,
                     };
+                })
+                .finally(() => {
+                    this.loadingStats = false;
                 });
         },
         openDirectScoreModal(item) {
@@ -263,6 +294,9 @@ export default {
                     this.closeDirectScoreModal();
                     this.loadData();
                     this.loadScoreStats();
+                    if (this.$showToast) {
+                        this.$showToast('Nilai berhasil disimpan.');
+                    }
                 })
                 .catch((error) => {
                     const message = error && error.response && error.response.data

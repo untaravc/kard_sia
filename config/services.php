@@ -31,6 +31,8 @@ return [
     ],
     'firebase' => [
         'credentials_file' => base_path('firebase-adminsdk.json'),
+        'project_id' => env('FB_PROJECT_ID'),
+        'firestore_database' => env('FIRESTORE_DATABASE_ID', '(default)'),
     ],
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),

@@ -1,6 +1,7 @@
 <template>
     <div class="mx-auto flex w-full max-w-md flex-col items-center gap-6">
-        <div class="w-full rounded-2xl border border-border bg-panel shadow-sm">
+        <div class="relative w-full rounded-2xl border border-border bg-panel shadow-sm">
+            <Loading :active="loadingProfile" :is-full-page="false" />
             <div class="relative h-24 rounded-t-2xl bg-gradient-to-br from-cyan-500 to-emerald-400">
                 <div class="absolute left-5 top-12">
                     <div
@@ -252,11 +253,14 @@
 
 <script>
 import Repository from '../../repository';
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import { uploadFirebaseFile } from '../../upload';
 
 export default {
     components: {
+        Loading,
         Modal,
     },
     data() {

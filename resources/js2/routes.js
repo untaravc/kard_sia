@@ -135,6 +135,9 @@ const routes = [
             { path: 'dashboard-student', redirect: 'dashboard-student/profile', meta: { page_name: 'Student Dashboard' } },
             { path: 'dashboard-student/scoring', component: require('./pages/dashboard-student/Scoring.vue').default, meta: { page_name: 'Student Scoring' } },
             { path: 'dashboard-student/checklist', component: require('./pages/dashboard-student/Checklist.vue').default, meta: { page_name: 'Student Checklist' } },
+            // Must stay before the :stase_log_id route below, which would
+            // otherwise match 'confirm' as a stase log id.
+            { path: 'dashboard-student/scoring/confirm', component: require('./pages/dashboard-student/ConfirmAttendance.vue').default, meta: { page_name: 'Konfirmasi Agenda' } },
             { path: 'dashboard-student/scoring/:stase_log_id', component: require('./pages/dashboard-student/ScoringDetail.vue').default, meta: { page_name: 'Student Scoring Detail' } },
             { path: 'dashboard-student/agenda', component: require('./pages/dashboard-student/Agenda.vue').default, meta: { page_name: 'Student Agenda' } },
             { path: 'dashboard-student/report', component: require('./pages/dashboard-student/Report.vue').default, meta: { page_name: 'Student Report' } },
@@ -149,6 +152,7 @@ const routes = [
             { path: 'dashboard-lecture/logbook', component: require('./pages/logbooks/LectureLogbook.vue').default, meta: { page_name: 'Logbook Approval' } },
             { path: 'dashboard-lecture/document', component: require('./pages/dashboard-lecture/Document.vue').default, meta: { page_name: 'Lecture Document' } },
             { path: 'dashboard-lecture/profile', component: require('./pages/dashboard-lecture/Profile.vue').default, meta: { page_name: 'Lecture Profile' } },
+            { path: 'notifications', component: require('./pages/notifications/Index.vue').default, meta: { page_name: 'Notifications' } },
             { path: 'release-note', component: require('./pages/markdown/ReleaseNote.vue').default, meta: { page_name: 'Release Note' } },
             { path: 'users', component: require('./pages/users/Index.vue').default, meta: { page_name: 'Users' } },
             { path: 'roles', component: require('./pages/roles/Index.vue').default, meta: { page_name: 'Roles' } },
@@ -175,6 +179,7 @@ const routes = [
             { path: 'accreditations/:id', component: require('./pages/accreditations/Detail.vue').default, meta: { page_name: 'Accreditation Detail' } },
             { path: 'stase-tasks/:stase_id', component: require('./pages/stases/Task.vue').default, meta: { page_name: 'Stase Tasks' } },
             { path: 'lectures', component: require('./pages/lectures/Index.vue').default, meta: { page_name: 'Lectures' } },
+            { path: 'lectures/:lecture_id/scoring', component: require('./pages/lectures/Scoring.vue').default, meta: { page_name: 'Lecture Scoring History' } },
             { path: 'off-days', component: require('./pages/off-days/Index.vue').default, meta: { page_name: 'Off Days' } },
             { path: 'mail-logs', component: require('./pages/mail_logs/Index.vue').default, meta: { page_name: 'Mail Logs' } },
             { path: 'scores', component: require('./pages/scores/Index.vue').default, meta: { page_name: 'Scores' } },

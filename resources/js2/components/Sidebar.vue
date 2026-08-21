@@ -56,7 +56,9 @@
                 </div>
             </div>
         </nav>
-        <div class="mt-auto max-lg:hidden">
+        <!-- Follows the nav's visibility rather than being desktop-only, so an
+             expanded mobile sidebar still offers logout. -->
+        <div class="mt-auto" v-show="!isMobile || !collapsed">
             <button
                 class="flex w-full items-center gap-2 rounded-xl bg-white/10 text-sm text-sidebar-text transition-colors hover:bg-white/20"
                 :class="collapsed ? 'justify-center px-2.5 py-2.5' : 'px-3.5 py-2.5'"

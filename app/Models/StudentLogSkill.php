@@ -12,4 +12,9 @@ class StudentLogSkill extends Model
         'student_log_id',
         'form_option_id',
     ];
+
+    public function formOption()
+    {
+        return $this->belongsTo(FormOption::class, 'form_option_id');
+    }
 }

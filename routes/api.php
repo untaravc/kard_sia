@@ -36,9 +36,6 @@ Route::get('settings/label/{label}', [\App\Http\Controllers\Api\SettingControlle
 // RegistrationStudentController
 Route::post('register', [RegistrationStudentController::class, 'register']);
 
-// NotificationController
-Route::post('push-notifications', [\App\Http\Controllers\Api\NotificationController::class, 'pushNotif']);
-
 // CmdController
 Route::get('cmd/clear-open-stase-task', [CmdController::class, 'celarOpenStaseTask']);
 
@@ -187,6 +184,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('open-stase-task/{id}/notify-email', [OpenStaseTaskController::class, 'notifyEmail']);
     Route::post('open-stase-task/{id}/notify-whatsapp', [OpenStaseTaskController::class, 'notifyWhatsapp']);
 
+    // AttendanceCodeController (rotating co-presence code for open stase tasks)
+    Route::get('attendance-code', [\App\Http\Controllers\Api\AttendanceCodeController::class, 'lectureCode']);
+    Route::post('attendance-confirm', [\App\Http\Controllers\Api\AttendanceCodeController::class, 'confirm']);
+
     // FileController
     Route::post('files', [\App\Http\Controllers\Api\FileController::class, 'create']);
 
@@ -219,6 +220,7 @@ Route::middleware('jwt.auth')->group(function () {
 
     // StaseTaskLogController
     Route::get('stase-task-logs', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'index']);
+    Route::get('stase-task-logs-export', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'exportExcel']);
     Route::post('update-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'updateScore']);
     Route::post('add-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'createScore']);
     Route::post('lecture-add-score', [\App\Http\Controllers\Api\StaseTaskLogController::class, 'lectureAddScore']);
@@ -229,6 +231,13 @@ Route::middleware('jwt.auth')->group(function () {
 
     // NotificationController
     Route::resource('notifications', 'Api\NotificationController');
+    Route::post('push-notifications', [\App\Http\Controllers\Api\NotificationController::class, 'pushNotif']);
+
+    // WebNotificationController (Firestore-backed in-app notifications)
+    Route::get('web-notifications', [\App\Http\Controllers\Api\WebNotificationController::class, 'index']);
+    Route::post('web-notifications/mark-all-read', [\App\Http\Controllers\Api\WebNotificationController::class, 'markAllRead']);
+    Route::post('web-notifications/{id}/mark-read', [\App\Http\Controllers\Api\WebNotificationController::class, 'markRead']);
+
     Route::get('notification/insufficient-logbook/preview', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientLogbookPreview']);
     Route::post('notification/insufficient-logbook', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientLogbook']);
     Route::get('notification/insufficient-score/preview', [\App\Http\Controllers\Api\NotificationController::class, 'insufficientScorePreview']);

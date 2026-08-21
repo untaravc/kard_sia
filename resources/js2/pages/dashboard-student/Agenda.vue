@@ -7,17 +7,19 @@
                 <div class="flex items-center gap-2">
                     <button
                         type="button"
-                        class="rounded-lg border border-border px-2 py-1 text-xs text-muted"
+                        class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-base leading-none text-muted active:bg-slate-100"
+                        aria-label="Hari sebelumnya"
                         @click="shiftDate(-1)"
                     >
                         ‹
                     </button>
-                    <div class="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    <div class="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
                         {{ formattedDate }}
                     </div>
                     <button
                         type="button"
-                        class="rounded-lg border border-border px-2 py-1 text-xs text-muted"
+                        class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-base leading-none text-muted active:bg-slate-100"
+                        aria-label="Hari berikutnya"
                         @click="shiftDate(1)"
                     >
                         ›
@@ -47,7 +49,7 @@
                     <button
                         v-if="!schedule.absence"
                         type="button"
-                        class="rounded-lg bg-emerald-600 px-3 py-1 text-xs font-semibold text-white"
+                        class="inline-flex min-h-[38px] shrink-0 items-center rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white active:bg-emerald-700"
                         @click="openPresenceModal(schedule)"
                     >
                         Check In

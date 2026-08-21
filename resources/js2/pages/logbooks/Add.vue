@@ -41,25 +41,35 @@
                     />
                 </label>
 
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Rawat Inap</span>
-                    <textarea
-                        v-model.trim="form.rawat_inap"
-                        rows="2"
-                        placeholder="Rawat Inap"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
-                </label>
-
-                <label class="grid gap-2 text-sm">
-                    <span class="text-muted">Rawat Jalan Poli/UGD</span>
-                    <textarea
-                        v-model.trim="form.rawat_jalan"
-                        rows="2"
-                        placeholder="Rawat Jalan Poli/UGD"
-                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    ></textarea>
-                </label>
+                <div class="grid gap-2 text-sm">
+                    <span class="text-muted">Kategori Pasien</span>
+                    <div class="flex flex-wrap gap-4 rounded-xl border border-border bg-white px-3 py-2.5">
+                        <label class="flex items-center gap-2">
+                            <input
+                                v-model="form.rawat_inap"
+                                type="checkbox"
+                                class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                            />
+                            <span>Rawat Inap</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input
+                                v-model="form.rawat_jalan"
+                                type="checkbox"
+                                class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                            />
+                            <span>Rawat Jalan Poli</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input
+                                v-model="form.igd"
+                                type="checkbox"
+                                class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                            />
+                            <span>IGD</span>
+                        </label>
+                    </div>
+                </div>
 
                 <label class="grid gap-2 text-sm">
                     <span class="text-muted">Dosen</span>
@@ -71,6 +81,16 @@
                         :clearable="true"
                         placeholder="Cari dosen..."
                     />
+                </label>
+
+                <label class="grid gap-2 text-sm md:col-span-2">
+                    <span class="text-muted">Note</span>
+                    <textarea
+                        v-model.trim="form.note"
+                        rows="3"
+                        placeholder="Note"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    ></textarea>
                 </label>
 
                 <div
@@ -94,7 +114,17 @@
             <div v-show="competenceOpen" class="border-t border-border px-6 py-4">
                 <div v-if="competenceLoading" class="text-xs text-muted">Loading...</div>
                 <div v-else-if="!competenceOptions.length" class="text-xs text-muted">Tidak ada data kompetensi.</div>
-                <div v-else class="grid gap-6">
+                <div v-else>
+                    <input
+                        v-model.trim="competenceSearch"
+                        type="text"
+                        placeholder="Cari kompetensi..."
+                        class="mb-4 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    <div v-if="!filteredCompetenceOptions.length" class="text-xs text-muted">
+                        Tidak ada kompetensi yang cocok.
+                    </div>
+                    <div v-else class="grid gap-6">
                     <div v-for="(items, category) in groupedCompetence" :key="category">
                         <div class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
                             {{ category }}
@@ -117,6 +147,7 @@
                                 <span class="text-xs text-muted">{{ option.count || 0 }}</span>
                             </label>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -142,11 +173,14 @@ export default {
             competenceOpen: true,
             competenceLoading: false,
             competenceOptions: [],
+            competenceSearch: '',
             form: {
                 date: '',
                 no_catatan_medik: '',
-                rawat_inap: '',
-                rawat_jalan: '',
+                rawat_inap: false,
+                rawat_jalan: false,
+                igd: false,
+                note: '',
                 lecture_id: '',
                 competence_ids: [],
             },
@@ -159,9 +193,16 @@ export default {
         logbookId() {
             return this.$route.params ? this.$route.params.id : null;
         },
+        filteredCompetenceOptions() {
+            const query = this.competenceSearch.trim().toLowerCase();
+            if (!query) {
+                return this.competenceOptions;
+            }
+            return this.competenceOptions.filter((option) => (option.name || '').toLowerCase().includes(query));
+        },
         groupedCompetence() {
             const groups = {};
-            this.competenceOptions.forEach((option) => {
+            this.filteredCompetenceOptions.forEach((option) => {
                 const category = option.desc || 'Lainnya';
                 if (!groups[category]) {
                     groups[category] = [];
@@ -192,6 +233,9 @@ export default {
         getLectureOptionLabel(lecture) {
             return lecture && lecture.name ? lecture.name : '';
         },
+        isChecked(value) {
+            return value === '1' || value === 1 || value === true;
+        },
         fetchCompetenceOptions() {
             this.competenceLoading = true;
 
@@ -219,8 +263,10 @@ export default {
                     this.form = {
                         date: logbook && logbook.date ? logbook.date : '',
                         no_catatan_medik: logbook && logbook.field_1 ? logbook.field_1 : '',
-                        rawat_inap: logbook && logbook.field_2 ? logbook.field_2 : '',
-                        rawat_jalan: logbook && logbook.field_3 ? logbook.field_3 : '',
+                        rawat_inap: this.isChecked(logbook && logbook.field_2),
+                        rawat_jalan: this.isChecked(logbook && logbook.field_3),
+                        igd: this.isChecked(logbook && logbook.field_4),
+                        note: logbook && logbook.field_5 ? logbook.field_5 : '',
                         lecture_id: logbook && logbook.lecture_id ? logbook.lecture_id : '',
                         competence_ids: skills.map((skill) => skill.form_option_id),
                     };

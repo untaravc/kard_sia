@@ -5,7 +5,7 @@
             :base-path="basePath"
             :collapsed="collapsed"
             :is-mobile="isMobile"
-            class="lg:h-full lg:overflow-y-auto"
+            class="lg:h-full lg:overflow-y-auto print:hidden"
         />
         <div class="flex flex-1 flex-col lg:h-full lg:min-h-0">
             <Topbar
@@ -13,6 +13,7 @@
                 :subtitle="subtitle"
                 :collapsed="collapsed"
                 :show-toggle="!isStudent && !isLecture"
+                class="print:hidden"
                 @toggle-sidebar="toggleSidebar"
             />
             <main class="flex flex-1 flex-col lg:overflow-y-auto lg:min-h-0">
@@ -21,7 +22,7 @@
                 </div>
             </main>
         </div>
-        <BottomNav v-if="hasBottomNav" :base-path="basePath" :auth-type="authType" />
+        <BottomNav v-if="hasBottomNav" :base-path="basePath" :auth-type="authType" class="print:hidden" />
     </div>
 </template>
 
@@ -69,8 +70,13 @@ export default {
             return this.authType === 'student' || this.authType === 'lecture';
         },
         contentPaddingClass() {
-            const base = this.isStudent ? 'px-5 pt-5' : 'px-9 pt-7';
-            const bottom = this.hasBottomNav ? 'pb-24' : 'pb-10';
+            // Lecture pages are as mobile-first as student ones (both get the
+            // bottom nav), so they shouldn't inherit the desktop gutter.
+            const base = this.hasBottomNav ? 'px-5 pt-5' : 'px-9 pt-7';
+            // Clears the fixed nav plus the home-indicator inset it sits on.
+            const bottom = this.hasBottomNav
+                ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]'
+                : 'pb-10';
             return `${base} ${bottom}`;
         },
     },

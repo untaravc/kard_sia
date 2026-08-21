@@ -20,21 +20,9 @@
                     />
                 </div>
                 <div class="flex-1 min-w-[180px]">
-                    <label class="text-xs text-muted">Status</label>
-                    <select
-                        v-model="filters.status"
-                        @change="applyFilter"
-                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    >
-                        <option value="">All</option>
-                        <option value="active">Active</option>
-                        <option value="nonactive">Nonactive</option>
-                    </select>
-                </div>
-                <div class="flex-1 min-w-[180px]">
                     <label class="text-xs text-muted">Phase</label>
                     <select
-                        v-model="filters.stase_desc"
+                        v-model="filters.stase_section"
                         @change="applyFilter"
                         class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                     >
@@ -43,6 +31,19 @@
                         <option value="tahap_2">Tahap 2</option>
                         <option value="tahap_3">Tahap 3</option>
                         <option value="referat">Referat</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[180px]">
+                    <label class="text-xs text-muted">Stase</label>
+                    <select
+                        v-model="filters.current_stase_id"
+                        @change="applyFilter"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="stase in allStases" :key="stase.id" :value="stase.id">
+                            {{ stase.alias || stase.name }}
+                        </option>
                     </select>
                 </div>
                 <div class="flex-1 min-w-[180px]">
@@ -91,7 +92,7 @@
                     <div class="mt-1 text-3xl font-semibold text-ink">
                         {{ overall.percentage !== null ? overall.percentage + '%' : '—' }}
                     </div>
-                    <div class="mt-1 text-xs text-muted">
+                    <div class="mt-1 text-sm font-medium text-muted">
                         {{ overall.done }}/{{ overall.total }} tasks across {{ overall.students }} student(s) · taken stases only
                     </div>
                 </div>
@@ -402,12 +403,13 @@ export default {
             baseUrl: '/api/student-monitoring',
             rows: [],
             stases: [],
+            allStases: [],
             overall: { percentage: null, done: 0, total: 0, students: 0 },
             pagination: {},
             filters: {
                 name: '',
-                status: 'active',
-                stase_desc: '',
+                stase_section: '',
+                current_stase_id: '',
                 year: '',
                 page: 1,
             },
@@ -452,9 +454,20 @@ export default {
     },
     created() {
         this.yearOptions = this.buildYearOptions();
+        this.fetchAllStases();
         this.fetchData();
     },
     methods: {
+        fetchAllStases() {
+            return Repository.get('/api/stases', { params: { per_page: 500 } })
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.allStases = result && Array.isArray(result.data) ? result.data : [];
+                })
+                .catch(() => {
+                    this.allStases = [];
+                });
+        },
         buildYearOptions() {
             const options = [];
             const now = new Date();
@@ -657,8 +670,8 @@ export default {
         },
         resetFilter() {
             this.filters.name = '';
-            this.filters.status = 'active';
-            this.filters.stase_desc = '';
+            this.filters.stase_section = '';
+            this.filters.current_stase_id = '';
             this.filters.year = '';
             this.filters.page = 1;
             this.fetchData();

@@ -1,24 +1,29 @@
 <template>
-    <nav class="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-panel/95 px-4 py-2 backdrop-blur">
-        <div class="mx-auto flex w-full max-w-md items-center justify-between">
+    <nav
+        class="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-panel/95 px-2 pt-1.5 backdrop-blur pb-[calc(0.375rem+env(safe-area-inset-bottom))]"
+    >
+        <div class="mx-auto flex w-full max-w-md items-stretch justify-between">
             <router-link
                 v-for="item in displayItems"
                 :key="item.to"
                 :to="item.to"
-                class="flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-2 py-1 text-[10px] font-semibold text-muted transition-colors"
-                active-class="text-primary"
-                exact-active-class="text-primary"
+                class="flex min-w-0 flex-1 flex-col items-center justify-start gap-1 rounded-xl px-1 py-1.5 text-[10px] font-semibold transition-colors"
+                :class="isActive(item) ? 'text-primary' : 'text-muted'"
+                :aria-current="isActive(item) ? 'page' : null"
             >
-                <span class="relative grid h-8 w-8 place-items-center rounded-xl bg-slate-100 text-primary/80">
-                    <Icon :icon="resolveIcon(item.icon)" class="h-4 w-4" />
+                <span
+                    class="relative grid h-9 w-9 place-items-center rounded-xl transition-colors"
+                    :class="isActive(item) ? 'bg-primary text-white shadow-sm' : 'bg-slate-100 text-primary/80'"
+                >
+                    <Icon :icon="resolveIcon(item.icon)" class="h-[18px] w-[18px]" />
                     <span
                         v-if="badgeCount(item) > 0"
-                        class="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-rose-500 px-1 text-[9px] font-semibold text-white"
+                        class="absolute -right-1 -top-1 min-w-[18px] rounded-full bg-rose-500 px-1 text-[9px] font-semibold leading-4 text-white ring-2 ring-panel"
                     >
-                        {{ badgeCount(item) }}
+                        {{ badgeCount(item) > 99 ? '99+' : badgeCount(item) }}
                     </span>
                 </span>
-                <span class="truncate">{{ item.label }}</span>
+                <span class="w-full truncate text-center leading-tight">{{ item.label }}</span>
             </router-link>
         </div>
     </nav>
@@ -87,6 +92,20 @@ export default {
     methods: {
         resolveIcon(iconKey) {
             return ICONS[iconKey] || iconKey || 'mdi:circle';
+        },
+        /**
+         * Active state is derived here rather than via router-link's
+         * active-class so the icon chip (not just the label) can respond,
+         * while still keeping nested routes — e.g. scoring/:id — lit up
+         * under their parent tab.
+         */
+        isActive(item) {
+            if (!item || !item.to) {
+                return false;
+            }
+            const path = this.$route.path.replace(/\/$/, '');
+            const target = item.to.replace(/\/$/, '');
+            return path === target || path.startsWith(`${target}/`);
         },
         badgeCount(item) {
             if (item && Number.isFinite(item.counter)) {

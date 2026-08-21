@@ -9,6 +9,7 @@ use App\Models\OpenStaseTask;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\StudentProfile;
+use App\Services\Firestore\WebNotificationService;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,6 +21,24 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    /**
+     * Record a "you just logged in" web notification in Firestore. Best
+     * effort only — a Firestore outage must never block a login.
+     */
+    private function notifyLogin(string $authType, int $authId, string $method): void
+    {
+        try {
+            app(WebNotificationService::class)->create(
+                $authType,
+                $authId,
+                'Login Successful',
+                "Successful login via {$method} on " . now()->format('d M Y H:i')
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
     private function buildToken(array $baseClaims, array $overrides = [])
     {
         $issuedAt = new \DateTimeImmutable();
@@ -114,6 +133,8 @@ class AuthController extends Controller
             'name' => $name,
         ]);
 
+        $this->notifyLogin($authType, $authUser->id, 'Google');
+
         return redirect($this->buildLoginRedirectUrl([
             'token' => $token,
         ]));
@@ -163,6 +184,8 @@ class AuthController extends Controller
             'auth_id' => $authUser->id,
             'name' => $name,
         ]);
+
+        $this->notifyLogin($authType, $authUser->id, 'Password');
 
         $this->response['success'] = true;
         $this->response['text'] = 'Login Success';
@@ -611,6 +634,8 @@ class AuthController extends Controller
                 $candidate->reset_password_token = null;
                 $candidate->save();
 
+                $this->notifyLogin($type, $candidate->id, 'Email Link');
+
                 $this->response['success'] = true;
                 $this->response['text'] = 'Login Success';
                 $this->response['result'] = [
@@ -784,6 +809,8 @@ class AuthController extends Controller
 
                 $candidate->reset_password_token = null;
                 $candidate->save();
+
+                $this->notifyLogin($type, $candidate->id, 'Phone Link');
 
                 $this->response['success'] = true;
                 $this->response['text'] = 'Login Success';

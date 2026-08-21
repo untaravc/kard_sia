@@ -32,6 +32,11 @@ class OpenStaseTask extends Model
         'title',
         'link_token',
         'plan',
+        'validated_at',
+        'validated_method',
+        'validated_lat',
+        'validated_lng',
+        'validated_by',
     ];
 
     public function lecture(){

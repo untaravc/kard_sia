@@ -190,15 +190,32 @@
                     </div>
                 </div>
                 <div class="grid gap-1">
-                    <div class="text-xs text-muted">Rawat Inap</div>
-                    <div class="whitespace-pre-wrap rounded-xl border border-border bg-panel px-3 py-2 text-ink">
-                        {{ selectedLogbook.field_2 || '-' }}
+                    <div class="text-xs text-muted">Kategori Pasien</div>
+                    <div class="flex flex-wrap gap-2">
+                        <span
+                            class="rounded-full px-2.5 py-1 text-xs font-medium"
+                            :class="isChecked(selectedLogbook.field_2) ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'"
+                        >
+                            Rawat Inap: {{ isChecked(selectedLogbook.field_2) ? 'Ya' : 'Tidak' }}
+                        </span>
+                        <span
+                            class="rounded-full px-2.5 py-1 text-xs font-medium"
+                            :class="isChecked(selectedLogbook.field_3) ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'"
+                        >
+                            Rawat Jalan Poli: {{ isChecked(selectedLogbook.field_3) ? 'Ya' : 'Tidak' }}
+                        </span>
+                        <span
+                            class="rounded-full px-2.5 py-1 text-xs font-medium"
+                            :class="isChecked(selectedLogbook.field_4) ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'"
+                        >
+                            IGD: {{ isChecked(selectedLogbook.field_4) ? 'Ya' : 'Tidak' }}
+                        </span>
                     </div>
                 </div>
                 <div class="grid gap-1">
-                    <div class="text-xs text-muted">Rawat Jalan Poli/UGD</div>
+                    <div class="text-xs text-muted">Note</div>
                     <div class="whitespace-pre-wrap rounded-xl border border-border bg-panel px-3 py-2 text-ink">
-                        {{ selectedLogbook.field_3 || '-' }}
+                        {{ selectedLogbook.field_5 || '-' }}
                     </div>
                 </div>
             </div>
@@ -265,6 +282,9 @@ export default {
         document.removeEventListener('click', this.handleOutsideClick);
     },
     methods: {
+        isChecked(value) {
+            return value === '1' || value === 1 || value === true;
+        },
         handleOutsideClick() {
             this.actionMenuLogbookId = null;
         },

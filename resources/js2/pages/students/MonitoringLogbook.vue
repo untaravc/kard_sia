@@ -45,6 +45,19 @@
                     </select>
                 </div>
                 <div class="min-w-[160px]">
+                    <label class="text-xs text-muted">Stase</label>
+                    <select
+                        v-model="filters.stase_id"
+                        @change="applyFilter"
+                        class="mt-2 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    >
+                        <option value="">All</option>
+                        <option v-for="stase in stases" :key="stase.id" :value="stase.id">
+                            {{ stase.alias || stase.name }}
+                        </option>
+                    </select>
+                </div>
+                <div class="min-w-[160px]">
                     <label class="text-xs text-muted">From</label>
                     <input
                         v-model="filters.date_from"
@@ -82,6 +95,58 @@
                 <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-300"></span> No logbook</span>
                 <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Logbook total ≥ weekdays in range</span>
                 <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span> Logbook total &lt; weekdays in range</span>
+            </div>
+        </section>
+
+        <section class="rounded-2xl border border-border bg-panel">
+            <button
+                type="button"
+                class="flex w-full items-center justify-between px-6 py-4 text-left"
+                @click="competenceOpen = !competenceOpen"
+            >
+                <span class="text-sm font-semibold text-ink">
+                    Kompetensi
+                    <span v-if="filters.competence_ids.length" class="ml-1 text-xs font-normal text-primary">
+                        ({{ filters.competence_ids.length }} selected)
+                    </span>
+                </span>
+                <Icon :icon="competenceOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'" class="h-5 w-5 text-muted" />
+            </button>
+            <div v-show="competenceOpen" class="border-t border-border px-6 py-4">
+                <div v-if="loading" class="text-xs text-muted">Loading...</div>
+                <div v-else-if="!competenceOptions.length" class="text-xs text-muted">Tidak ada data kompetensi.</div>
+                <div v-else class="grid gap-6">
+                    <div v-if="filters.competence_ids.length" class="flex justify-end">
+                        <button
+                            type="button"
+                            class="text-xs font-medium text-muted hover:text-ink"
+                            @click="clearCompetenceFilter"
+                        >
+                            Clear selection
+                        </button>
+                    </div>
+                    <div v-for="(items, category) in groupedCompetence" :key="category">
+                        <div class="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+                            {{ category }}
+                        </div>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                            <label
+                                v-for="option in items"
+                                :key="option.id"
+                                class="flex items-center gap-2 text-sm"
+                            >
+                                <input
+                                    v-model="filters.competence_ids"
+                                    type="checkbox"
+                                    :value="option.id"
+                                    class="h-4 w-4 rounded border-border text-primary focus:ring-primary/30"
+                                    @change="applyFilter"
+                                />
+                                <span>{{ option.name }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -230,6 +295,18 @@
                                 {{ logbook[`field_${i}`] }}
                             </div>
                         </div>
+                        <div
+                            v-if="logbook.stase_log_skills && logbook.stase_log_skills.length"
+                            class="mt-2 flex flex-wrap gap-1.5"
+                        >
+                            <span
+                                v-for="skill in logbook.stase_log_skills"
+                                :key="skill.id"
+                                class="rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700"
+                            >
+                                {{ skill.form_option ? skill.form_option.name : skill.form_option_id }}
+                            </span>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -356,6 +433,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
 import persistFilters from '../../mixins/persistFilters';
+import { Icon } from '../../icons';
 
 const MONTH_LABELS = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -387,6 +465,7 @@ export default {
     components: {
         Loading,
         Modal,
+        Icon,
     },
     mixins: [persistFilters('students/monitoring-logbook')],
     data() {
@@ -394,17 +473,22 @@ export default {
             baseUrl: '/api/student-monitoring-logbook',
             rows: [],
             dates: [],
+            stases: [],
             pagination: {},
             filters: {
                 name: '',
                 status: 'active',
                 year: '',
+                stase_id: '',
+                competence_ids: [],
                 date_from: '',
                 date_to: '',
                 page: 1,
             },
             loading: false,
             yearOptions: [],
+            competenceOpen: true,
+            competenceOptions: [],
             detailModalOpen: false,
             detailLoading: false,
             detailLogs: [],
@@ -460,12 +544,27 @@ export default {
                 + `${this.summary.date_from} s/d ${this.summary.date_to} baru ${this.summary.logbook_count}/${this.summary.weekdays} hari kerja. `
                 + `Mohon segera dilengkapi ya. Terima kasih.`;
         },
+        groupedCompetence() {
+            const groups = {};
+            this.competenceOptions.forEach((option) => {
+                const category = option.desc || 'Lainnya';
+                if (!groups[category]) {
+                    groups[category] = [];
+                }
+                groups[category].push(option);
+            });
+            return groups;
+        },
     },
     created() {
         this.yearOptions = this.buildYearOptions();
         this.fetchData();
     },
     methods: {
+        clearCompetenceFilter() {
+            this.filters.competence_ids = [];
+            this.applyFilter();
+        },
         buildYearOptions() {
             const options = [];
             const now = new Date();
@@ -497,11 +596,14 @@ export default {
                     this.rows = Array.isArray(result.data) ? result.data : [];
                     this.pagination = result || {};
                     this.dates = Array.isArray(payload.dates) ? payload.dates : [];
+                    this.stases = Array.isArray(payload.stases) ? payload.stases : [];
+                    this.competenceOptions = Array.isArray(payload.competence_options) ? payload.competence_options : [];
                 })
                 .catch(() => {
                     this.rows = [];
                     this.pagination = {};
                     this.dates = [];
+                    this.stases = [];
                 })
                 .finally(() => {
                     this.loading = false;
@@ -528,7 +630,12 @@ export default {
             this.detailModalOpen = true;
 
             Repository.get('/api/logbooks', {
-                params: { student_id: row.id, date, per_page: 50 },
+                params: {
+                    student_id: row.id,
+                    date,
+                    stase_id: this.filters.stase_id || undefined,
+                    per_page: 50,
+                },
             })
                 .then((response) => {
                     const result = response && response.data ? response.data.result : null;
@@ -657,6 +764,8 @@ export default {
             this.filters.name = '';
             this.filters.status = 'active';
             this.filters.year = '';
+            this.filters.stase_id = '';
+            this.filters.competence_ids = [];
             this.filters.date_from = '';
             this.filters.date_to = '';
             this.filters.page = 1;
