@@ -102,8 +102,14 @@
                         <div v-if="task.data" class="text-2xl font-semibold text-emerald-600">
                             {{ task.data.point_average }}
                         </div>
+                        <span
+                            v-if="!isValidated(task)"
+                            class="cursor-not-allowed rounded-lg border border-border bg-slate-100 px-3 py-1.5 text-xs font-semibold text-muted"
+                        >
+                            Belum terverifikasi
+                        </span>
                         <router-link
-                            v-else
+                            v-else-if="!task.data"
                             :to="`/blu/task-scoring/${task.id}`"
                             class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
                         >
@@ -228,6 +234,13 @@ export default {
         this.loadTasks();
     },
     methods: {
+        /**
+         * Scoring stays locked until the student's attendance on the task has
+         * been verified (QR/code/manual), which is what stamps validated_at.
+         */
+        isValidated(task) {
+            return !!(task && task.validated_at);
+        },
         parseDate(value) {
             if (!value) {
                 return null;

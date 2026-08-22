@@ -99,6 +99,27 @@
             </div>
         </div>
         <div class="w-full rounded-2xl border border-border bg-panel px-5 py-4 shadow-sm">
+            <div class="text-xs uppercase tracking-[0.2em] text-muted">Menu</div>
+            <router-link
+                class="mt-3 block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                to="/blu/dashboard-lecture/report"
+            >
+                PPDS Report
+            </router-link>
+            <router-link
+                class="mt-2 block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                to="/blu/students/monitoring"
+            >
+                Monitoring
+            </router-link>
+            <router-link
+                class="mt-2 block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
+                to="/blu/students/monitoring-logbook"
+            >
+                Monitoring Logbook
+            </router-link>
+        </div>
+        <div class="w-full rounded-2xl border border-border bg-panel px-5 py-4 shadow-sm">
             <router-link
                 class="block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
                 to="/blu/release-note"
@@ -110,15 +131,6 @@
                 to="/blu/tutorial"
             >
                 Tutorial
-            </router-link>
-        </div>
-        <div class="w-full rounded-2xl border border-border bg-panel px-5 py-4 shadow-sm">
-            <div class="text-xs uppercase tracking-[0.2em] text-muted">Menu</div>
-            <router-link
-                class="mt-3 block rounded-xl border border-border px-3 py-2 text-center text-xs font-semibold text-ink"
-                to="/blu/dashboard-lecture/report"
-            >
-                PPDS Report
             </router-link>
         </div>
         <ProfileModal

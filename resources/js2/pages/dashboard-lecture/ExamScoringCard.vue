@@ -43,50 +43,58 @@
                     <span v-else>no files</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <router-link
-                        v-if="showScoring(item) && !item.data"
-                        :to="`/blu/task-scoring/${item.id}`"
-                        class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
-                    >
-                        Nilai
-                    </router-link>
-                    <router-link
-                        v-if="showScoring(item) && item.data"
-                        :to="`/blu/task-scoring/${item.id}`"
-                        class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                        Perbarui
-                    </router-link>
+                    <template v-if="isValidated(item)">
+                        <router-link
+                            v-if="showScoring(item) && !item.data"
+                            :to="`/blu/task-scoring/${item.id}`"
+                            class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                        >
+                            Nilai
+                        </router-link>
+                        <router-link
+                            v-if="showScoring(item) && item.data"
+                            :to="`/blu/task-scoring/${item.id}`"
+                            class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                            Perbarui
+                        </router-link>
 
-                    <router-link
-                        v-if="isTesis(item) && !item.data"
-                        :to="`/blu/task-scoring-thesis/${item.id}`"
-                        class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
-                    >
-                        Nilai
-                    </router-link>
-                    <router-link
-                        v-if="isTesis(item) && item.data"
-                        :to="`/blu/task-scoring-thesis/${item.id}`"
-                        class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                        Perbarui
-                    </router-link>
+                        <router-link
+                            v-if="isTesis(item) && !item.data"
+                            :to="`/blu/task-scoring-thesis/${item.id}`"
+                            class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                        >
+                            Nilai
+                        </router-link>
+                        <router-link
+                            v-if="isTesis(item) && item.data"
+                            :to="`/blu/task-scoring-thesis/${item.id}`"
+                            class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                            Perbarui
+                        </router-link>
 
-                    <router-link
-                        v-if="isProposal(item) && !item.data"
-                        :to="`/blu/task-scoring-proposal/${item.id}`"
-                        class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                        <router-link
+                            v-if="isProposal(item) && !item.data"
+                            :to="`/blu/task-scoring-proposal/${item.id}`"
+                            class="rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600"
+                        >
+                            Nilai
+                        </router-link>
+                        <router-link
+                            v-if="isProposal(item) && item.data"
+                            :to="`/blu/task-scoring-proposal/${item.id}`"
+                            class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                            Perbarui
+                        </router-link>
+                    </template>
+                    <span
+                        v-else
+                        class="cursor-not-allowed rounded-lg border border-border bg-slate-100 px-3 py-1.5 text-xs font-semibold text-muted"
                     >
-                        Nilai
-                    </router-link>
-                    <router-link
-                        v-if="isProposal(item) && item.data"
-                        :to="`/blu/task-scoring-proposal/${item.id}`"
-                        class="rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
-                    >
-                        Perbarui
-                    </router-link>
+                        Belum terverifikasi
+                    </span>
                 </div>
             </div>
         </div>
@@ -117,6 +125,13 @@ export default {
                 return null;
             }
             return item.stase_task.task.desc;
+        },
+        /**
+         * Scoring stays locked until the student's attendance on the task has
+         * been verified (QR/code/manual), which is what stamps validated_at.
+         */
+        isValidated(item) {
+            return !!(item && item.validated_at);
         },
         showScoring(item) {
             const desc = this.taskDesc(item);
