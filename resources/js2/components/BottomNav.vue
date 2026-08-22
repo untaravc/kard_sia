@@ -74,15 +74,14 @@ export default {
                 { label: 'Monthly', icon: 'agenda', to: `${this.basePath}/presences/monthly` },
             ];
         },
+        /**
+         * The API menu is authoritative: it already reflects what each role
+         * may see, so the defaults are a fallback for an empty/failed fetch
+         * only. Topping a short menu up to five would refill a deliberately
+         * hidden tab with an unrelated (student) one.
+         */
         displayItems() {
-            const merged = [...this.normalizedMenu];
-            if (merged.length < 5) {
-                this.defaultItems.forEach((item) => {
-                    if (!merged.find((existing) => existing.to === item.to)) {
-                        merged.push(item);
-                    }
-                });
-            }
+            const merged = this.normalizedMenu.length ? this.normalizedMenu : this.defaultItems;
             return merged.slice(0, 5);
         },
     },

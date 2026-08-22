@@ -91,6 +91,7 @@ class OpenStaseTaskController extends Controller
             'stase_task_id',
             'title',
             'plan',
+            'validated_at',
             'created_at',
         ])->with([
             'student:id,name,email',
@@ -102,6 +103,11 @@ class OpenStaseTaskController extends Controller
             ->where(function ($query) use ($authId) {
                 $query->where('lecture_id', $authId)
                     ->orWhere('lecture_id', 0);
+            })
+            // Narrows the list to one planned day, which is what the lecture
+            // agenda asks for; omitted elsewhere, so the full list is unchanged.
+            ->when($request->date, function ($query, $date) {
+                $query->where('plan', $date);
             })
             ->when($request->keyword, function ($query, $keyword) {
                 $query->where(function ($inner) use ($keyword) {

@@ -51,12 +51,8 @@ class LogbookController extends Controller
         $studentId = $this->resolveStudentId($request);
         $lectureId = $this->resolveLectureId($request);
         $dataContent = StudentLog::query()
-            ->select('student_logs.*', 'form_options.name as form_option_name', 'students.name as student_name')
-            ->leftJoin('form_options', function ($join) {
-                $join->on('form_options.value', '=', 'student_logs.type')
-                    ->where('form_options.type', '=', 'stase-logbook')
-                    ->whereColumn('form_options.relation_id', '=', 'student_logs.stase_id');
-            })
+            ->select('student_logs.*', 'students.name as student_name')
+            ->selectSub($this->formOptionNameSubQuery(), 'form_option_name')
             ->leftJoin('students', 'students.id', '=', 'student_logs.student_id')
             ->with(['lecture', 'stase', 'stase_log_skills.formOption'])
             ->when($studentId, function ($query) use ($studentId) {
@@ -74,6 +70,33 @@ class LogbookController extends Controller
             'text' => 'Retrieve Logbooks Success',
             'result' => $dataContent,
         ]);
+    }
+
+    /**
+     * Resolves a log's display label from form_options. Two conventions
+     * coexist: stase sections live under type 'stase-logbook' and are pinned
+     * to the log's stase via relation_id, while stase-less types such as
+     * logbook-daily are labelled by the '*-logbook-map' rows, which carry no
+     * relation_id. A correlated subquery rather than a join, so a type that
+     * matches under both conventions can't duplicate the log row; the
+     * stase-scoped match wins when it exists.
+     */
+    protected function formOptionNameSubQuery()
+    {
+        return FormOption::query()
+            ->select('form_options.name')
+            ->whereColumn('form_options.value', '=', 'student_logs.type')
+            ->where(function ($match) {
+                $match->where(function ($scoped) {
+                    $scoped->where('form_options.type', '=', 'stase-logbook')
+                        ->whereColumn('form_options.relation_id', '=', 'student_logs.stase_id');
+                })->orWhere(function ($mapped) {
+                    $mapped->where('form_options.type', 'LIKE', '%logbook-map')
+                        ->whereNull('form_options.relation_id');
+                });
+            })
+            ->orderByRaw('form_options.relation_id IS NULL')
+            ->limit(1);
     }
 
     public function bulk(Request $request)

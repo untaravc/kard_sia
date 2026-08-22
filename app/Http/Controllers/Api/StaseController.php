@@ -147,9 +147,12 @@ class StaseController extends Controller
 
     public function listAll()
     {
-        $stases = Stase::whereIn('desc', ['tahap_1', 'tahap_2', 'tahap_3'])
-            ->orderBy('desc')
-            ->orderBy('name')
+//        $stases = Stase::whereIn('desc', ['tahap_1', 'tahap_2', 'tahap_3'])
+//            ->orderBy('desc')
+//            ->orderBy('name')
+//            ->get();
+
+        $stases = Stase::orderBy('name')
             ->get();
 
         return response()->json([

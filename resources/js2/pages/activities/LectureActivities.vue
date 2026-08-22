@@ -64,6 +64,58 @@
                 </div>
             </div>
         </div>
+        <div class="relative rounded-2xl border border-border bg-panel">
+            <Loading :active="loadingTasks" :is-full-page="false" />
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+                <div class="text-sm font-semibold text-ink">{{ taskTitle }}</div>
+                <div class="rounded-lg bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    {{ tasks.length }} kegiatan
+                </div>
+            </div>
+            <div class="divide-y divide-border">
+                <div
+                    v-for="task in tasks"
+                    :key="task.id"
+                    class="flex flex-wrap items-start justify-between gap-4 px-5 py-4 text-sm"
+                >
+                    <div class="flex-1">
+                        <div
+                            v-if="task.stase_task && task.stase_task.stase"
+                            class="flex flex-wrap items-center gap-2 text-xs"
+                        >
+                            <span class="rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-600">
+                                #{{ task.stase_task.stase.name }}
+                            </span>
+                        </div>
+                        <div v-if="task.student" class="mt-1 font-semibold text-ink">
+                            {{ task.student.name }}
+                        </div>
+                        <div class="text-xs text-muted">
+                            <span v-if="task.stase_task">{{ task.stase_task.name }}</span>
+                            <span v-if="task.title">: {{ task.title }}</span>
+                        </div>
+                        <div v-if="task.validated_at" class="mt-1 text-xs text-emerald-600">
+                            Tervalidasi pada {{ formatDateTime(task.validated_at) }}
+                        </div>
+                    </div>
+                    <div class="flex min-w-[110px] flex-col items-end gap-2 text-right">
+                        <div v-if="task.data" class="text-2xl font-semibold text-emerald-600">
+                            {{ task.data.point_average }}
+                        </div>
+                        <router-link
+                            v-else
+                            :to="`/blu/task-scoring/${task.id}`"
+                            class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white"
+                        >
+                            Nilai
+                        </router-link>
+                    </div>
+                </div>
+                <div v-if="!tasks.length && !loadingTasks" class="px-5 py-6 text-sm text-muted">
+                    Tidak ada kegiatan stase.
+                </div>
+            </div>
+        </div>
         <Modal
             :open="presenceModalOpen"
             title="Detail Agenda"
@@ -129,6 +181,9 @@ export default {
         title() {
             return this.isToday ? 'Agenda Hari Ini' : 'Agenda';
         },
+        taskTitle() {
+            return this.isToday ? 'Kegiatan Stase Hari Ini' : 'Kegiatan Stase';
+        },
         formattedDate() {
             const date = this.parseDate(this.agendaDate) || new Date();
             return date.toLocaleDateString('id-ID', {
@@ -158,6 +213,8 @@ export default {
         return {
             schedules: [],
             loadingSchedule: false,
+            tasks: [],
+            loadingTasks: false,
             agendaDate: '',
             presenceModalOpen: false,
             presenceSubmitting: false,
@@ -168,6 +225,7 @@ export default {
     created() {
         this.agendaDate = this.getDateString(new Date());
         this.loadSchedule();
+        this.loadTasks();
     },
     methods: {
         parseDate(value) {
@@ -219,9 +277,31 @@ export default {
                     this.loadingSchedule = false;
                 });
         },
+        loadTasks(date = this.agendaDate) {
+            this.loadingTasks = true;
+            // per_page is generous because a single planned day is short and
+            // the card is not paginated; the endpoint scopes to this lecture.
+            return Repository.get('/api/open-stase-tasks', {
+                params: {
+                    date,
+                    per_page: 100,
+                },
+            })
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    this.tasks = result && Array.isArray(result.data) ? result.data : [];
+                })
+                .catch(() => {
+                    this.tasks = [];
+                })
+                .finally(() => {
+                    this.loadingTasks = false;
+                });
+        },
         handleAgendaDateChange(value) {
             this.agendaDate = value;
             this.loadSchedule(value);
+            this.loadTasks(value);
         },
         openPresenceModal(schedule) {
             this.selectedSchedule = schedule || null;
