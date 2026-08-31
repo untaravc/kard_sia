@@ -5,12 +5,21 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Activity Management</div>
                 <h1 class="text-2xl font-semibold text-ink">Activities</h1>
             </div>
-            <router-link
-                class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
-                to="/blu/activities/create"
-            >
-                Add Activity
-            </router-link>
+            <div class="flex items-center gap-2">
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm font-medium text-ink"
+                    type="button"
+                    @click="openPrintModal"
+                >
+                    Print
+                </button>
+                <router-link
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    to="/blu/activities/create"
+                >
+                    Add Activity
+                </router-link>
+            </div>
         </header>
 
         <section class="rounded-2xl border border-border bg-panel p-5">
@@ -267,6 +276,56 @@
             </template>
         </Modal>
 
+        <Modal
+            :open="printModalOpen"
+            title="Print Laporan Kegiatan"
+            eyebrow="Activities"
+            size="md"
+            @close="closePrintModal"
+        >
+            <div class="grid gap-4">
+                <p class="text-xs text-muted">
+                    Laporan menampilkan detail tiap kegiatan beserta kehadiran dosen (pembimbing, penguji, pengampu) dan
+                    presensi peserta didik pada rentang tanggal yang dipilih.
+                </p>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Tanggal Mulai</span>
+                    <input
+                        v-model="printForm.start_date"
+                        type="date"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+                <label class="grid gap-2 text-sm">
+                    <span class="text-muted">Tanggal Selesai</span>
+                    <input
+                        v-model="printForm.end_date"
+                        type="date"
+                        class="w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                </label>
+                <div v-if="printError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                    {{ printError }}
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    class="rounded-xl border border-border px-4 py-2 text-sm text-muted"
+                    type="button"
+                    @click="closePrintModal"
+                >
+                    Cancel
+                </button>
+                <button
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    type="button"
+                    @click="submitPrint"
+                >
+                    Print
+                </button>
+            </template>
+        </Modal>
+
     </div>
 </template>
 
@@ -322,6 +381,12 @@ export default {
             loading: false,
             errorMessage: '',
             actionMenuOpenId: null,
+            printModalOpen: false,
+            printError: '',
+            printForm: {
+                start_date: todayStr(),
+                end_date: todayStr(),
+            },
             importModalOpen: false,
             importActivity: null,
             importFile: null,
@@ -411,6 +476,37 @@ export default {
         changePage(page) {
             this.filters.page = page;
             this.fetchActivities();
+        },
+        openPrintModal() {
+            this.printError = '';
+            this.printForm = {
+                start_date: this.filters.date_from || todayStr(),
+                end_date: this.filters.date_to || this.filters.date_from || todayStr(),
+            };
+            this.printModalOpen = true;
+        },
+        closePrintModal() {
+            this.printModalOpen = false;
+            this.printError = '';
+        },
+        submitPrint() {
+            const { start_date, end_date } = this.printForm;
+            if (!start_date || !end_date) {
+                this.printError = 'Tanggal mulai dan selesai wajib diisi.';
+                return;
+            }
+            if (start_date > end_date) {
+                this.printError = 'Tanggal mulai tidak boleh setelah tanggal selesai.';
+                return;
+            }
+
+            const params = new URLSearchParams({
+                token: localStorage.getItem('token') || '',
+                start_date,
+                end_date,
+            });
+            window.open(`/print/activities?${params.toString()}`, '_blank');
+            this.closePrintModal();
         },
         toggleActionMenu(activityId) {
             this.actionMenuOpenId = this.actionMenuOpenId === activityId ? null : activityId;
