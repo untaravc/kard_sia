@@ -49,13 +49,8 @@ class RedirectSiaToBlu
             $student->year,
             (string) config('domain.student_cohort_cutoff')
         )) {
-            $target = $bluUrl;
-
-            if (config('domain.preserve_path', true)) {
-                $target .= '/' . ltrim($request->getRequestUri(), '/');
-            }
-
-            return redirect()->away($target, 302);
+            // Always land on the BLU base URL, never a carried-over path.
+            return redirect()->away($bluUrl, 302);
         }
 
         return $next($request);
