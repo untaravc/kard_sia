@@ -126,7 +126,7 @@ class StudentController extends Controller
 
             $link = env('APP_URL') . "/blu/login-email?token={$student->link_token}";
 
-            Mail::send('mails.login_email', ['link' => $link], function ($message) use ($student) {
+            Mail::send('mails.student_activation', ['link' => $link, 'name' => $student->name], function ($message) use ($student) {
                 $fromAddress = config('mail.from.address') ?: env('MAIL_USERNAME');
                 $fromName = config('mail.from.name') ?: config('app.name');
 
@@ -135,7 +135,7 @@ class StudentController extends Controller
                 }
 
                 $message->to($student->email)
-                    ->subject('Login Link');
+                    ->subject('Undangan Akses SIA KARDIOLOGI Versi Terbaru');
             });
         }
 
