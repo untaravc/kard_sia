@@ -131,6 +131,92 @@ class StudentMonitoringController extends Controller
     }
 
     /**
+     * Printable score matrix: rows = students (year, then name), columns =
+     * stases (by semester). Cell = the student's score on that stase.
+     */
+    public function printReport(Request $request)
+    {
+        // Columns: stases ordered by semester; blank semesters sort last.
+        $staseQuery = Stase::orderByRaw("CASE WHEN semester IS NULL OR semester = '' THEN 1 ELSE 0 END")
+            ->orderByRaw('CAST(semester AS UNSIGNED)')
+            ->orderByDesc('stase_order')
+            ->orderBy('name');
+        if ($request->stase_section !== null && $request->stase_section !== '') {
+            $staseQuery->where('section', $request->stase_section);
+        }
+        $stases = $staseQuery->get(['id', 'name', 'alias', 'semester']);
+        $staseIds = $stases->pluck('id')->all();
+
+        // Rows: students matching the same filters as the monitoring board.
+        $studentQuery = Student::query()->orderBy('year')->orderBy('name');
+        $studentQuery = $this->withFilter($studentQuery, $request);
+
+        if ($request->filled('current_stase_id')) {
+            $candidateIds = (clone $studentQuery)->pluck('id')->all();
+            $matchingIds = $this->studentsCurrentlyInStase($candidateIds, (int) $request->current_stase_id);
+            $studentQuery->whereIn('id', $matchingIds);
+        }
+
+        $students = $studentQuery->get(['id', 'name', 'year']);
+        $studentIds = $students->pluck('id')->all();
+
+        // taken[student_id][stase_id] = the student has a stase_log for it.
+        $taken = [];
+        if (!empty($studentIds) && !empty($staseIds)) {
+            StaseLog::whereIn('student_id', $studentIds)
+                ->whereIn('stase_id', $staseIds)
+                ->get(['student_id', 'stase_id'])
+                ->each(function ($log) use (&$taken) {
+                    $taken[$log->student_id][$log->stase_id] = true;
+                });
+        }
+
+        // best[student_id][stase_id] = highest scored task log for that stase.
+        $best = [];
+        if (!empty($studentIds) && !empty($staseIds)) {
+            StaseTaskLog::whereIn('student_id', $studentIds)
+                ->whereIn('stase_id', $staseIds)
+                ->whereNotNull('point_average')
+                ->selectRaw('student_id, stase_id, MAX(point_average) as max_point')
+                ->groupBy('student_id', 'stase_id')
+                ->get()
+                ->each(function ($row) use (&$best) {
+                    $best[$row->student_id][$row->stase_id] = (int) $row->max_point;
+                });
+        }
+
+        // A scored stase keeps its score, but never below the 80 floor; a stase
+        // that was taken without any score still counts as 80; an untaken one
+        // has nothing to show.
+        $rows = $students->map(function ($student) use ($stases, $taken, $best) {
+            $scores = [];
+            foreach ($stases as $stase) {
+                $point = $best[$student->id][$stase->id] ?? null;
+
+                if ($point !== null) {
+                    $scores[$stase->id] = $point < 50 ? 80 : $point;
+                } elseif (isset($taken[$student->id][$stase->id])) {
+                    $scores[$stase->id] = 80;
+                } else {
+                    $scores[$stase->id] = null;
+                }
+            }
+
+            return [
+                'id' => $student->id,
+                'name' => $student->name,
+                'year' => $student->year,
+                'scores' => $scores,
+            ];
+        });
+
+        return view('templates.pdf.student_monitoring', [
+            'stases' => $stases,
+            'rows' => $rows,
+        ]);
+    }
+
+    /**
      * Aggregate fulfilment across every filtered student (not just the current
      * page), counting taken stases only, over the displayed stase columns.
      */

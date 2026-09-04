@@ -116,6 +116,7 @@ Route::group(['prefix' => 'print', 'middleware' => 'jwt.query'], function () {
     Route::get('registrations-resume', [RegisterController::class, 'resumeView']);
     Route::get('registrations-profiles', [RegisterController::class, 'registrationProfiles']);
     Route::get('activities', [\App\Http\Controllers\Sadmin\ActivityController::class, 'printReport']);
+    Route::get('student-monitoring', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'printReport']);
 });
 
 Route::get('/print/student-logbook', [\App\Http\Controllers\Api\LogbookController::class, 'printStudentLogbook']);

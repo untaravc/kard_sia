@@ -5,6 +5,13 @@
                 <div class="text-xs uppercase tracking-[0.2em] text-muted">Student Management</div>
                 <h1 class="text-2xl font-semibold text-ink">Monitoring</h1>
             </div>
+            <button
+                class="rounded-xl border border-border px-4 py-2 text-sm font-medium text-ink hover:bg-slate-50"
+                type="button"
+                @click="printMonitoring"
+            >
+                Print
+            </button>
         </header>
 
         <section class="rounded-2xl border border-border bg-panel p-5">
@@ -679,6 +686,19 @@ export default {
         changePage(page) {
             this.filters.page = page;
             this.fetchData();
+        },
+        printMonitoring() {
+            const params = new URLSearchParams({
+                token: localStorage.getItem('token') || '',
+            });
+
+            ['name', 'stase_section', 'current_stase_id', 'year'].forEach((key) => {
+                if (this.filters[key]) {
+                    params.append(key, this.filters[key]);
+                }
+            });
+
+            window.open(`/print/student-monitoring?${params.toString()}`, '_blank');
         },
     },
 };
