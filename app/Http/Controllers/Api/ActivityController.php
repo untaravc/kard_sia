@@ -35,7 +35,18 @@ class ActivityController extends Controller
         $this->validateData($request);
 
         $payload = $request->all();
-        if (!array_key_exists('created_by', $payload)) {
+
+        // created_by decides who may edit or delete the activity later, and
+        // the column points at a student. A student always gets stamped from
+        // their own token so the field cannot be forged; admins may still
+        // name the owner explicitly when filing on someone's behalf.
+        $jwt = $request->attributes->get('jwt_payload');
+        $authType = $jwt ? (data_get($jwt, 'log_as_auth_type') ?: data_get($jwt, 'auth_type')) : null;
+        $authId = $jwt ? (data_get($jwt, 'log_as_auth_id') ?: data_get($jwt, 'auth_id')) : null;
+
+        if ($authType === 'student' && $authId) {
+            $payload['created_by'] = $authId;
+        } elseif (empty($payload['created_by'])) {
             $payload['created_by'] = 0;
         }
         if (!array_key_exists('status', $payload)) {

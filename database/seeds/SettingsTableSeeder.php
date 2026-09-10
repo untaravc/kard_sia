@@ -96,6 +96,12 @@ class SettingsTableSeeder extends Seeder
                 'value' => '',
                 'status' => 1,
             ],
+            [
+                'name' => 'Versi Scoring List',
+                'label' => 'app.version-scoring-list',
+                'value' => '1',
+                'status' => 1,
+            ],
         ];
 
         foreach ($rows as $row) {

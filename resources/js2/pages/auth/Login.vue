@@ -29,12 +29,6 @@
                             </button>
                             <button type="button"
                                 class="relative -mb-px px-3 py-2 transition"
-                                :class="loginMethod === 'phone' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted hover:text-ink'"
-                                @click="setLoginMethod('phone')">
-                                Phone
-                            </button>
-                            <button type="button"
-                                class="relative -mb-px px-3 py-2 transition"
                                 :class="loginMethod === 'sso' ? 'border-b-2 border-primary text-primary' : 'border-b-2 border-transparent text-muted hover:text-ink'"
                                 @click="setLoginMethod('sso')">
                                 Single Sign On

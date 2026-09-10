@@ -117,7 +117,11 @@ Route::group(['prefix' => 'print', 'middleware' => 'jwt.query'], function () {
     Route::get('registrations-profiles', [RegisterController::class, 'registrationProfiles']);
     Route::get('activities', [\App\Http\Controllers\Sadmin\ActivityController::class, 'printReport']);
     Route::get('student-monitoring', [\App\Http\Controllers\Api\StudentMonitoringController::class, 'printReport']);
+    Route::get('activity-letter/{activity_id}/{type}', [\App\Http\Controllers\Api\ActivityLetterController::class, 'print']);
 });
+
+// Public verification target of the QR code stamped on activity letters.
+Route::get('surat-kegiatan/{token}', [\App\Http\Controllers\Api\ActivityLetterController::class, 'viewPublic']);
 
 Route::get('/print/student-logbook', [\App\Http\Controllers\Api\LogbookController::class, 'printStudentLogbook']);
 Route::get('/export/student-logbook', [\App\Http\Controllers\Api\LogbookController::class, 'exportStudentLogbook']);

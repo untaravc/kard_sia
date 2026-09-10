@@ -134,6 +134,7 @@
                                 View
                             </button>
                             <button
+                                v-if="canManage(activity)"
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
                                 type="button"
                                 @click="handleAction('edit', activity)"
@@ -147,7 +148,25 @@
                             >
                                 Import Presensi
                             </button>
+                            <template v-if="hasLetters(activity)">
+                                <div class="my-1 border-t border-border"></div>
+                                <button
+                                    class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                    type="button"
+                                    @click="handleAction('letter-undangan', activity)"
+                                >
+                                    Cetak Undangan
+                                </button>
+                                <button
+                                    class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-ink hover:bg-slate-50"
+                                    type="button"
+                                    @click="handleAction('letter-sk', activity)"
+                                >
+                                    Cetak Surat Keterangan
+                                </button>
+                            </template>
                             <button
+                                v-if="canManage(activity)"
                                 class="flex w-full items-center rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"
                                 type="button"
                                 @click="handleAction('delete', activity)"
@@ -335,6 +354,7 @@ import 'vue-loading-overlay/dist/vue-loading.css';
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
 import persistFilters from '../../mixins/persistFilters';
+import { useAuthStore } from '../../stores/auth';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -394,17 +414,38 @@ export default {
             importError: '',
             importRows: [],
             importResult: null,
+            authStore: null,
         };
     },
     computed: {
         importMatchedCount() {
             return this.importRows.filter((row) => row.matched).length;
         },
+        // While an admin is logged in as somebody else, the log_as_* pair is
+        // the identity that counts.
+        authType() {
+            const user = this.authStore ? this.authStore.user : null;
+            if (!user) {
+                return null;
+            }
+            return user.log_as_auth_type || user.auth_type || null;
+        },
+        authId() {
+            const user = this.authStore ? this.authStore.user : null;
+            if (!user) {
+                return null;
+            }
+            return user.log_as_auth_id || user.auth_id || null;
+        },
+        isUserAccount() {
+            return this.authType === 'user';
+        },
     },
     created() {
         this.fetchActivities();
     },
     mounted() {
+        this.authStore = useAuthStore();
         document.addEventListener('click', this.handleDocumentClick);
     },
     beforeDestroy() {
@@ -532,6 +573,9 @@ export default {
                 return;
             }
             if (action === 'edit') {
+                if (!this.canManage(activity)) {
+                    return;
+                }
                 this.openEdit(activity);
                 return;
             }
@@ -539,9 +583,51 @@ export default {
                 this.openImportPresence(activity);
                 return;
             }
+            if (action === 'letter-undangan') {
+                this.printLetter(activity, 'undangan');
+                return;
+            }
+            if (action === 'letter-sk') {
+                this.printLetter(activity, 'sk');
+                return;
+            }
             if (action === 'delete') {
+                if (!this.canManage(activity)) {
+                    return;
+                }
                 this.deleteActivity(activity);
             }
+        },
+        // created_by holds the student who registered the activity.
+        isOwner(activity) {
+            if (!activity || !activity.created_by || this.authType !== 'student') {
+                return false;
+            }
+            return Number(activity.created_by) === Number(this.authId);
+        },
+        // Editing and deleting stay with the activity's owner; admins can do
+        // it for anyone.
+        canManage(activity) {
+            return this.isUserAccount || this.isOwner(activity);
+        },
+        // Undangan and Surat Keterangan only exist for Seminar Kasus (7) and
+        // Referat (8), and only admins may issue them.
+        hasLetters(activity) {
+            if (!this.isUserAccount) {
+                return false;
+            }
+            const category = activity ? Number(activity.category) : null;
+            return category === 7 || category === 8;
+        },
+        printLetter(activity, type) {
+            if (!activity || !activity.id) {
+                return;
+            }
+
+            const params = new URLSearchParams({
+                token: localStorage.getItem('token') || '',
+            });
+            window.open(`/print/activity-letter/${activity.id}/${type}?${params.toString()}`, '_blank');
         },
         openView(activity) {
             if (!activity || !activity.id) {

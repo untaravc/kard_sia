@@ -118,7 +118,7 @@
                                     v-else
                                     class="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-400"
                                 >
-                                    Not yet
+                                    Not scored
                                 </span>
                             </li>
                         </ul>

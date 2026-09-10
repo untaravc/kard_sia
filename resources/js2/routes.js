@@ -139,6 +139,7 @@ const routes = [
             // otherwise match 'confirm' as a stase log id.
             { path: 'dashboard-student/scoring/confirm', component: require('./pages/dashboard-student/ConfirmAttendance.vue').default, meta: { page_name: 'Konfirmasi Agenda' } },
             { path: 'dashboard-student/scoring/:stase_log_id', component: require('./pages/dashboard-student/ScoringDetail.vue').default, meta: { page_name: 'Student Scoring Detail' } },
+            { path: 'dashboard-student/scoring-v2/:stase_log_id', component: require('./pages/dashboard-student/ScoringDetailV2.vue').default, meta: { page_name: 'Student Scoring Detail V2' } },
             { path: 'dashboard-student/agenda', component: require('./pages/dashboard-student/Agenda.vue').default, meta: { page_name: 'Student Agenda' } },
             { path: 'dashboard-student/report', component: require('./pages/dashboard-student/Report.vue').default, meta: { page_name: 'Student Report' } },
             { path: 'dashboard-student/document', component: require('./pages/dashboard-student/Document.vue').default, meta: { page_name: 'Student Document' } },

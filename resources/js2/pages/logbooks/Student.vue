@@ -1,22 +1,35 @@
 <template>
-    <div class="grid gap-6">
-        <header class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <div class="text-xs uppercase tracking-[0.2em] text-sky-600">Logbook Monitoring</div>
-                <h1 class="text-2xl font-semibold text-ink">Student Logbook</h1>
-            </div>
-            <router-link
-                class="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2 text-sm text-sky-700 hover:bg-sky-100"
-                to="/blu/dashboard-student"
-            >
-                Back
-            </router-link>
+    <div class="grid gap-4">
+        <header class="min-w-0">
+            <div class="text-[10px] uppercase tracking-[0.18em] text-sky-600">Logbook Monitoring</div>
+            <h1 class="text-xl font-semibold text-ink sm:text-2xl">Student Logbook</h1>
         </header>
 
-        <section class="rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-5">
-            <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
-                <aside class="flex max-h-[75vh] w-full flex-col gap-4 overflow-y-auto lg:w-80 lg:shrink-0">
-                    <div class="rounded-2xl border border-border bg-white">
+        <section class="rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-3 sm:p-5">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+                <aside class="flex w-full flex-col gap-3 lg:max-h-[75vh] lg:w-80 lg:shrink-0 lg:overflow-y-auto">
+                    <!-- Phones get a collapsed picker instead of a permanent
+                         sidebar, so the logbook itself starts at the top. -->
+                    <button
+                        type="button"
+                        class="flex min-h-[48px] w-full items-center justify-between gap-2 rounded-xl border border-sky-200 bg-white px-3 text-left transition active:bg-sky-50 lg:hidden"
+                        @click="staseListOpen = !staseListOpen"
+                    >
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-[10px] uppercase tracking-[0.18em] text-muted">Stase</span>
+                            <span class="block truncate text-sm font-semibold text-ink">
+                                {{ selectedStaseName || 'Pilih stase' }}
+                            </span>
+                        </span>
+                        <Icon
+                            :icon="staseListOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'"
+                            class="h-5 w-5 shrink-0 text-muted"
+                        />
+                    </button>
+                    <div
+                        class="min-w-0 overflow-hidden rounded-2xl border border-border bg-white"
+                        :class="staseListOpen ? '' : 'hidden lg:block'"
+                    >
                         <div class="border-b border-sky-100 bg-sky-50/60 px-4 py-3 text-sm font-semibold text-sky-900">
                             Log Book
                         </div>
@@ -38,33 +51,31 @@
                             Tidak ada stase.
                         </div>
                         <div v-else class="grid gap-2 px-4 pb-4">
-                            <div
+                            <button
                                 v-for="staseLog in filteredStaseLogs"
                                 :key="staseLog.id"
-                                class="rounded-xl border border-border px-3 py-2"
-                                :class="selectedStaseId === staseLog.stase_id ? 'bg-primary/10 border-primary/20' : 'bg-white'"
+                                type="button"
+                                class="flex min-h-[52px] w-full min-w-0 items-center gap-2 overflow-hidden rounded-xl border px-3 py-2 text-left transition"
+                                :class="selectedStaseId === staseLog.stase_id
+                                    ? 'border-primary/20 bg-primary/10'
+                                    : 'border-border bg-white active:bg-slate-50'"
+                                @click="openLogbook(staseLog)"
                             >
-                                <div class="min-w-0">
-                                    <div class="text-sm font-semibold text-ink truncate">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate text-sm font-semibold text-ink">
                                         {{ staseLabel(staseLog) }}
-                                    </div>
-                                    <div class="mt-1 text-xs text-muted">
+                                    </span>
+                                    <span class="mt-0.5 block text-xs text-muted">
                                         {{ formatDate(staseLog.start_date) }} - {{ formatDate(staseLog.end_date) }}
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    class="mt-2 w-full rounded-lg bg-sky-100 px-3 py-1.5 text-xs font-semibold text-sky-800 hover:bg-sky-200"
-                                    @click="openLogbook(staseLog)"
-                                >
-                                    Logbook
-                                </button>
-                            </div>
+                                    </span>
+                                </span>
+                                <Icon icon="mdi:chevron-right" class="h-4 w-4 shrink-0 text-muted" />
+                            </button>
                         </div>
                     </div>
                 </aside>
 
-                <div class="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto max-h-[75vh]">
+                <div class="flex min-w-0 flex-1 flex-col gap-3 lg:max-h-[75vh] lg:gap-4 lg:overflow-y-auto">
                     <section class="relative rounded-2xl border border-sky-100 bg-white">
                         <div class="flex items-center justify-between border-b border-sky-100 bg-sky-50/60 px-4 py-3">
                             <div class="text-sm font-semibold text-sky-900">
@@ -86,10 +97,10 @@
                         <div v-else-if="staseSkills.length === 0" class="px-4 py-6 text-sm text-muted">
                             Tidak ada data logbook.
                         </div>
-                        <div v-else class="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
-                            <div v-for="skill in staseSkills" :key="skill.id" class="rounded-xl border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-3">
-                                <div class="text-sm font-semibold text-sky-900">{{ skill.name }}</div>
-                                <div class="text-xs text-muted">
+                        <div class="grid grid-cols-2 gap-2 p-3 sm:gap-3 sm:p-4 xl:grid-cols-3" v-else>
+                            <div v-for="skill in staseSkills" :key="skill.id" class="rounded-xl border border-sky-100 bg-gradient-to-br from-sky-50 to-white p-2.5">
+                                <div class="text-[13px] font-semibold leading-snug text-sky-900 break-words">{{ skill.name }}</div>
+                                <div class="mt-0.5 text-[11px] text-muted">
                                     {{ skill.count || 0 }} / {{ skill.desc || '-' }}
                                 </div>
                             </div>
@@ -107,7 +118,7 @@
                                     :href="printLogbookUrl"
                                     target="_blank"
                                     rel="noopener"
-                                    class="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100"
+                                    class="inline-flex min-h-[34px] items-center gap-1.5 rounded-lg border border-emerald-200 bg-white px-2.5 text-[11px] font-semibold text-emerald-700 transition active:bg-emerald-100"
                                 >
                                     <Icon icon="mdi:printer" class="h-4 w-4" />
                                     Print
@@ -127,21 +138,87 @@
                             Belum ada data logbook.
                         </div>
                         <div v-else class="divide-y divide-border">
-                            <div v-for="book in logbookGroups" :key="book.id" class="p-4">
-                                <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-                                    <div class="text-sm font-semibold text-emerald-900">
+                            <div v-for="book in logbookGroups" :key="book.id" class="p-3 sm:p-4">
+                                <div class="mb-3 flex items-center justify-between gap-2">
+                                    <div class="min-w-0 text-sm font-semibold text-emerald-900 break-words">
                                         {{ book.name || 'Logbook' }}
                                     </div>
                                     <button
                                         v-if="parseDescKeys(book).length"
                                         type="button"
-                                        class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 hover:bg-emerald-100"
+                                        class="inline-flex min-h-[36px] shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 pl-2 pr-3 text-xs font-semibold text-emerald-700 transition active:bg-emerald-100"
                                         @click="openBulkModal(book)"
                                     >
-                                        Add New
+                                        <Icon icon="mdi:plus" class="h-4 w-4" />
+                                        Tambah
                                     </button>
                                 </div>
-                                <div v-if="book.logbook && book.logbook.length && parseDescKeys(book).length" class="overflow-x-auto">
+                                <template v-if="book.logbook && book.logbook.length && parseDescKeys(book).length">
+                                <!-- Phones read the same rows as cards; the
+                                     table would only scroll sideways there. -->
+                                <div class="grid gap-2 md:hidden">
+                                    <div
+                                        v-for="log in book.logbook"
+                                        :key="`card-${log.id}`"
+                                        class="rounded-xl border border-border bg-white p-3"
+                                    >
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="min-w-0">
+                                                <div class="text-[13px] font-semibold text-ink">
+                                                    {{ formatDate(log.date) }}
+                                                </div>
+                                                <div class="mt-0.5 text-[11px] text-muted break-words">
+                                                    Mengetahui: {{ log.lecture ? log.lecture.name : '-' }}
+                                                </div>
+                                            </div>
+                                            <div class="relative shrink-0">
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 transition active:bg-emerald-100"
+                                                    aria-label="Actions"
+                                                    @click.stop="toggleMenu(log.id)"
+                                                >
+                                                    <Icon icon="mdi:dots-horizontal" class="h-5 w-5" />
+                                                </button>
+                                                <div
+                                                    v-if="openMenuId === log.id"
+                                                    class="absolute right-0 z-30 mt-1 w-40 rounded-xl border border-emerald-100 bg-white p-1 shadow-xl"
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        class="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[13px] text-emerald-800 transition active:bg-emerald-50"
+                                                        @click="openEditLog(book, log)"
+                                                    >
+                                                        <Icon icon="mdi:pencil-outline" class="h-4 w-4 shrink-0" />
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-[13px] text-rose-600 transition active:bg-rose-50"
+                                                        @click="deleteLog(log)"
+                                                    >
+                                                        <Icon icon="mdi:trash-can-outline" class="h-4 w-4 shrink-0" />
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 grid gap-1.5 border-t border-border/60 pt-2">
+                                            <div
+                                                v-for="(key, idx) in parseDescKeys(book)"
+                                                :key="`card-${log.id}-field-${idx}`"
+                                            >
+                                                <div class="text-[10px] uppercase tracking-[0.14em] text-muted">
+                                                    {{ parseDescLabels(book)[idx] }}
+                                                </div>
+                                                <div class="text-[13px] leading-snug text-ink break-words">
+                                                    {{ log[key] || '-' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="hidden overflow-x-auto md:block">
                                     <table class="min-w-full text-xs">
                                         <thead class="bg-slate-50 text-left text-[11px] uppercase tracking-[0.2em] text-muted">
                                             <tr>
@@ -166,14 +243,14 @@
                                                     <div class="relative">
                                                         <button
                                                             type="button"
-                                                            class="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] text-emerald-700 hover:bg-emerald-100"
+                                                            class="min-h-[32px] rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-100"
                                                             @click.stop="toggleMenu(log.id)"
                                                         >
                                                             Actions
                                                         </button>
                                                         <div
                                                             v-if="openMenuId === log.id"
-                                                            class="absolute right-0 z-10 mt-2 w-32 rounded-lg border border-emerald-100 bg-white shadow-md"
+                                                            class="absolute right-0 z-30 mt-2 w-32 rounded-lg border border-emerald-100 bg-white shadow-md"
                                                         >
                                                             <button
                                                                 type="button"
@@ -196,7 +273,8 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                <div v-else class="text-xs text-muted">
+                                </template>
+                                <div v-else class="rounded-xl border border-dashed border-border py-6 text-center text-xs text-muted">
                                     Belum ada data.
                                 </div>
                             </div>
@@ -324,7 +402,7 @@
                 </div>
 
                 <button
-                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    class="min-h-[44px] w-full rounded-xl bg-primary px-4 text-sm font-medium text-white transition active:opacity-90 disabled:opacity-60 sm:w-auto sm:justify-self-end"
                     type="submit"
                     :disabled="bulkSubmitting"
                 >
@@ -426,7 +504,7 @@
                 </div>
 
                 <button
-                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white"
+                    class="min-h-[44px] w-full rounded-xl bg-primary px-4 text-sm font-medium text-white transition active:opacity-90 disabled:opacity-60 sm:w-auto sm:justify-self-end"
                     type="submit"
                     :disabled="editSubmitting"
                 >
@@ -453,6 +531,7 @@ export default {
             loading: false,
             errorMessage: '',
             staseLogs: [],
+            staseListOpen: true,
             filterStase: '',
             selectedStaseId: null,
             selectedStaseName: '',
@@ -589,6 +668,7 @@ export default {
         openLogbook(staseLog) {
             this.selectedStaseId = staseLog ? staseLog.stase_id : null;
             this.selectedStaseName = staseLog ? this.staseLabel(staseLog) : '';
+            this.staseListOpen = false;
             if (this.selectedStaseId) {
                 this.fetchStaseOptions(this.selectedStaseId);
                 this.fetchStudentLogs(this.selectedStaseId);

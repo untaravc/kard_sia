@@ -25,7 +25,8 @@ class DownloadController extends Controller
         'name'    => 'Dr.Med. dr. Putrika Prastuti Ratna Gharini, SpJP(K)',
         'nip'     => '197305271999032001',
         'gol'     => 'Penata Tingkat I / III D',
-        'jabatan' => 'Ketua Program Studi Jantung dan Pembuluh Darah'
+        'jabatan' => 'Ketua Program Studi Jantung dan Pembuluh Darah',
+        'email'   => 'vyvy1777@gmail.com'
     ];
 
     private function logo_ugm(){

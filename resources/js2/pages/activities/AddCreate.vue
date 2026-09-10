@@ -274,6 +274,18 @@
 import Modal from '../../components/Modal.vue';
 import Repository from '../../repository';
 
+const FALLBACK_CATEGORIES = [
+    { id: 1, name: 'Stase (CBD, Jurnal book reading, dll)' },
+    { id: 2, name: 'Tesis (Outline, Semhas, Sempro, Tesis)' },
+    { id: 3, name: 'Laporan Jaga' },
+    { id: 4, name: 'Ilmiah Divisi' },
+    { id: 5, name: 'Club' },
+    { id: 6, name: 'Konferensi' },
+    { id: 7, name: 'Seminar Kasus / Lapsus' },
+    { id: 8, name: 'Referat' },
+    { id: 0, name: 'Lain-lain' },
+];
+
 export default {
     components: {
         Modal,
@@ -290,15 +302,7 @@ export default {
             lectureLoading: false,
             lectureModalOpen: false,
             lectureModalRole: '',
-            categories: [
-                { id: 0, name: 'Lain-lain' },
-                { id: 1, name: 'Stase' },
-                { id: 2, name: 'Tesis' },
-                { id: 3, name: 'Laporan Jaga' },
-                { id: 4, name: 'Laporan Kasus' },
-                { id: 5, name: 'Club' },
-                { id: 6, name: 'Ilmiah Divisi' },
-            ],
+            categories: [],
             form: {
                 id: null,
                 name: '',
@@ -347,6 +351,7 @@ export default {
         },
     },
     created() {
+        this.fetchCategories();
         this.fetchStases();
         this.fetchStudyPrograms();
         this.fetchLectures();
@@ -355,6 +360,21 @@ export default {
         }
     },
     methods: {
+        // /get-activity-cats is a plain web route that answers with the bare
+        // array, so accept both that and the {result} envelope used by /api.
+        fetchCategories() {
+            return Repository.get('/get-activity-cats')
+                .then((response) => {
+                    const body = response && response.data ? response.data : null;
+                    const list = Array.isArray(body)
+                        ? body
+                        : (body && Array.isArray(body.result) ? body.result : []);
+                    this.categories = list.length ? list : FALLBACK_CATEGORIES;
+                })
+                .catch(() => {
+                    this.categories = FALLBACK_CATEGORIES;
+                });
+        },
         fetchStudyPrograms() {
             return Repository.get('/api/study-program-list')
                 .then((response) => {
