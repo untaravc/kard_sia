@@ -224,6 +224,9 @@
                 }
 
                 if (this.timer.transition_time) {
+                    if (countdown === 35) {
+                        this.play('soal');
+                    }
                     this.enterSoundPlayed = false;
                     return;
                 }

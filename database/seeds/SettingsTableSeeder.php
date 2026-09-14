@@ -43,6 +43,12 @@ class SettingsTableSeeder extends Seeder
                 'status' => 1,
             ],
             [
+                'name' => 'Login Background URL',
+                'label' => 'app.login-bg',
+                'value' => '',
+                'status' => 1,
+            ],
+            [
                 'name' => 'Nama Departemen',
                 'label' => 'app.department-name',
                 'value' => '',
