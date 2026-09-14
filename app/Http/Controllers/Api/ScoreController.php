@@ -71,6 +71,56 @@ class ScoreController extends Controller
         ]);
     }
 
+    /**
+     * Printable result of a single lecturer-scored stase task log. The QR in
+     * the signature block encodes this same URL, so scanning the printed
+     * copy re-opens the exact same document.
+     */
+    public function printScoringResult(Request $request, $stase_task_log_id)
+    {
+        $student = Student::whereLinkToken($request->link_token)->first();
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Student not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $stase_task_log = StaseTaskLog::with([
+            'lecture',
+            'task',
+            'stase',
+            'staseTaskLogPoint' => function ($q) {
+                $q->with('taskDetail')
+                    ->join('task_details', 'task_details.id', '=', 'stase_task_log_points.task_detail_id')
+                    ->select(
+                        'stase_task_log_points.*',
+                        'task_details.order'
+                    )
+                    ->orderBy('order', 'asc');
+            },
+        ])
+            ->whereStudentId($student->id)
+            ->whereNotNull('point_average')
+            ->find($stase_task_log_id);
+
+        if (!$stase_task_log) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Scoring result not found',
+                'result' => null,
+            ], 404);
+        }
+
+        return view('templates.pdf.scoring_result', [
+            'student' => $student,
+            'stase_task_log' => $stase_task_log,
+            'tanggal_penilaian' => $stase_task_log->date ? date_indo_str($stase_task_log->date) : null,
+        ]);
+    }
+
     private function resolveLecture(Request $request)
     {
         $payload = $request->attributes->get('jwt_payload');

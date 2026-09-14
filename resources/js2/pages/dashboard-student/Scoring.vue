@@ -195,7 +195,7 @@ export default {
         return {
             availableStase: [],
             takenStase: [],
-            activeTab: 'available',
+            activeTab: 'taken',
             search: '',
             scoringListVersion: '1',
             loading: false,

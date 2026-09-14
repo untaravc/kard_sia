@@ -158,12 +158,23 @@
                     class="mt-2 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60 bg-white"
                 >
                     <div v-for="log in task.staseTaskLogs" :key="log.id" class="p-3">
-                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
-                            <span class="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
-                                Score {{ log.point_average || 0 }}
-                            </span>
-                            <span v-if="log.date">{{ log.date }}</span>
-                            <span v-if="log.lecture_name">• {{ log.lecture_name }}</span>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
+                                <span class="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
+                                    Score {{ log.point_average || 0 }}
+                                </span>
+                                <span v-if="log.date">{{ log.date }}</span>
+                                <span v-if="log.lecture_name">• {{ log.lecture_name }}</span>
+                            </div>
+                            <button
+                                class="inline-flex min-h-[30px] shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[11px] font-semibold text-muted transition active:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                type="button"
+                                :disabled="!studentLinkToken"
+                                @click="printScoringResult(log)"
+                            >
+                                <Icon icon="mdi:printer-outline" class="h-3.5 w-3.5" />
+                                Print
+                            </button>
                         </div>
                         <div v-if="log.openStaseTasks && log.openStaseTasks.length" class="mt-2 grid gap-2">
                             <div
@@ -517,6 +528,7 @@ export default {
             notifySubmitting: false,
             notifyError: '',
             actionMenuOpenId: null,
+            studentLinkToken: '',
         };
     },
     computed: {
@@ -591,6 +603,7 @@ export default {
     },
     created() {
         this.loadStaseTasks();
+        this.loadStudentLinkToken();
     },
     mounted() {
         document.addEventListener('click', this.handleDocumentClick);
@@ -690,6 +703,24 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        loadStudentLinkToken() {
+            return Repository.get('/api/student-profile')
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    const student = result && result.student ? result.student : null;
+                    this.studentLinkToken = student && student.link_token ? student.link_token : '';
+                })
+                .catch(() => {
+                    this.studentLinkToken = '';
+                });
+        },
+        printScoringResult(log) {
+            if (!log || !log.id || !this.studentLinkToken) {
+                return;
+            }
+            const params = new URLSearchParams({ link_token: this.studentLinkToken });
+            window.open(`/print/scoring-result/${log.id}?${params.toString()}`, '_blank');
         },
         openScoringModal(task) {
             this.selectedTask = task || null;
