@@ -10,15 +10,16 @@
                 merupakan persyaratan wajib yang harus dipenuhi. Sementara itu, persyaratan yang terdapat dalam borang laman ini
                 bersifat pelengkap dan khusus untuk keperluan tes wawancara program studi.
             </p>
-            <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+            <ul class="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">
                 <li>
                     Selesaikan pendaftaran di
                     <a class="text-primary underline" href="https://um.ugm.ac.id" target="_blank" rel="noreferrer">https://um.ugm.ac.id</a>
-                    sebelum <span class="font-semibold text-ink">7 April 2026</span>.
+                    sebelum <span class="font-semibold text-ink">27 September 2026</span>.
                 </li>
                 <li>
-                    Isi dan lengkapi dokumen tambahan di ugm.id/RegistrasiPPDS---UGM sebelum
-                    <span class="font-semibold text-ink">14 April 2025</span>.
+                    Isi dan lengkapi dokumen tambahan di
+                    <a class="text-primary underline" href="https://ugm.id/RegistrasiPPDSKardiologiUGM" target="_blank" rel="noreferrer">ugm.id/RegistrasiPPDSKardiologiUGM</a>
+                    sebelum <span class="font-semibold text-ink">23 Oktober 2026</span>.
                 </li>
             </ul>
         </div>
@@ -30,12 +31,15 @@
             </div>
 
             <div v-if="registration && registration.status === 100" class="mt-4 text-sm text-muted">
-                Selesaikan pengisian pendaftaran untuk mencetak form pendaftaran. Setelah menyelesaikan pengisian pendaftaran,
-                anda tidak dapat lagi memperbarui data.
-                <div class="mt-4 flex justify-end">
+                Setelah menyelesaikan pengisian pendaftaran, anda tidak dapat lagi memperbarui data.
+                <div class="mt-4 flex justify-end gap-2">
+                    <a v-if="printUrl" class="rounded-xl bg-sky-600 px-4 py-2 text-sm font-medium text-white"
+                        target="_blank" :href="printUrl">
+                        Cetak Form Pendaftaran
+                    </a>
                     <button type="button"
                         class="rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
-                        :disabled="loading" @click="updateStatus(101)">
+                        :disabled="loading" @click="finishModalOpen = true">
                         {{ loading ? 'Please wait...' : 'Selesaikan Pengisian Pendaftaran' }}
                     </button>
                 </div>
@@ -61,6 +65,24 @@
                 </button>
             </template>
         </Modal>
+
+        <Modal :open="finishModalOpen" title="Konfirmasi" :closeOnBackdrop="false" @close="finishModalOpen = false">
+            <div class="text-center text-base text-slate-700">
+                Pengisian data telah lengkap, data tidak bisa diubah kembali
+            </div>
+            <template #footer>
+                <button type="button"
+                    class="rounded-xl border border-border px-4 py-2 text-sm font-medium text-ink"
+                    :disabled="loading" @click="finishModalOpen = false">
+                    Batal
+                </button>
+                <button type="button"
+                    class="rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+                    :disabled="loading" @click="confirmFinish">
+                    {{ loading ? 'Please wait...' : 'Ya, Selesaikan' }}
+                </button>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -80,6 +102,7 @@ export default {
             copyModalOpen: false,
             copyLoading: false,
             archivePeriodStr: '',
+            finishModalOpen: false,
         };
     },
     computed: {
@@ -128,10 +151,11 @@ export default {
         this.checkAvailability();
     },
     methods: {
+        confirmFinish() {
+            this.finishModalOpen = false;
+            this.updateStatus(101);
+        },
         updateStatus(status) {
-            if (!confirm('Lanjutkan proses?')) {
-                return;
-            }
             this.loading = true;
             return Repository.patch('/api/registration/status', { status })
                 .then(() => {

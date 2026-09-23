@@ -718,9 +718,9 @@ class AuthController extends Controller
         foreach ($providers as $type => $model) {
             $candidate = $model::where('reset_password_token', $token)->first();
             if ($candidate) {
-                $this->response['status'] = true;
+                $this->response['success'] = true;
                 $this->response['text'] = 'Token valid';
-                $this->response['data'] = [
+                $this->response['result'] = [
                     'auth_type' => $type,
                     'auth_id' => $candidate->id,
                     'email' => $candidate->email,
@@ -729,9 +729,9 @@ class AuthController extends Controller
             }
         }
 
-        $this->response['status'] = false;
+        $this->response['success'] = false;
         $this->response['text'] = 'Token invalid';
-        $this->response['data'] = null;
+        $this->response['result'] = null;
 
         return $this->response;
     }
@@ -759,9 +759,9 @@ class AuthController extends Controller
                 $candidate->reset_password_token = null;
                 $candidate->save();
 
-                $this->response['status'] = true;
+                $this->response['success'] = true;
                 $this->response['text'] = 'Password updated';
-                $this->response['data'] = [
+                $this->response['result'] = [
                     'auth_type' => $type,
                     'auth_id' => $candidate->id,
                     'email' => $candidate->email,
@@ -770,9 +770,9 @@ class AuthController extends Controller
             }
         }
 
-        $this->response['status'] = false;
+        $this->response['success'] = false;
         $this->response['text'] = 'Token invalid';
-        $this->response['data'] = null;
+        $this->response['result'] = null;
 
         return $this->response;
     }

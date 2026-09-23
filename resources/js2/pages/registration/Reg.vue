@@ -100,9 +100,36 @@
                 </div>
             </div>
 
+            <div class="sm:col-span-2 mt-2 border-t border-border pt-4">
+                <div class="text-sm font-semibold">Surat Rekomendasi PERKI Cabang sesuai rencana penempatan kerja (apabila sudah memiliki tempat bekerja setelah lulus sebagai Sp.JP)</div>
+                <div class="mt-2 grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <div class="text-xs text-muted">Download template</div>
+                        <a :href="perkiTemplateUrl" target="_blank" rel="noreferrer"
+                            class="mt-2 inline-flex w-full items-center justify-between rounded-xl border border-border bg-surface px-4 py-3 text-sm hover:bg-white">
+                            <span class="truncate">Rekom Perki template.docx</span>
+                            <span class="text-primary">Download</span>
+                        </a>
+                    </div>
+                    <div>
+                        <div class="text-xs text-muted">Upload dokumen (image/pdf, max 1MB)</div>
+                        <input type="file" accept="image/*,.pdf"
+                            class="mt-2 w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm"
+                            :disabled="!canEdit || perkiUploading" @change="uploadPerkiRecommendationLetter" ref="perkiInput" />
+                        <span v-if="fieldErrors.perki_recommendation_url" class="mt-1 block text-xs text-red-600">{{ fieldErrors.perki_recommendation_url }}</span>
+                        <div v-if="perkiUploading" class="mt-1 text-xs text-muted">Uploading...</div>
+                        <div v-if="form.perki_recommendation_url" class="mt-2 text-xs">
+                            <a class="text-primary underline" :href="form.perki_recommendation_url" target="_blank" rel="noreferrer">
+                                {{ truncate(form.perki_recommendation_url) }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="sm:col-span-2 flex justify-end" v-if="canEdit">
                 <button class="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
-                    type="submit" :disabled="loading || statementUploading || graduateUploading">
+                    type="submit" :disabled="loading || statementUploading || graduateUploading || perkiUploading">
                     {{ loading ? 'Please wait...' : 'Simpan' }}
                 </button>
             </div>
@@ -126,16 +153,20 @@ export default {
                 video_url: '',
                 statement_letter_url: '',
                 graduate_url: '',
+                perki_recommendation_url: '',
             },
             loading: false,
             message: '',
             fieldErrors: {},
             statementUploading: false,
             graduateUploading: false,
+            perkiUploading: false,
             statementTemplateUrl:
                 'https://firebasestorage.googleapis.com/v0/b/unt-dev.firebasestorage.app/o/KardiologiFkkmk%2FAssets%2Ftemplate_surat_pernyataan_tes_ppds_2025.docx?alt=media&token=0c7fd3f0-9694-44fd-a381-bc52c45a465d',
             referenceDocumentUrl:
                 'https://firebasestorage.googleapis.com/v0/b/unt-dev.firebasestorage.app/o/KardiologiFkkmk%2FAssets%2Ftemplate_surat_keterangan_penempatan_kerja_setelah_lulus.docx?alt=media&token=bf9cb6e1-35ce-49be-a8a6-851aaa380c26',
+            perkiTemplateUrl:
+                'https://firebasestorage.googleapis.com/v0/b/unt-dev.firebasestorage.app/o/KardiologiFkkmk%2FAssets%2FRekom%20Perki%20template.docx?alt=media&token=824504a6-aa04-41e5-a50d-d29849765a84',
         };
     },
     computed: {
@@ -155,6 +186,7 @@ export default {
                     video_url: value.video_url || '',
                     statement_letter_url: value.statement_letter_url || '',
                     graduate_url: value.graduate_url || '',
+                    perki_recommendation_url: value.perki_recommendation_url || '',
                 };
             },
         },
@@ -253,6 +285,35 @@ export default {
                 })
                 .finally(() => {
                     this.graduateUploading = false;
+                });
+        },
+        uploadPerkiRecommendationLetter(event) {
+            const input = event && event.target ? event.target : null;
+            const file = input && input.files && input.files.length ? input.files[0] : null;
+            this.message = '';
+            this.fieldErrors = {};
+
+            const validationMessage = this.validateFile(file);
+            if (validationMessage) {
+                this.message = validationMessage;
+                if (input) input.value = '';
+                return;
+            }
+
+            this.perkiUploading = true;
+            uploadFirebaseFile({ file, prefix: 'Registration/PerkiRecommendation' })
+                .then((url) => {
+                    if (url) {
+                        this.form.perki_recommendation_url = url;
+                    } else {
+                        this.message = 'Upload failed';
+                    }
+                })
+                .catch(() => {
+                    this.message = 'Upload failed';
+                })
+                .finally(() => {
+                    this.perkiUploading = false;
                 });
         },
         save() {

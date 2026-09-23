@@ -42,6 +42,7 @@ class Registration extends Model
         "origin_university_accreditation",
         "statement_letter_url",
         "graduate_url",
+        "perki_recommendation_url",
         "graduate_reason",
         "graduate_place",
         "profession_finish_year",

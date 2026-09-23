@@ -114,10 +114,21 @@ class ScoreController extends Controller
             ], 404);
         }
 
+        // Browsers use <title> as the default "Save as PDF" filename:
+        // {Name} - {Stase} - {Task} - {YYMMDD of scoring date}
+        $scoring_date = \Carbon\Carbon::parse($stase_task_log->date ?? $stase_task_log->created_at ?? now());
+        $file_title = implode(' - ', [
+            $student->name,
+            $stase_task_log->stase->name ?? '-',
+            $stase_task_log->task->name ?? '-',
+            $scoring_date->format('ymd'),
+        ]);
+
         return view('templates.pdf.scoring_result', [
             'student' => $student,
             'stase_task_log' => $stase_task_log,
             'tanggal_penilaian' => $stase_task_log->date ? date_indo_str($stase_task_log->date) : null,
+            'file_title' => $file_title,
         ]);
     }
 

@@ -5,7 +5,7 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="/css/app.css">
-    <title>Hasil Penilaian {{ $student->name }}</title>
+    <title>{{ $file_title }}</title>
     <style>
         body, table {
             font-size: 10px;
@@ -104,7 +104,7 @@
             </div>
             <div style="font-weight: bold; font-size: 11px;">
                 {{ setting('app.department-name', 'DEPARTEMEN') }} <br>
-                FKKMK {{ setting('app.university-name', 'UNIVERSITAS') }}
+                {{ setting('app.university-name', 'UNIVERSITAS') }}
             </div>
         </td>
     </tr>
@@ -169,7 +169,10 @@
     @if($stase_task_log->symbol)
         <tr>
             <td colspan="2" style="font-weight: bold; text-align: right;">Simbol</td>
-            <td class="text-center" style="font-weight: bold;">{{ $stase_task_log->symbol }}</td>
+{{--            <td class="text-center" style="font-weight: bold;">{{ $stase_task_log->symbol }}</td>--}}
+            <td class="text-center" style="font-weight: bold;">
+                {{ $stase_task_log->point_average > 85 ? 'A' : "B" }}
+            </td>
         </tr>
     @endif
 </table>

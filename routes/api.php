@@ -10,7 +10,6 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\OpenStaseTaskController;
 use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\RegistrationStudentController;
-use App\Http\Controllers\Api\RegistrationDetailController;
 use App\Http\Controllers\Api\ScoreController;
 use App\Http\Controllers\Api\CmdController;
 use App\Http\Controllers\Api\LetterController;
@@ -87,7 +86,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::patch('registration/status', [RegistrationStudentController::class, 'setStatus']);
 
     // RegistrationDetailController
-    Route::resource('registration-details', RegistrationDetailController::class)->only(['store', 'update', 'destroy']);
+    Route::resource('registration-details', 'Api\RegistrationDetailController')->only(['store', 'update', 'destroy']);
 
     // UserController
     Route::resource('users', 'Api\UserController');

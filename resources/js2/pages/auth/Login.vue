@@ -145,7 +145,12 @@
                         <router-link class="font-medium text-primary hover:underline" to="/blu/forgot-password">
                             Forgot your password?
                         </router-link>
-                        <span class="block">Contact IT support if you need help.</span>
+                        <span class="block">
+                            Don't have an account?
+                            <router-link class="font-medium text-primary hover:underline" to="/blu/register">
+                                Register
+                            </router-link>
+                        </span>
                     </div>
                 </form>
             </div>

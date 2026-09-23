@@ -9,7 +9,7 @@
     <style>
         body {
             font-size: 12px;
-            font-family: Arial, sans-serif;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         table {
@@ -36,12 +36,54 @@
             border-bottom: 2px solid #6b6b6b;
         }
 
+        table, tr, td, th {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
         .p-8 {
             padding: 24px;
         }
 
+        .header {
+            padding: 20px 24px 14px;
+            gap: 16px;
+        }
+
+        .header img {
+            display: block;
+        }
+
+        .header-text {
+            text-align: left;
+        }
+
+        .header-text p {
+            line-height: 1.2;
+        }
+
+        .header-text .title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header-divider {
+            border-top: 1px solid #6b6b6b;
+            border-bottom: 3px solid #6b6b6b;
+        }
+
         .mb-0 {
             margin-bottom: 0;
+        }
+
+        .my-0 {
+            margin-bottom: 0;
+            margin-top: 0;
         }
 
         .mb-1 {
@@ -60,12 +102,16 @@
             font-size: 16px;
             font-weight: 700;
             margin: 0 0 8px;
+            page-break-after: avoid;
+            break-after: avoid;
         }
 
         h5 {
             font-size: 14px;
             font-weight: 600;
             margin: 0 0 6px;
+            page-break-after: avoid;
+            break-after: avoid;
         }
 
         .ms-2 {
@@ -110,18 +156,18 @@
 </head>
 
 <body>
-<div class="d-flex align-items-center">
+<div class="d-flex align-items-center header">
     <div>
-        <img style="width: 100px" src="/assets/images/logo-ugm.png" alt="">
+        <img style="width: 80px" src="/assets/images/logo-ugm.png" alt="Logo UGM">
     </div>
-    <div style="font-size: 14px">
-        <p class="mb-0">FORMULIR PENDAFTARAN</p>
-        <p class="mb-0">PROGRAM PENDIDIKAN DOKTER SPESIALIS I</p>
-        <p class="mb-0">Program Studi Jantung dan Pembuluh Darah, Fakultas Kedokteran, Kesehatan Masyarakat, dan
-            Keperawatan, UNIVERSITAS</p>
+    <div class="header-text" style="flex: 1">
+        <p class="my-0 title">FORMULIR PENDAFTARAN</p>
+        <p class="my-0 title">PROGRAM PENDIDIKAN DOKTER SPESIALIS I</p>
+        <p class="my-0">Program Studi Jantung dan Pembuluh Darah, Fakultas Kedokteran, Kesehatan Masyarakat, dan
+            Keperawatan, Universitas Gadjah Mada</p>
     </div>
 </div>
-<div style="border-top: 1px solid gray; border-bottom: 2px solid gray; height: 4px; margin-top: 10px"></div>
+<div class="header-divider"></div>
 <div class="p-8">
     <h4>I. Data Pribadi</h4>
     <div class="d-flex">

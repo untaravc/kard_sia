@@ -286,6 +286,7 @@ class RegistrationStudentController extends Controller
         $registration->graduate_place = $request->graduate_place;
         $registration->graduate_reason = $request->graduate_reason;
         $registration->graduate_url = $request->graduate_url;
+        $registration->perki_recommendation_url = $request->perki_recommendation_url;
         $registration->statement_letter_url = $request->statement_letter_url;
 
         $registration->save();
