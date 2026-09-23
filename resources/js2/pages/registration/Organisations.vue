@@ -8,7 +8,7 @@
             </button>
         </div>
 
-        <div v-if="message" class="mt-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+        <div v-if="message" ref="notice" role="status" class="mt-4 rounded-xl border px-4 py-3 text-sm" :class="messageClass">
             {{ message }}
         </div>
 
@@ -109,11 +109,13 @@
 
 <script>
 import Repository from '../../repository';
+import formFeedback from './formFeedback';
 import Modal from '../../components/Modal.vue';
 import { uploadFirebaseFile } from '../../upload';
 
 export default {
     name: 'RegistrationOrganisations',
+    mixins: [formFeedback],
     components: { Modal },
     props: { registration: { type: Object, default: null } },
     data() {
@@ -203,7 +205,7 @@ export default {
 
             const validationMessage = this.validateFile(file);
             if (validationMessage) {
-                this.message = validationMessage;
+                this.detailErrors = { file_url: validationMessage };
                 if (input) input.value = '';
                 return;
             }
@@ -214,11 +216,11 @@ export default {
                     if (url) {
                         this.form.file_url = url;
                     } else {
-                        this.message = 'Upload failed';
+                        this.detailErrors = { file_url: 'Upload gagal, silakan coba lagi.' };
                     }
                 })
                 .catch(() => {
-                    this.message = 'Upload failed';
+                    this.detailErrors = { file_url: 'Upload gagal, silakan coba lagi.' };
                 })
                 .finally(() => {
                     this.uploading = false;
@@ -244,6 +246,7 @@ export default {
             return request
                 .then(() => {
                     this.closeModal();
+                    this.notifySuccess(this.editMode ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
                     this.$emit('refresh');
                 })
                 .catch((error) => {
@@ -257,10 +260,11 @@ export default {
             if (!confirm('Hapus data?')) return;
             return Repository.delete(`/api/registration-details/${id}`)
                 .then(() => {
+                    this.notifySuccess('Data berhasil dihapus.');
                     this.$emit('refresh');
                 })
                 .catch(() => {
-                    // ignore
+                    this.notifyError('Gagal menghapus data.');
                 });
         },
     },

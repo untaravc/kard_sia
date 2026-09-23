@@ -26,7 +26,10 @@
                             class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                     </label>
                     <label class="grid gap-2 text-sm">
-                        <span class="text-muted">Password</span>
+                        <span class="flex items-center justify-between">
+                            <span class="text-muted">Password</span>
+                            <router-link class="text-xs text-primary" to="/blu/forgot-password">Lupa password?</router-link>
+                        </span>
                         <input type="password" placeholder="Enter your password" v-model="form.password"
                             class="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                     </label>

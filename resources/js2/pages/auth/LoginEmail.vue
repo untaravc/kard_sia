@@ -58,6 +58,7 @@ export default {
                 }
 
                 const jwtToken = data.result ? data.result.token : null;
+                const authType = data.result ? data.result.auth_type : null;
                 if (jwtToken) {
                     localStorage.setItem('token', jwtToken);
                     initWebFcm().catch(() => {
@@ -66,7 +67,7 @@ export default {
                 }
 
                 this.statusMessage = 'Login success.';
-                this.$router.push('/blu/dashboard');
+                this.$router.push(authType === 'registration' ? '/reg/index' : '/blu/dashboard');
             })
             .catch((error) => {
                 const message = error && error.response && error.response.data

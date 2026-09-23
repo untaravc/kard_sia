@@ -3,7 +3,7 @@
         <div class="text-lg font-semibold">Riwayat Pendidikan</div>
         <p class="mt-1 text-sm text-muted">Lengkapi riwayat pendidikan anda.</p>
 
-        <div v-if="message" class="mt-4 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+        <div v-if="message" ref="notice" role="status" class="mt-4 rounded-xl border px-4 py-3 text-sm" :class="messageClass">
             {{ message }}
         </div>
 
@@ -165,10 +165,12 @@
 
 <script>
 import Repository from '../../repository';
+import formFeedback from './formFeedback';
 import { uploadFirebaseFile } from '../../upload';
 
 export default {
     name: 'RegistrationEducationBg',
+    mixins: [formFeedback],
     props: { registration: { type: Object, default: null } },
     data() {
         return {
@@ -278,7 +280,7 @@ export default {
 
             const validationMessage = this.validateFile(file);
             if (validationMessage) {
-                this.message = validationMessage;
+                this.notifyError(validationMessage);
                 if (input) input.value = '';
                 return;
             }
@@ -289,11 +291,11 @@ export default {
                     if (url) {
                         this.form.str_url = url;
                     } else {
-                        this.message = 'Upload failed';
+                        this.notifyError('Upload gagal, silakan coba lagi.');
                     }
                 })
                 .catch(() => {
-                    this.message = 'Upload failed';
+                    this.notifyError('Upload gagal, silakan coba lagi.');
                 })
                 .finally(() => {
                     this.strUploading = false;
@@ -307,7 +309,7 @@ export default {
 
             const validationMessage = this.validateFile(file);
             if (validationMessage) {
-                this.message = validationMessage;
+                this.notifyError(validationMessage);
                 if (input) input.value = '';
                 return;
             }
@@ -318,11 +320,11 @@ export default {
                     if (url) {
                         this.form.acls_url = url;
                     } else {
-                        this.message = 'Upload failed';
+                        this.notifyError('Upload gagal, silakan coba lagi.');
                     }
                 })
                 .catch(() => {
-                    this.message = 'Upload failed';
+                    this.notifyError('Upload gagal, silakan coba lagi.');
                 })
                 .finally(() => {
                     this.aclsUploading = false;
@@ -340,13 +342,12 @@ export default {
             delete payload.str_forever;
 
             return Repository.patch('/api/registration/education-bg', payload)
-                .then((response) => {
-                    const data = response && response.data ? response.data : {};
-                    this.message = data.text || 'Saved';
+                .then(() => {
+                    this.notifySuccess();
                     this.$emit('refresh');
                 })
                 .catch((error) => {
-                    this.message = error && error.response && error.response.data ? error.response.data.text : 'Save failed';
+                    this.notifyError(error && error.response && error.response.data ? error.response.data.text : 'Gagal menyimpan data.');
                     this.fieldErrors = this.normalizeErrors(error);
                 })
                 .finally(() => {
