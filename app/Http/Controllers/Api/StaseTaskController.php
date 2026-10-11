@@ -232,6 +232,93 @@ class StaseTaskController extends Controller
         ]);
     }
 
+    protected function jwtStudentId(Request $request)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        return $studentId;
+    }
+
+    /**
+     * Per-component breakdown of one scored task log of the logged-in student.
+     */
+    public function studentScoreDetail(Request $request, $id)
+    {
+        $studentId = $this->jwtStudentId($request);
+        if (!$studentId) {
+            return response()->json(['success' => false, 'text' => 'Unauthorized', 'result' => null], 401);
+        }
+
+        $log = StaseTaskLog::with(['lecture:id,name', 'task:id,name'])
+            ->where('student_id', $studentId)
+            ->where('point_average', '>', 0)
+            ->find($id);
+
+        if (!$log) {
+            return response()->json(['success' => false, 'text' => 'Scoring result not found', 'result' => null], 404);
+        }
+
+        $points = \Illuminate\Support\Facades\DB::table('stase_task_log_points')
+            ->where('stase_task_log_id', $log->id)
+            ->join('task_details', 'task_details.id', '=', 'stase_task_log_points.task_detail_id')
+            ->orderBy('task_details.order')
+            ->get([
+                'stase_task_log_points.id',
+                'stase_task_log_points.score',
+                'task_details.name',
+                'task_details.order',
+                'task_details.type',
+            ]);
+
+        $log->setAttribute('points', $points);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Scoring Detail Success',
+            'result' => $log,
+        ]);
+    }
+
+    /**
+     * Student's rating (1-5) and written feedback for the lecture who scored.
+     */
+    public function storeScoreFeedback(Request $request, $id)
+    {
+        $studentId = $this->jwtStudentId($request);
+        if (!$studentId) {
+            return response()->json(['success' => false, 'text' => 'Unauthorized', 'result' => null], 401);
+        }
+
+        $this->validate($request, [
+            'feedback_rating' => 'required|integer|between:1,5',
+            'feedback_text' => 'nullable|string|max:2000',
+        ]);
+
+        $log = StaseTaskLog::where('student_id', $studentId)
+            ->where('point_average', '>', 0)
+            ->find($id);
+
+        if (!$log) {
+            return response()->json(['success' => false, 'text' => 'Scoring result not found', 'result' => null], 404);
+        }
+
+        $log->update([
+            'feedback_rating' => (int) $request->feedback_rating,
+            'feedback_text' => $request->feedback_text,
+            'feedback_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Feedback saved',
+            'result' => $log->only(['id', 'feedback_rating', 'feedback_text', 'feedback_at']),
+        ]);
+    }
+
     public function validateData($request)
     {
         $this->validate($request, [

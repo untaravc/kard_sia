@@ -27,6 +27,9 @@ class StaseTaskLog extends Model
         'status',
         'admin',
         'conclusion',
+        'feedback_rating',
+        'feedback_text',
+        'feedback_at',
     ];
 
     public function task(){

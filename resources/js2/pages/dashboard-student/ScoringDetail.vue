@@ -158,21 +158,54 @@
                     class="mt-2 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60 bg-white"
                 >
                     <div v-for="log in task.staseTaskLogs" :key="log.id" class="p-3">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
-                                <span class="rounded-full bg-amber-100 px-2 py-0.5 font-semibold text-amber-800">
-                                    Score {{ log.point_average || 0 }}
-                                </span>
-                                <span v-if="log.date">{{ log.date }}</span>
-                                <span v-if="log.lecture_name">• {{ log.lecture_name }}</span>
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-lg font-bold"
+                                :class="scoreTone(log.point_average)"
+                            >
+                                {{ log.point_average || 0 }}
                             </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-[13px] font-semibold leading-snug text-ink break-words">
+                                    {{ log.lecture_name || 'Lecture' }}
+                                </div>
+                                <div class="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted">
+                                    <span v-if="log.date">{{ formatDate(log.date) }}</span>
+                                    <span v-if="log.symbol" class="rounded-full bg-slate-100 px-1.5 font-semibold text-ink">
+                                        {{ log.symbol }}
+                                    </span>
+                                </div>
+                                <div v-if="log.feedback_rating" class="mt-1 flex items-center gap-1.5 text-[11px] text-muted">
+                                    <span class="text-amber-500" aria-hidden="true">
+                                        {{ '★'.repeat(log.feedback_rating) }}<span class="text-slate-300">{{ '★'.repeat(5 - log.feedback_rating) }}</span>
+                                    </span>
+                                    Your feedback sent
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            v-if="log.note"
+                            class="mt-2.5 rounded-lg border-l-4 border-amber-300 bg-amber-50/70 px-3 py-2"
+                        >
+                            <div class="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-700">Catatan</div>
+                            <div class="mt-0.5 whitespace-pre-line text-[13px] leading-snug text-ink break-words">{{ log.note }}</div>
+                        </div>
+                        <div class="mt-2.5 flex gap-2">
                             <button
-                                class="inline-flex min-h-[30px] shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[11px] font-semibold text-muted transition active:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                class="inline-flex min-h-[36px] flex-1 items-center justify-center gap-1 rounded-lg bg-primary text-xs font-semibold text-white transition active:opacity-90"
+                                type="button"
+                                @click="openScoreDetail(log)"
+                            >
+                                <Icon icon="mdi:clipboard-text-search-outline" class="h-4 w-4" />
+                                Score Detail
+                            </button>
+                            <button
+                                class="inline-flex min-h-[36px] shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-3 text-xs font-semibold text-muted transition active:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                                 type="button"
                                 :disabled="!studentLinkToken"
                                 @click="printScoringResult(log)"
                             >
-                                <Icon icon="mdi:printer-outline" class="h-3.5 w-3.5" />
+                                <Icon icon="mdi:printer-outline" class="h-4 w-4" />
                                 Print
                             </button>
                         </div>
@@ -216,6 +249,114 @@
             </div>
         </div>
         </section>
+        <Modal
+            :open="detailModalOpen"
+            title="Score Detail"
+            :eyebrow="detailLog ? (detailLog.task_name || 'Scoring') : 'Scoring'"
+            size="md"
+            @close="closeScoreDetail"
+        >
+            <div v-if="detailLoading" class="py-10 text-center text-xs text-muted">Loading...</div>
+            <div v-else-if="detailError" class="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
+                {{ detailError }}
+            </div>
+            <div v-else-if="detail" class="grid gap-4 text-sm">
+                <div class="flex items-center gap-3 rounded-xl border border-border bg-white p-3">
+                    <div
+                        class="grid h-14 w-14 shrink-0 place-items-center rounded-xl text-xl font-bold"
+                        :class="scoreTone(detail.point_average)"
+                    >
+                        {{ detail.point_average || 0 }}
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-sm font-semibold text-ink break-words">
+                            {{ (detail.task && detail.task.name) || 'Scoring' }}
+                        </div>
+                        <div class="text-xs text-muted break-words">
+                            {{ (detail.lecture && detail.lecture.name) || 'Lecture' }}
+                            <span v-if="detail.date"> · {{ formatDate(detail.date) }}</span>
+                        </div>
+                        <div v-if="detail.conclusion" class="mt-1 text-xs font-semibold text-ink">{{ detail.conclusion }}</div>
+                    </div>
+                </div>
+
+                <div v-if="detail.note" class="rounded-lg border-l-4 border-amber-300 bg-amber-50/70 px-3 py-2">
+                    <div class="text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-700">Catatan</div>
+                    <div class="mt-0.5 whitespace-pre-line text-[13px] leading-snug text-ink break-words">{{ detail.note }}</div>
+                </div>
+
+                <div v-if="detail.points && detail.points.length">
+                    <div class="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted">Components</div>
+                    <div class="divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60 bg-white">
+                        <div
+                            v-for="point in detail.points"
+                            :key="point.id"
+                            class="flex items-center justify-between gap-3 px-3 py-2"
+                        >
+                            <span class="min-w-0 text-[13px] leading-snug text-ink break-words">{{ point.name }}</span>
+                            <span
+                                class="shrink-0 rounded-md px-2 py-0.5 text-xs font-semibold"
+                                :class="point.score === null ? 'bg-slate-100 text-muted' : scoreTone(point.score)"
+                            >
+                                {{ point.score === null ? '-' : point.score }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                    <div class="text-sm font-semibold text-ink">Feedback for the lecture</div>
+                    <div class="text-xs text-muted">How was the assessment and guidance?</div>
+                    <div class="mt-3 flex items-center gap-1" role="radiogroup" aria-label="Rating">
+                        <button
+                            v-for="n in 5"
+                            :key="n"
+                            type="button"
+                            class="grid h-10 w-10 place-items-center rounded-lg transition active:scale-95"
+                            :aria-label="`${n} star${n > 1 ? 's' : ''}`"
+                            :aria-checked="feedbackForm.rating === n"
+                            role="radio"
+                            @click="feedbackForm.rating = n"
+                        >
+                            <Icon
+                                :icon="n <= feedbackForm.rating ? 'mdi:star' : 'mdi:star-outline'"
+                                class="h-8 w-8"
+                                :class="n <= feedbackForm.rating ? 'text-amber-400' : 'text-slate-300'"
+                            />
+                        </button>
+                        <span v-if="feedbackForm.rating" class="ml-1 text-xs font-semibold text-muted">
+                            {{ ratingLabels[feedbackForm.rating - 1] }}
+                        </span>
+                    </div>
+                    <textarea
+                        v-model="feedbackForm.text"
+                        rows="3"
+                        maxlength="2000"
+                        placeholder="Write your feedback..."
+                        class="mt-3 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    ></textarea>
+                    <div v-if="feedbackError" class="mt-2 text-xs text-rose-600">{{ feedbackError }}</div>
+                </div>
+            </div>
+            <template #footer>
+                <button
+                    class="min-h-[44px] flex-1 rounded-xl border border-border px-4 text-sm text-muted transition active:bg-slate-100 sm:flex-none"
+                    type="button"
+                    @click="closeScoreDetail"
+                >
+                    Close
+                </button>
+                <button
+                    v-if="detail"
+                    class="min-h-[44px] flex-1 rounded-xl bg-primary px-4 text-sm font-medium text-white transition active:opacity-90 disabled:opacity-60 sm:flex-none"
+                    type="button"
+                    :disabled="feedbackSubmitting || !feedbackForm.rating"
+                    @click="submitFeedback"
+                >
+                    {{ feedbackSubmitting ? 'Saving...' : (detail.feedback_rating ? 'Update Feedback' : 'Send Feedback') }}
+                </button>
+            </template>
+        </Modal>
         <Modal
             :open="scoringModalOpen"
             title="Open Scoring"
@@ -529,6 +670,15 @@ export default {
             notifyError: '',
             actionMenuOpenId: null,
             studentLinkToken: '',
+            detailModalOpen: false,
+            detailLoading: false,
+            detailError: '',
+            detailLog: null,
+            detail: null,
+            feedbackForm: { rating: 0, text: '' },
+            feedbackSubmitting: false,
+            feedbackError: '',
+            ratingLabels: ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'],
         };
     },
     computed: {
@@ -612,6 +762,87 @@ export default {
         document.removeEventListener('click', this.handleDocumentClick);
     },
     methods: {
+        scoreTone(value) {
+            const score = Number(value);
+            if (!score) {
+                return 'bg-slate-100 text-muted';
+            }
+            if (score >= 80) {
+                return 'bg-emerald-100 text-emerald-700';
+            }
+            if (score >= 70) {
+                return 'bg-amber-100 text-amber-800';
+            }
+            return 'bg-rose-100 text-rose-700';
+        },
+        formatDate(value) {
+            const date = new Date(String(value).replace(' ', 'T'));
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        },
+        openScoreDetail(log) {
+            this.detailLog = log;
+            this.detail = null;
+            this.detailError = '';
+            this.feedbackError = '';
+            this.feedbackForm = { rating: log.feedback_rating || 0, text: log.feedback_text || '' };
+            this.detailModalOpen = true;
+            this.detailLoading = true;
+            return Repository.get(`/api/student-score-detail/${log.id}`)
+                .then((response) => {
+                    this.detail = response && response.data ? response.data.result : null;
+                    if (this.detail) {
+                        this.feedbackForm = {
+                            rating: this.detail.feedback_rating || 0,
+                            text: this.detail.feedback_text || '',
+                        };
+                    }
+                })
+                .catch((error) => {
+                    this.detailError = error && error.response && error.response.data && error.response.data.text
+                        ? error.response.data.text
+                        : 'Failed to load score detail.';
+                })
+                .finally(() => {
+                    this.detailLoading = false;
+                });
+        },
+        closeScoreDetail() {
+            this.detailModalOpen = false;
+        },
+        submitFeedback() {
+            if (!this.detail || !this.feedbackForm.rating) {
+                return;
+            }
+            this.feedbackSubmitting = true;
+            this.feedbackError = '';
+            return Repository.post(`/api/student-score-feedback/${this.detail.id}`, {
+                feedback_rating: this.feedbackForm.rating,
+                feedback_text: this.feedbackForm.text,
+            })
+                .then((response) => {
+                    const saved = response && response.data ? response.data.result : null;
+                    if (saved && this.detailLog) {
+                        this.detailLog.feedback_rating = saved.feedback_rating;
+                        this.detailLog.feedback_text = saved.feedback_text;
+                        this.detailLog.feedback_at = saved.feedback_at;
+                    }
+                    if (this.$showToast) {
+                        this.$showToast('Feedback sent.');
+                    }
+                    this.closeScoreDetail();
+                })
+                .catch((error) => {
+                    this.feedbackError = error && error.response && error.response.data && error.response.data.text
+                        ? error.response.data.text
+                        : 'Failed to send feedback.';
+                })
+                .finally(() => {
+                    this.feedbackSubmitting = false;
+                });
+        },
         toggleActionMenu(openTaskId) {
             this.actionMenuOpenId = this.actionMenuOpenId === openTaskId ? null : openTaskId;
         },

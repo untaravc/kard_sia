@@ -25,6 +25,7 @@
             >
                 <Icon :icon="collapsed ? 'mdi:menu-open' : 'mdi:menu'" class="h-5 w-5" />
             </button>
+            <div class="flex-1"></div>
             <button
                 v-if="showLogoutAs"
                 class="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
@@ -99,15 +100,6 @@
                     </div>
                 </div>
             </div>
-            <div class="flex min-w-0 flex-1 items-center gap-2.5">
-                <div class="grid h-8 w-8 place-items-center rounded-full bg-accent text-sm font-semibold text-ink">
-                    {{ initials }}
-                </div>
-                <div class="min-w-0 leading-tight">
-                    <div class="truncate text-sm font-semibold">{{ displayName }}</div>
-                    <div class="truncate text-xs text-muted">{{ displaySubtitle }}</div>
-                </div>
-            </div>
             <div class="relative">
                 <button
                     v-if="showMenuButton"
@@ -122,8 +114,17 @@
                      this element in the DOM and would otherwise cover it. -->
                 <div
                     v-if="menuOpen"
-                    class="absolute right-0 z-30 mt-2 w-40 rounded-xl border border-border bg-white shadow-md"
+                    class="absolute right-0 z-30 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-white shadow-md"
                 >
+                    <div class="flex items-center gap-2.5 border-b border-border px-3 py-3">
+                        <div class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-semibold text-ink">
+                            {{ initials }}
+                        </div>
+                        <div class="min-w-0 leading-tight">
+                            <div class="truncate text-sm font-semibold">{{ displayName }}</div>
+                            <div class="truncate text-xs text-muted">{{ displaySubtitle }}</div>
+                        </div>
+                    </div>
                     <button
                         type="button"
                         class="block w-full px-3 py-2.5 text-left text-xs text-ink hover:bg-slate-50"

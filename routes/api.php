@@ -118,6 +118,8 @@ Route::middleware('jwt.auth')->group(function () {
     Route::resource('stase-tasks', 'Api\StaseTaskController');
     Route::get('student-stase-task/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask2']);
     Route::get('student-stase-task2/{stase_id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentStaseTask2']);
+    Route::get('student-score-detail/{id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'studentScoreDetail']);
+    Route::post('student-score-feedback/{id}', [\App\Http\Controllers\Api\StaseTaskController::class, 'storeScoreFeedback']);
 
     // LogbookController
     Route::get('stase-option/{stase_id}', [\App\Http\Controllers\Api\LogbookController::class, 'staseOption']);

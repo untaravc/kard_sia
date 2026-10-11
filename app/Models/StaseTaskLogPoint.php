@@ -22,6 +22,8 @@ class StaseTaskLogPoint extends Model
     }
 
     public function getOrderAttribute(){
-        return $this->taskDetail()->first()->order;
+        $detail = $this->taskDetail()->first();
+
+        return $detail ? $detail->order : null;
     }
 }
