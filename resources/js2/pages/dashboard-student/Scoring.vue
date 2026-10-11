@@ -81,6 +81,15 @@
                         <span v-if="log.start_date && log.end_date"> - </span>
                         <span v-if="log.end_date">{{ log.end_date }}</span>
                     </div>
+                    <button
+                        v-if="log.stase && log.status === 'finish' && log.stase.evaluation_link"
+                        class="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                        type="button"
+                        @click="openEvaluation(log)"
+                    >
+                        <Icon :icon="log.evaluated_at ? 'mdi:check-circle' : 'mdi:clipboard-text-outline'" class="h-4 w-4" />
+                        Form Evaluasi
+                    </button>
                 </div>
                 <div class="mt-2.5 flex gap-2 sm:justify-end">
                     <button
@@ -249,6 +258,27 @@ export default {
         this.fetchStudentStase();
     },
     methods: {
+        openEvaluation(log) {
+            // open the tab synchronously so popup blockers allow it
+            const tab = window.open('', '_blank');
+            return Repository.get(`/api/student-stase/${log.id}/evaluation-link`)
+                .then((response) => {
+                    const result = response && response.data ? response.data.result : null;
+                    if (!result || !result.evaluation_link) {
+                        throw new Error('missing link');
+                    }
+                    log.evaluated_at = result.evaluated_at;
+                    if (tab) {
+                        tab.location = result.evaluation_link;
+                    } else {
+                        window.location.href = result.evaluation_link;
+                    }
+                })
+                .catch(() => {
+                    if (tab) tab.close();
+                    this.$showToast('Failed to open evaluation form.');
+                });
+        },
         setActiveTab(tab) {
             if (this.activeTab === tab) {
                 return;

@@ -380,6 +380,53 @@ class StaseController extends Controller
         ]);
     }
 
+    public function evaluationLink(Request $request, $id)
+    {
+        $payload = $request->attributes->get('jwt_payload');
+        $studentId = $payload ? data_get($payload, 'log_as_auth_id') : null;
+        $authType = $payload ? data_get($payload, 'auth_type') : null;
+
+        if (!$studentId) {
+            $studentId = $payload ? data_get($payload, 'auth_id') : null;
+        }
+
+        if ($authType === 'user' && $request->student_id) {
+            $studentId = (int) $request->student_id;
+        }
+
+        if (!$studentId) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Unauthorized',
+                'result' => null,
+            ], 401);
+        }
+
+        $log = StaseLog::with('stase')
+            ->where('id', $id)
+            ->where('student_id', $studentId)
+            ->first();
+
+        if (!$log || !$log->stase || !$log->stase->evaluation_link) {
+            return response()->json([
+                'success' => false,
+                'text' => 'Evaluation form not found',
+                'result' => null,
+            ], 404);
+        }
+
+        $log->update(['evaluated_at' => now()]);
+
+        return response()->json([
+            'success' => true,
+            'text' => 'Retrieve Evaluation Link Success',
+            'result' => [
+                'evaluation_link' => $log->stase->evaluation_link,
+                'evaluated_at' => $log->evaluated_at,
+            ],
+        ]);
+    }
+
     public function updateStudentStase(Request $request, $id)
     {
         $payload = $request->attributes->get('jwt_payload');
